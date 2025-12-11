@@ -159,63 +159,18 @@ app.post('/api/find-cars', async (req, res) => {
     }
 
     // Prompt to analyze requirements and suggest cars
+    // Add messages to the prompt before calling Ollama
+    const findCarPromptTemplate = readFileSync('./prompt-templates/find-cars.md', 'utf8');
     const messages = [
       {
-        role: "system",
-        content: `You are an expert car consultant. Your task is:
-1. Analyze the user's needs and identify their PRIMARY FOCUS (performance, space, economy, luxury, etc.)
-2. Suggest EXACTLY 3 cars that match their requirements
-3. For each car, provide core information AND 3-5 properties most relevant to the user's focus
-
-CRITICAL: You MUST respond with ONLY a VALID JSON object in this EXACT format (no other text, no markdown):
-{
-  "analysis": "brief analysis of user needs (2-3 sentences)",
-  "cars": [
-    {
-      "make": "Brand name",
-      "model": "Model name",
-      "year": "2023",
-      "price": "25,000-30,000€",
-      "type": "SUV/Sedan/Compact/Station Wagon/etc",
-      "properties": {
-        "property1Name": "value1",
-        "property2Name": "value2",
-        "property3Name": "value3"
-      },
-      "strengths": ["point 1", "point 2", "point 3"],
-      "weaknesses": ["point 1", "point 2"],
-      "reason": "brief explanation why it's suitable (1-2 sentences)"
-    }
-  ]
-}
-
-PROPERTY SELECTION GUIDELINES based on user focus:
-- SPORTS/PERFORMANCE: horsepower, acceleration0to60, topSpeed, transmission, handling
-- FAMILY/SPACE: seatingCapacity, trunkSize, cargoSpace, safetyRating, childSeatAnchors
-- ECONOMY/BUDGET: fuelConsumption, maintenanceCost, insuranceCost, depreciation, taxCost
-- LUXURY/COMFORT: interiorQuality, technologyFeatures, soundSystem, comfortFeatures, materials
-- OFF-ROAD/ADVENTURE: groundClearance, fourWheelDrive, towingCapacity, offRoadCapability
-- CITY/URBAN: parkingEase, turningRadius, cityFuelConsumption, compactSize
-- ECO/ELECTRIC: batteryRange, chargingTime, electricMotor, emissions, ecoFeatures
-
-Choose 3-5 properties that best match the user's PRIMARY focus. Use camelCase for property names.
-After choosing property, all vehicles should have an answer for each property.
-
-IMPORTANT:
-- Suggest REAL and AVAILABLE cars on the market
-- Vary proposals (different price ranges, different segments)
-- Be specific with models and versions
-- Consider the European market
-- Use metric sistem and EURO currency
-- ALL 3 cars should have the SAME property names (for comparison)
-- Return ONLY the JSON, nothing else`
+      role: "system",
+      content: findCarPromptTemplate
       },
       {
-        role: "user",
-        content: `My requirements are: ${requirements}`
+      role: "user",
+      content: requirements
       }
     ];
-
     console.log('📝 Request received:', requirements);
 
     const response = await callOllama(messages);
@@ -323,48 +278,11 @@ app.post('/api/compare-cars', async (req, res) => {
 
     console.log(`📊 Comparing: ${car1} VS ${car2}`);
 
+    const comparePromptTemplate = readFileSync('./prompt-templates/compare-cars.md', 'utf8');
     const messages = [
       {
         role: "system",
-        content: `You are an expert who compares automobiles. Provide a detailed comparison between two specific cars.
-
-Return ONLY this JSON format (no markdown, no other text):
-{
-  "comparison": "introduction to comparison (2-3 sentences)",
-  "categories": [
-    {
-      "name": "Performance",
-      "car1": "description and rating 1-10",
-      "car2": "description and rating 1-10",
-      "winner": "car1/car2/tie"
-    },
-    {
-      "name": "Fuel Consumption",
-      "car1": "...",
-      "car2": "...",
-      "winner": "..."
-    },
-    {
-      "name": "Space and Practicality",
-      "car1": "...",
-      "car2": "...",
-      "winner": "..."
-    },
-    {
-      "name": "Reliability",
-      "car1": "...",
-      "car2": "...",
-      "winner": "..."
-    },
-    {
-      "name": "Cost of Ownership",
-      "car1": "...",
-      "car2": "...",
-      "winner": "..."
-    }
-  ],
-  "conclusion": "which to choose and why (3-4 sentences)"
-}`
+        content: comparePromptTemplate
       },
       {
         role: "user",
@@ -426,19 +344,21 @@ app.post('/api/ask-about-car', async (req, res) => {
       });
     }
 
-    console.log(`❓ Question about ${car}: ${question}`);
+   
 
+    const askingPromptTemplate = readFileSync('./prompt-templates/asking-car.md', 'utf8');
     const messages = [
       {
         role: "system",
-        content: `You are a car expert. Answer detailed and precise questions about ${car}.
-        Provide concrete information, real numbers, and practical advice. Respond in 2-4 paragraphs.`
+        content: askingPromptTemplate + ` ${car}`
       },
       {
         role: "user",
         content: `About ${car}: ${question}`
       }
     ];
+
+     console.log(`❓ Question about ${car}: ${question}`, messages);
 
     const response = await callOllama(messages);
 
@@ -472,23 +392,11 @@ app.post('/api/get-alternatives', async (req, res) => {
 
     console.log(`🔄 Finding alternatives for: ${car}`);
 
+    const getAlternativePromptTemplate = readFileSync('./prompt-templates/get-alternative-car.md', 'utf8');
     const messages = [
       {
         role: "system",
-        content: `You are an expert automotive consultant. Suggest 3 concrete alternatives to ${car}.
-        ${reason ? `The user is looking for alternatives because: ${reason}` : ''}
-
-Return ONLY this JSON format (no markdown):
-{
-  "alternatives": [
-    {
-      "make": "...",
-      "model": "...",
-      "reason": "brief explanation (1-2 sentences)",
-      "advantages": "what makes it better/different"
-    }
-  ]
-}`
+        content: getAlternativePromptTemplate + `Car ${car}` + ` and Reason ${reason || 'The user is looking for alternatives because: ${reason}'}`
       },
       {
         role: "user",
