@@ -1,0 +1,652 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "CarGPT API",
+        "version": "1.0.0",
+        "description": "AI-powered car recommendation system using Ollama. Find your perfect car by describing your needs in natural language.",
+        "contact": {
+            "name": "CarGPT Support",
+            "url": "https://github.com/yourusername/CarGPT"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000",
+            "description": "Local development server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Cars",
+            "description": "Car recommendation and search operations"
+        },
+        {
+            "name": "Comparison",
+            "description": "Compare cars and find alternatives"
+        },
+        {
+            "name": "Q&A",
+            "description": "Ask questions about specific cars"
+        },
+        {
+            "name": "System",
+            "description": "System health and session management"
+        }
+    ],
+    "paths": {
+        "/api/find-cars": {
+            "post": {
+                "tags": [
+                    "Cars"
+                ],
+                "summary": "Find cars based on requirements",
+                "description": "Analyzes user requirements and returns 3 personalized car recommendations using AI",
+                "operationId": "findCars",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "requirements"
+                                ],
+                                "properties": {
+                                    "requirements": {
+                                        "type": "string",
+                                        "minLength": 10,
+                                        "description": "Detailed description of car requirements",
+                                        "example": "Looking for a spacious family car with large trunk for 3 suitcases, low fuel consumption, max budget €25,000"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response with car recommendations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FindCarsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid or missing parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "example": {
+                                    "success": false,
+                                    "error": "Describe your needs in more detail (at least 10 characters)"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error - Ollama connection issue",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "example": {
+                                    "success": false,
+                                    "error": "Unable to connect to Ollama. Make sure it is running (ollama serve)"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/compare-cars": {
+            "post": {
+                "tags": [
+                    "Comparison"
+                ],
+                "summary": "Compare two cars in detail",
+                "description": "Provides detailed comparison between two specific cars across multiple categories",
+                "operationId": "compareCars",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "car1",
+                                    "car2"
+                                ],
+                                "properties": {
+                                    "car1": {
+                                        "type": "string",
+                                        "description": "First car to compare (make and model)",
+                                        "example": "Skoda Octavia Wagon"
+                                    },
+                                    "car2": {
+                                        "type": "string",
+                                        "description": "Second car to compare (make and model)",
+                                        "example": "Peugeot 5008"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful comparison",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CompareResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Missing car parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ask-about-car": {
+            "post": {
+                "tags": [
+                    "Q&A"
+                ],
+                "summary": "Ask a question about a specific car",
+                "description": "Get detailed AI-powered answers about specific aspects of a car",
+                "operationId": "askAboutCar",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "car",
+                                    "question"
+                                ],
+                                "properties": {
+                                    "car": {
+                                        "type": "string",
+                                        "description": "Car make and model",
+                                        "example": "Skoda Octavia Wagon"
+                                    },
+                                    "question": {
+                                        "type": "string",
+                                        "description": "Question about the car",
+                                        "example": "How much does annual maintenance cost?"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful answer",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AskResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Missing parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/get-alternatives": {
+            "post": {
+                "tags": [
+                    "Comparison"
+                ],
+                "summary": "Get similar alternative cars",
+                "description": "Find 3 similar alternative cars to a given model",
+                "operationId": "getAlternatives",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "car"
+                                ],
+                                "properties": {
+                                    "car": {
+                                        "type": "string",
+                                        "description": "Car make and model",
+                                        "example": "Skoda Octavia Wagon"
+                                    },
+                                    "reason": {
+                                        "type": "string",
+                                        "description": "Optional reason for seeking alternatives",
+                                        "example": "Looking for something more affordable"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful alternatives list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AlternativesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Missing car parameter",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/reset-conversation": {
+            "post": {
+                "tags": [
+                    "System"
+                ],
+                "summary": "Reset conversation",
+                "description": "Clears the current session's conversation history",
+                "operationId": "resetConversation",
+                "responses": {
+                    "200": {
+                        "description": "Conversation reset successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conversation reset"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/health": {
+            "get": {
+                "tags": [
+                    "System"
+                ],
+                "summary": "Health check",
+                "description": "Check if the server and Ollama are running correctly",
+                "operationId": "healthCheck",
+                "responses": {
+                    "200": {
+                        "description": "Health status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Car": {
+                "type": "object",
+                "properties": {
+                    "make": {
+                        "type": "string",
+                        "description": "Car manufacturer",
+                        "example": "Skoda"
+                    },
+                    "model": {
+                        "type": "string",
+                        "description": "Car model",
+                        "example": "Octavia Wagon"
+                    },
+                    "year": {
+                        "type": "string",
+                        "description": "Recommended year",
+                        "example": "2023"
+                    },
+                    "price": {
+                        "type": "string",
+                        "description": "Price range",
+                        "example": "25,000-30,000€"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Car type/category",
+                        "example": "Station Wagon"
+                    },
+                    "strengths": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "List of strengths",
+                        "example": [
+                            "Huge trunk",
+                            "Reliable",
+                            "Spacious"
+                        ]
+                    },
+                    "weaknesses": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "List of weaknesses",
+                        "example": [
+                            "Conservative design",
+                            "Average resale value"
+                        ]
+                    },
+                    "trunkSize": {
+                        "type": "string",
+                        "description": "Trunk capacity",
+                        "example": "640 liters"
+                    },
+                    "fuelConsumption": {
+                        "type": "string",
+                        "description": "Fuel consumption",
+                        "example": "5.2 l/100km"
+                    },
+                    "reliability": {
+                        "type": "string",
+                        "description": "Reliability rating",
+                        "example": "High"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Why this car is suitable",
+                        "example": "Perfect for families thanks to the space and reliability"
+                    }
+                }
+            },
+            "FindCarsResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "conversationId": {
+                        "type": "string",
+                        "description": "Session ID for this conversation",
+                        "example": "sess_abc123"
+                    },
+                    "analysis": {
+                        "type": "string",
+                        "description": "AI analysis of user requirements",
+                        "example": "Based on your needs for a spacious family car..."
+                    },
+                    "cars": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Car"
+                        },
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "description": "Array of 3 recommended cars"
+                    }
+                }
+            },
+            "ComparisonCategory": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Category name",
+                        "example": "Performance"
+                    },
+                    "car1": {
+                        "type": "string",
+                        "description": "Car 1 evaluation",
+                        "example": "Strong acceleration, 150hp engine (rating: 8/10)"
+                    },
+                    "car2": {
+                        "type": "string",
+                        "description": "Car 2 evaluation",
+                        "example": "Moderate performance, 130hp engine (rating: 7/10)"
+                    },
+                    "winner": {
+                        "type": "string",
+                        "enum": [
+                            "car1",
+                            "car2",
+                            "tie"
+                        ],
+                        "description": "Which car wins this category",
+                        "example": "car1"
+                    }
+                }
+            },
+            "CompareResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "comparison": {
+                        "type": "object",
+                        "properties": {
+                            "comparison": {
+                                "type": "string",
+                                "description": "Introduction to the comparison",
+                                "example": "Comparing two excellent family cars..."
+                            },
+                            "categories": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ComparisonCategory"
+                                },
+                                "description": "Comparison across different categories"
+                            },
+                            "conclusion": {
+                                "type": "string",
+                                "description": "Final comparison conclusion",
+                                "example": "Overall, Car 1 is better for performance while Car 2 excels in fuel economy"
+                            }
+                        }
+                    }
+                }
+            },
+            "AskResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "car": {
+                        "type": "string",
+                        "description": "Car that was asked about",
+                        "example": "Skoda Octavia Wagon"
+                    },
+                    "question": {
+                        "type": "string",
+                        "description": "Question that was asked",
+                        "example": "How much does annual maintenance cost?"
+                    },
+                    "answer": {
+                        "type": "string",
+                        "description": "AI-generated answer",
+                        "example": "The annual maintenance cost for a Skoda Octavia Wagon typically ranges from €400-600..."
+                    }
+                }
+            },
+            "Alternative": {
+                "type": "object",
+                "properties": {
+                    "make": {
+                        "type": "string",
+                        "example": "Volkswagen"
+                    },
+                    "model": {
+                        "type": "string",
+                        "example": "Golf Variant"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Why this is a good alternative",
+                        "example": "Same philosophy, slightly more compact"
+                    },
+                    "advantages": {
+                        "type": "string",
+                        "description": "Advantages over the original car",
+                        "example": "Lower price, easier to park"
+                    }
+                }
+            },
+            "AlternativesResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "alternatives": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Alternative"
+                        },
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "description": "Array of 3 alternative cars"
+                    }
+                }
+            },
+            "HealthResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ok",
+                            "degraded"
+                        ],
+                        "description": "Overall system status",
+                        "example": "ok"
+                    },
+                    "ollama": {
+                        "type": "string",
+                        "enum": [
+                            "connected",
+                            "disconnected"
+                        ],
+                        "description": "Ollama connection status",
+                        "example": "connected"
+                    },
+                    "model": {
+                        "type": "string",
+                        "description": "AI model being used",
+                        "example": "ministral"
+                    },
+                    "active_conversations": {
+                        "type": "integer",
+                        "description": "Number of active conversations",
+                        "example": 3
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "error": {
+                        "type": "string",
+                        "description": "Error message",
+                        "example": "Error description"
+                    },
+                    "debug": {
+                        "type": "string",
+                        "description": "Debug information (only in development mode)"
+                    }
+                }
+            }
+        }
+    }
+}
