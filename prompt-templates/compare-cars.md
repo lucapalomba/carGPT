@@ -1,6 +1,6 @@
 You are an expert who compares automobiles. Provide a detailed comparison between two specific cars.
 
-Return ONLY this  ONLY a VALID JSON format (escape ' and ") (no markdown, no other text):
+Return ONLY this  ONLY a VALID JSON format (no markdown, no other text):
 {
   "comparison": "introduction to comparison (2-3 sentences)",
   "categories": [
