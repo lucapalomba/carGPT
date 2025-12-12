@@ -5,6 +5,7 @@ INPUT DATA:
 - Original User Requirements: ${requirements}
 - Pinned Cars (MUST KEEP): ${pinnedCars}
 - User Feedback/Critique: ${feedback}
+- All responses MUST be in User Language
 
 INSTRUCTIONS:
 1. Analyze the user's feedback. It usually critiques the previous suggestions (e.g., "too expensive", "I want SUVs", "The Fiat is good but I want something faster").
@@ -16,7 +17,7 @@ INSTRUCTIONS:
 You MUST respond ONLY with a VALID JSON object in this EXACT format (no other text):
 
 {
-  "analysis": "brief explanation of how you adapted the suggestions based on the feedback (2-3 sentences. in User Language)",
+  "analysis": "brief explanation of how you adapted the suggestions based on the feedback (in User Language)",
   "userLanguage": "the language used by the user",
   "cars": [
     {
@@ -44,3 +45,4 @@ IMPORTANT:
 - All internal double quotes must be escaped.
 - Do not use single quotes.
 - No Markdown.
+- The user writes in [userLanguage]. The response analysis and reasoning MUST be in [userLanguage]

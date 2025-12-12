@@ -208,41 +208,11 @@ app.post('/api/find-cars', async (req, res) => {
         throw new Error('Invalid JSON structure - expected 3 cars');
       }
 
-      // Normalize field names
-      result.cars = carsArray.map(car => {
-        // Core properties (always present)
-        const normalized = {
-          make: car.make || car.marca,
-          model: car.model || car.modello,
-          year: car.year || car.anno,
-          price: car.price || car.prezzo,
-          type: car.type || car.tipo,
-          strengths: car.strengths || car.puntiForza || [],
-          weaknesses: car.weaknesses || car.puntiDeboli || [],
-          reason: car.reason || car.motivazione
-        };
 
-        // Handle dynamic properties (new format)
-        if (car.properties && typeof car.properties === 'object') {
-          normalized.properties = car.properties;
-        } else {
-          // Backward compatibility: convert old hardcoded fields to properties object
-          normalized.properties = {};
-          if (car.trunkSize || car.bagagliaio) {
-            normalized.properties.trunkSize = car.trunkSize || car.bagagliaio;
-          }
-          if (car.fuelConsumption || car.consumi) {
-            normalized.properties.fuelConsumption = car.fuelConsumption || car.consumi;
-          }
-          if (car.reliability || car.affidabilita) {
-            normalized.properties.reliability = car.reliability || car.affidabilita;
-          }
-        }
-
-        return normalized;
-      });
-
-      result.analysis = result.analysis || result.analisi || 'Based on your requirements, here are the best options.';
+      // Store detected language
+      if (result.userLanguage) {
+        conversation.userLanguage = result.userLanguage;
+      }
 
     } catch (parseError) {
       console.error('Error parsing JSON:', parseError);
