@@ -163,17 +163,29 @@ app.post('/api/find-cars', async (req, res) => {
       });
     }
 
+    // Get or initialize conversation
+    let conversation = conversations.get(sessionId);
+    if (!conversation) {
+      conversation = {
+        sessionId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        history: []
+      };
+      conversations.set(sessionId, conversation);
+    }
+
     // Prompt to analyze requirements and suggest cars
     // Add messages to the prompt before calling Ollama
     const findCarPromptTemplate = readFileSync('./prompt-templates/find-cars.md', 'utf8');
     const messages = [
       {
-      role: "system",
-      content: findCarPromptTemplate
+        role: "system",
+        content: findCarPromptTemplate
       },
       {
-      role: "user",
-      content: requirements
+        role: "user",
+        content: requirements
       }
     ];
     console.log('📝 Request received:', requirements);
@@ -243,12 +255,16 @@ app.post('/api/find-cars', async (req, res) => {
       });
     }
 
-    // Save conversation
-    conversations.set(sessionId, {
-      requirements: requirements,
-      result: result,
-      messages: messages,
-      createdAt: new Date()
+    // Save conversation interaction
+    conversation.updatedAt = new Date();
+    conversation.history.push({
+      type: 'find-cars',
+      timestamp: new Date(),
+      data: {
+        requirements: requirements,
+        result: result,
+        messages: messages
+      }
     });
 
     console.log('✅ Suggestions generated:', result.cars.map(c => `${c.make} ${c.model}`).join(', '));
@@ -280,6 +296,8 @@ app.post('/api/compare-cars', async (req, res) => {
         error: 'Specify two cars to compare'
       });
     }
+
+    const sessionId = req.sessionID;
 
     console.log(`📊 Comparing: ${car1} VS ${car2}`);
 
@@ -323,6 +341,22 @@ app.post('/api/compare-cars', async (req, res) => {
       comparison: result
     });
 
+    // Save interaction if conversation exists
+    const conversation = conversations.get(sessionId);
+    if (conversation) {
+      conversation.updatedAt = new Date();
+      conversation.history.push({
+        type: 'compare-cars',
+        timestamp: new Date(),
+        data: {
+          car1,
+          car2,
+          result,
+          messages
+        }
+      });
+    }
+
   } catch (error) {
     console.error('Error in compare-cars:', error);
     res.status(500).json({
@@ -343,6 +377,8 @@ app.post('/api/ask-about-car', async (req, res) => {
         error: 'Specify a car and a question'
       });
     }
+
+    const sessionId = req.sessionID;
 
     const askingPromptTemplate = readFileSync('./prompt-templates/asking-car.md', 'utf8');
     const messages = [
@@ -370,6 +406,22 @@ app.post('/api/ask-about-car', async (req, res) => {
       metadata: JSON.parse(response).metadata || {}
     });
 
+    // Save interaction if conversation exists
+    const conversation = conversations.get(sessionId);
+    if (conversation) {
+      conversation.updatedAt = new Date();
+      conversation.history.push({
+        type: 'ask-about-car',
+        timestamp: new Date(),
+        data: {
+          car,
+          question,
+          answer: JSON.parse(response).answer || "",
+          messages
+        }
+      });
+    }
+
   } catch (error) {
     console.error('Error in ask-about-car:', error);
     res.status(500).json({
@@ -390,6 +442,8 @@ app.post('/api/get-alternatives', async (req, res) => {
         error: 'Specify a car'
       });
     }
+
+    const sessionId = req.sessionID;
 
     console.log(`🔄 Finding alternatives for: ${car}`);
 
@@ -436,6 +490,22 @@ app.post('/api/get-alternatives', async (req, res) => {
       success: true,
       alternatives: result.alternatives
     });
+
+    // Save interaction if conversation exists
+    const conversation = conversations.get(sessionId);
+    if (conversation) {
+      conversation.updatedAt = new Date();
+      conversation.history.push({
+        type: 'get-alternatives',
+        timestamp: new Date(),
+        data: {
+          car,
+          reason,
+          alternatives: result.alternatives,
+          messages
+        }
+      });
+    }
 
   } catch (error) {
     console.error('Error in get-alternatives:', error);

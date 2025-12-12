@@ -5,53 +5,208 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CarGPT Conversations</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-    .session-id { cursor: pointer; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f5f5f5; }
+    h1 { color: #333; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background-color: #f2f2f2; font-weight: 600; }
+    tr:hover { background-color: #f9f9f9; }
+    .session-id { color: #007bff; cursor: pointer; text-decoration: underline; }
+    .history-count { font-weight: bold; }
+    
+    /* Modal styles */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+    .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 900px; border-radius: 8px; max-height: 80vh; overflow-y: auto; }
+    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close:hover { color: black; }
+    
+    .interaction-card { border: 1px solid #e0e0e0; margin-bottom: 15px; padding: 15px; border-radius: 6px; background-color: #fff; }
+    .interaction-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+    .interaction-type { font-weight: bold; text-transform: uppercase; color: #555; }
+    .interaction-time { color: #888; font-size: 0.9em; }
+    .interaction-details pre { background: #f8f8f8; padding: 10px; overflow-x: auto; font-size: 0.9em; border-radius: 4px; }
+    
+    .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; color: white; display: inline-block; }
+    .badge-find { background-color: #4CAF50; }
+    .badge-compare { background-color: #2196F3; }
+    .badge-ask { background-color: #FF9800; }
+    .badge-alt { background-color: #9C27B0; }
   </style>
 </head>
 <body>
-  <h1>CarGPT Conversations</h1>
-  <button id="refreshBtn">Refresh</button>
-  <div id="conversationsTable"></div>
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h1>CarGPT Conversations</h1>
+      <button id="refreshBtn" style="padding: 10px 20px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px;">Refresh</button>
+    </div>
+    
+    <table id="conversationsTable">
+      <thead>
+        <tr>
+          <th>Session ID</th>
+          <th>Started</th>
+          <th>Last Update</th>
+          <th>Interactions</th>
+          <th>Initial Request</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div id="detailsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalTitle">Conversation Details</h2>
+      <div id="modalBody"></div>
+    </div>
+  </div>
 
   <script>
-    async function fetchConversations() {
-      const response = await fetch('/api/get-conversations');
-      const data = await response.json();
+    const modal = document.getElementById("detailsModal");
+    const span = document.getElementsByClassName("close")[0];
+    const modalBody = document.getElementById("modalBody");
+    const modalTitle = document.getElementById("modalTitle");
 
-      if (data.success) {
-        const table = document.getElementById('conversationsTable');
-        table.innerHTML = '';
-
-        data.conversations.forEach(([sessionId, conv]) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td><a href="#" class="session-id" data-session-id="${sessionId}">${sessionId.substring(0, 8)}...</a></td>
-            <td>${conv.requirements.substring(0, 50)}...</td>
-            <td>${new Date(conv.createdAt).toLocaleString()}</td>
-          `;
-          table.appendChild(row);
-        });
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+    
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
       }
     }
 
-      // Handle click on session ID
-      document.querySelectorAll('.session-id').forEach(el => {
-        el.addEventListener('click', async (e) => {
-          const sessionId = e.target.getAttribute('data-session-id');
-          // TODO: Implement logic to load conversation details (e.g., via AJAX)
-          alert(`View details for session: ${sessionId}`);
-        });
-      });
+    function getBadgeClass(type) {
+      switch(type) {
+        case 'find-cars': return 'badge-find';
+        case 'compare-cars': return 'badge-compare';
+        case 'ask-about-car': return 'badge-ask';
+        case 'get-alternatives': return 'badge-alt';
+        default: return 'badge-find';
+      }
+    }
 
-      // Refresh button
-      document.getElementById('refreshBtn').addEventListener('click', fetchConversations);
+    function renderInteraction(idx, item) {
+      // Handle legacy format (if any exist in memory before restart)
+      // Server changes ensure history is populated, but good to be safe with data access
+      const type = item.type || 'unknown';
+      const timestamp = item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A';
+      const data = item.data || {};
+      
+      let summary = '';
+      if (type === 'find-cars') {
+        summary = `<strong>Requirement:</strong> ${data.requirements}`;
+      } else if (type === 'compare-cars') {
+        summary = `<strong>Comparing:</strong> ${data.car1} vs ${data.car2}`;
+      } else if (type === 'ask-about-car') {
+        summary = `<strong>Question about ${data.car}:</strong> ${data.question}`;
+      } else if (type === 'get-alternatives') {
+        summary = `<strong>Alternatives for:</strong> ${data.car}`;
+      }
 
-      // Initial load
-      fetchConversations();
-    </script>
+      const jsonDetails = JSON.stringify(data, null, 2);
+
+      return `
+        <div class="interaction-card">
+          <div class="interaction-header">
+            <span class="badge ${getBadgeClass(type)}">${type}</span>
+            <span class="interaction-time">#${idx + 1} - ${timestamp}</span>
+          </div>
+          <div style="margin-bottom: 10px;">${summary}</div>
+          <details>
+             <summary style="cursor: pointer; color: #007bff;">Show Raw JSON Data</summary>
+             <div class="interaction-details">
+                <pre>${jsonDetails}</pre>
+             </div>
+          </details>
+        </div>
+      `;
+    }
+
+    async function fetchConversations() {
+      try {
+        const response = await fetch('/api/get-conversations');
+        const data = await response.json();
+
+        if (data.success) {
+          const tbody = document.querySelector('#conversationsTable tbody');
+          tbody.innerHTML = '';
+          
+          if (data.conversations.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No conversations found</td></tr>';
+            return;
+          }
+
+          // Sort by last update descending
+          const sortedConvs = data.conversations.sort((a, b) => {
+             const timeA = new Date(a[1].updatedAt || a[1].createdAt).getTime();
+             const timeB = new Date(b[1].updatedAt || b[1].createdAt).getTime();
+             return timeB - timeA;
+          });
+
+          sortedConvs.forEach(([sessionId, conv]) => {
+            const history = conv.history || [];
+            // Fallback for legacy data structure if server wasn't fully restarted/cleared
+            const interactionsCount = history.length > 0 ? history.length : 1; 
+            
+            // Find initial requirement
+            let initialReq = 'N/A';
+            if (history.length > 0 && history[0].data && history[0].data.requirements) {
+                initialReq = history[0].data.requirements;
+            } else if (conv.requirements) {
+                initialReq = conv.requirements; // Legacy fallback
+            }
+
+            const createdAt = new Date(conv.createdAt).toLocaleString();
+            const updatedAt = conv.updatedAt ? new Date(conv.updatedAt).toLocaleString() : createdAt;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><span class="session-id" data-session-id="${sessionId}">${sessionId.substring(0, 8)}...</span></td>
+              <td>${createdAt}</td>
+              <td>${updatedAt}</td>
+              <td class="history-count">${interactionsCount}</td>
+              <td>${initialReq.substring(0, 50)}${initialReq.length > 50 ? '...' : ''}</td>
+            `;
+            tbody.appendChild(row);
+
+            // Click listener for details
+            row.querySelector('.session-id').addEventListener('click', () => {
+              modalTitle.innerText = `Session: ${sessionId}`;
+              modalBody.innerHTML = '';
+              
+              if (history.length === 0 && conv.requirements) {
+                  // Render legacy view
+                  modalBody.innerHTML = renderInteraction(0, {
+                      type: 'find-cars',
+                      timestamp: conv.createdAt,
+                      data: { requirements: conv.requirements, result: conv.result }
+                  });
+              } else {
+                  history.forEach((item, idx) => {
+                      modalBody.innerHTML += renderInteraction(idx, item);
+                  });
+              }
+              
+              modal.style.display = "block";
+            });
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching conversations:', err);
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', fetchConversations);
+
+    // Initial load
+    fetchConversations();
+  </script>
 </body>
 </html>
