@@ -52,6 +52,10 @@ setInterval(() => {
 // Helper function to call Ollama
 async function callOllama(messages) {
   try {
+    console.log('📨 Sending prompt to Ollama:');
+    console.log(JSON.stringify(messages, null, 2));
+    console.log('-----------------------------------');
+
     const response = await fetch(`${OLLAMA_URL}/api/chat`, {
       method: 'POST',
       headers: {
@@ -74,7 +78,13 @@ async function callOllama(messages) {
     }
 
     const data = await response.json();
-    return data.message.content;
+    const content = data.message.content;
+
+    console.log('📥 Received response from Ollama:');
+    console.log(content);
+    console.log('-----------------------------------');
+
+    return content;
 
   } catch (error) {
     console.error('Error calling Ollama:', error);
@@ -192,8 +202,6 @@ app.post('/api/find-cars', async (req, res) => {
 
     const response = await callOllama(messages);
 
-    console.log('Raw response from Ollama:', response);
-
     // Parse JSON from response
     let result;
     try {
@@ -285,8 +293,6 @@ app.post('/api/compare-cars', async (req, res) => {
 
     const response = await callOllama(messages);
 
-    console.log('🤖 Raw comparison response:', response.substring(0, 200) + '...');
-
     let result;
     try {
       result = parseJsonResponse(response);
@@ -366,8 +372,6 @@ app.post('/api/ask-about-car', async (req, res) => {
 
     const response = await callOllama(messages);
 
-    console.log('🤖 Raw answer response:', response);
-
     res.json({
       success: true,
       car: car,
@@ -430,8 +434,6 @@ app.post('/api/get-alternatives', async (req, res) => {
     ];
 
     const response = await callOllama(messages);
-
-    console.log('🤖 Raw alternatives response:', response.substring(0, 200) + '...');
 
     let result;
     try {
@@ -566,7 +568,6 @@ app.post('/api/refine-search', async (req, res) => {
     ];
 
     const response = await callOllama(messages);
-    console.log('🤖 Raw refinement response:', response.substring(0, 200) + '...');
 
     let result;
     try {
