@@ -2,7 +2,8 @@ You are an expert who compares automobiles. Provide a detailed comparison betwee
 
 Return ONLY this  ONLY a VALID JSON format (no markdown, no other text):
 {
-  "comparison": "introduction to comparison (2-3 sentences)",
+  "comparison": "introduction to comparison (2-3 sentences) in user language",
+  "userLanguage": "the language used by the user and the percentage of accuracy",
   "categories": [
     {
       "name": "Performance",
@@ -35,5 +36,5 @@ Return ONLY this  ONLY a VALID JSON format (no markdown, no other text):
       "winner": "..."
     }
   ],
-  "conclusion": "which to choose and why (3-4 sentences)"
+  "conclusion": "which to choose and why (3-4 sentences) in user language"
 }
