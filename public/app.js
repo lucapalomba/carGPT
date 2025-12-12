@@ -1,8 +1,10 @@
 let currentCars = [];
+let pinnedIndices = new Set();
+let analysisHistory = [];
 
 // Use example text
 function useExample(btn) {
-  const text = btn.textContent.trim().substring(2); // Remove emoji
+  const text = btn.textContent.trim();
   document.getElementById('requirements').value = text;
 }
 
@@ -39,7 +41,8 @@ document.getElementById('needsForm').addEventListener('submit', async (e) => {
 
     if (data.success) {
       currentCars = data.cars;
-      showResults(data.analysis, data.cars);
+      analysisHistory = [data.analysis]; // Reset history for new search
+      showResults(null, data.cars);
     } else {
       alert(`Error: ${data.error}`);
     }
@@ -71,10 +74,32 @@ function showResults(analysis, cars) {
   document.getElementById('initialForm').classList.add('hidden');
   document.getElementById('resultsContainer').classList.remove('hidden');
 
-  // Show analysis
+  // Build analysis history HTML
+  let historyHtml = '';
+  analysisHistory.forEach((text, index) => {
+    const isFirst = index === 0;
+    const title = isFirst ? '📋 Initial Analysis' : `🔄 Refinement #${index}`;
+
+    historyHtml += `
+      <div class="analysis-item" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+        <h4 style="color: #667eea; margin-bottom: 10px;">${title}</h4>
+        <p>${text}</p>
+      </div>
+    `;
+  });
+
+  // Show analysis history + Refine Input
   document.getElementById('analysisBox').innerHTML = `
-    <h4>📋 Analysis of your requirements</h4>
-    <p>${analysis}</p>
+    ${historyHtml}
+    
+    <div class="refine-section" style="margin-top: 10px;">
+        <label style="display:block; margin-bottom: 5px; font-weight:bold;">💬 Refine these results:</label>
+        <div style="display:flex; gap: 10px;">
+            <input type="text" id="refineInput" placeholder="e.g. 'Too expensive', 'I prefer German cars', 'Keep the Fiat but change others'" style="flex:1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <button onclick="refineSearch()" id="refineBtn" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Update</button>
+        </div>
+        <small style="color: #666;">💡 Tip: Pin cars you like (<span style="font-style: normal;">📌</span>) to keep them.</small>
+    </div>
   `;
 
   // Extract all unique property keys from all cars
@@ -109,7 +134,12 @@ function showResults(analysis, cars) {
           <th>Feature</th>
           ${cars.map((car, i) => `
             <th class="car-header">
-              <div class="car-number">Car ${i + 1}</div>
+              <div style="display: flex; justify-content: space-between; align-items: start;">
+                  <div class="car-number">Car ${i + 1}</div>
+                  <button class="pin-btn ${pinnedIndices.has(i) ? 'active' : ''}" onclick="togglePin(${i})" title="Pin this car to keep it">
+                    ${pinnedIndices.has(i) ? '📌 Pinned' : '📌 Pin'}
+                  </button>
+              </div>
               <div class="car-name">${car.make} ${car.model}</div>
               <div class="car-year">${car.year}</div>
             </th>
@@ -395,7 +425,82 @@ document.getElementById('newSearchBtn').addEventListener('click', async () => {
   document.getElementById('initialForm').classList.remove('hidden');
   document.getElementById('qaHistory').innerHTML = '';
   currentCars = [];
+  analysisHistory = [];
 
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+// Pinning Logic
+function togglePin(index) {
+  if (pinnedIndices.has(index)) {
+    pinnedIndices.delete(index);
+  } else {
+    pinnedIndices.add(index);
+  }
+  // Re-render table header to update buttons? 
+  // Easier to just toggle class on button for now to avoid full re-render
+  // But since we generate HTML string, we need to update DOM
+  const btn = document.querySelectorAll('.pin-btn')[index];
+  if (pinnedIndices.has(index)) {
+    btn.classList.add('active');
+    btn.innerHTML = '📌 Pinned';
+  } else {
+    btn.classList.remove('active');
+    btn.innerHTML = '📌 Pin';
+  }
+}
+
+// Refine Search Logic
+async function refineSearch() {
+  const feedback = document.getElementById('refineInput').value.trim();
+  if (!feedback) {
+    alert('Please enter some feedback to refine the search.');
+    return;
+  }
+
+  const btn = document.getElementById('refineBtn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Updating...';
+  btn.disabled = true;
+
+  // Collect pinned cars
+  const pinnedCars = [];
+  pinnedIndices.forEach(index => {
+    if (currentCars[index]) {
+      pinnedCars.push(currentCars[index]);
+    }
+  });
+
+  try {
+    const response = await fetch('/api/refine-search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feedback, pinnedCars })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      currentCars = data.cars;
+      // Reset pins? Or keep them pinned?
+      // Pinned cars should still be pinned. They are now at 0, 1, ...
+      pinnedIndices.clear();
+      for (let i = 0; i < pinnedCars.length; i++) {
+        pinnedIndices.add(i);
+      }
+
+      analysisHistory.push(data.analysis); // Add new analysis to history
+      showResults(null, data.cars);
+    } else {
+      alert('Error refining search: ' + data.error);
+    }
+
+  } catch (error) {
+    console.error('Refine error:', error);
+    alert('Connection error.');
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}

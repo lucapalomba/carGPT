@@ -1,66 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CarGPT - Find your perfect car</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="container">
         <!-- Initial form - Requirements description -->
         <div id="initialForm" class="initial-form">
             <div class="header">
                 <h1>🚗 CarGPT</h1>
-                <p class="subtitle">Describe what you're looking for in a car and we'll suggest the perfect models for you</p>
+                <p class="subtitle">Describe what you're looking for in a car and we'll suggest the perfect models for
+                    you</p>
             </div>
-            
+
             <form id="needsForm">
                 <div class="form-group">
                     <label for="requirements">Describe your requirements</label>
-                    <textarea 
-                        id="requirements" 
-                        name="requirements" 
-                        rows="6"
-                        required 
+                    <textarea id="requirements" name="requirements" rows="6" required
                         placeholder="Example: Looking for a family car with space for 5 people, large trunk for at least 3 suitcases. I need it for daily commute (30km) and weekend trips. I want low fuel consumption and affordable maintenance. Max budget €25,000."></textarea>
                     <small>The more specific you are, the better the suggestions! 💡</small>
                 </div>
-                
+
                 <div class="examples">
                     <p><strong>Example prompts:</strong></p>
                     <button type="button" class="example-btn" onclick="useExample(this)">
-                        🏠 Family car with 2 kids, large trunk, safe and spacious
+                        Looking for a reliable family car with:
+                        - Space for 2 adults and 2 kids
+                        - Large trunk (3 suitcases minimum)
+                        - Good safety ratings
+                        - Economical for daily 50km commute
+                        - Budget: €25,000-35,000
                     </button>
                     <button type="button" class="example-btn" onclick="useExample(this)">
-                        🏙️ Compact city car, easy to park, low consumption, €15k budget
+                        Need a compact car for city driving:
+                        - Easy to park
+                        - Low fuel consumption
+                        - Nimble in traffic
+                        - Budget-friendly (under €20k)
+                        - Hybrid preferred
                     </button>
                     <button type="button" class="example-btn" onclick="useExample(this)">
-                        🏔️ Mountain SUV, 4x4, robust, suitable for snow and dirt roads
-                    </button>
-                    <button type="button" class="example-btn" onclick="useExample(this)">
-                        💼 Elegant sedan for work, comfort, technology, professional image
+                        Looking for a robust SUV for outdoor adventures:
+                        - 4x4 capability
+                        - Good ground clearance
+                        - Reliable in tough conditions
+                        - Can handle dirt roads and snow
+                        - Budget: up to €40,000
                     </button>
                 </div>
-                
+
                 <button type="submit" class="btn-primary" id="findCarsBtn">
                     <span>Find my perfect cars</span>
                     <div class="spinner hidden"></div>
                 </button>
             </form>
         </div>
-        
+
         <!-- Results - Comparison table -->
         <div id="resultsContainer" class="results-container hidden">
             <div class="results-header">
                 <h2>🎯 Your ideal cars</h2>
                 <button id="newSearchBtn" class="btn-secondary">New Search</button>
             </div>
-            
+
             <div id="analysisBox" class="analysis-box"></div>
-            
+
             <div id="comparisonTable" class="comparison-table"></div>
-            
+
             <!-- Actions area -->
             <div class="actions-container">
                 <h3>🔍 What would you like to do now?</h3>
@@ -73,7 +84,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Q&A area -->
             <div id="qaContainer" class="qa-container">
                 <h3>💬 Have questions about these cars?</h3>
@@ -81,18 +92,15 @@
                     <select id="carSelect" class="car-select">
                         <option value="">Select a car...</option>
                     </select>
-                    <input 
-                        type="text" 
-                        id="questionInput" 
-                        placeholder="e.g. What's the annual maintenance cost?"
+                    <input type="text" id="questionInput" placeholder="e.g. What's the annual maintenance cost?"
                         class="question-input">
                     <button onclick="askQuestion()" class="btn-ask">Ask</button>
                 </div>
-                
+
                 <div id="qaHistory" class="qa-history"></div>
             </div>
         </div>
-        
+
         <!-- Modal for detailed comparison -->
         <div id="compareModal" class="modal hidden">
             <div class="modal-content">
@@ -111,12 +119,12 @@
                         </select>
                     </div>
                     <button onclick="executeComparison()" class="btn-primary">Compare</button>
-                    
+
                     <div id="compareResults" class="compare-results"></div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Modal for alternatives -->
         <div id="alternativesModal" class="modal hidden">
             <div class="modal-content">
@@ -128,19 +136,17 @@
                     <select id="alternativeCar" class="car-select-modal">
                         <option value="">Select a car...</option>
                     </select>
-                    <input 
-                        type="text" 
-                        id="alternativeReason" 
-                        placeholder="Why are you looking for alternatives? (optional)"
-                        class="alternative-reason">
+                    <input type="text" id="alternativeReason"
+                        placeholder="Why are you looking for alternatives? (optional)" class="alternative-reason">
                     <button onclick="searchAlternatives()" class="btn-primary">Find Alternatives</button>
-                    
+
                     <div id="alternativesResults" class="alternatives-results"></div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <script src="app.js"></script>
 </body>
+
 </html>
