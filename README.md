@@ -42,6 +42,10 @@ CarGPT uses AI to:
 4. **Compare** them in an easy-to-read table
 5. **Answer** your specific questions
 
+### 💡 Project Philosophy
+
+This project was born as an exercise to explore how modern AI tools can create dynamic user interfaces. Instead of a traditional static table filled with potentially irrelevant data, the goal is to provide a conversational experience that adapts specifically to the user's prompt and needs.
+
 ---
 
 ## ✨ Features
