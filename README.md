@@ -42,6 +42,10 @@ CarGPT uses AI to:
 4. **Compare** them in an easy-to-read table
 5. **Answer** your specific questions
 
+### 💡 Project Philosophy
+
+This project was born as an exercise to explore how modern AI tools can create dynamic user interfaces. Instead of a traditional static table filled with potentially irrelevant data, the goal is to provide a conversational experience that adapts specifically to the user's prompt and needs.
+
 ---
 
 ## ✨ Features
@@ -244,31 +248,6 @@ We love contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 - 🌍 Translations (currently English only)
 - 📝 Documentation improvements
 - ✨ New features (see [issues](https://github.com/yourusername/CarGPT/issues))
-
----
-
-## 🗺️ Roadmap
-
-### Version 1.1 (Coming Soon)
-- [ ] Price range filters
-- [ ] Fuel type filters (electric, hybrid, etc.)
-- [ ] Export comparison to PDF
-- [ ] Car images integration
-
-### Version 1.2
-- [ ] Multi-language support (Spanish, German, French)
-- [ ] Save favorite searches
-- [ ] Search history
-- [ ] Dark mode
-
-### Version 2.0
-- [ ] Database persistence
-- [ ] User accounts (optional)
-- [ ] Community reviews integration
-- [ ] Real-time market prices
-- [ ] Dealership links
-
-See [full roadmap](https://github.com/yourusername/CarGPT/projects)
 
 ---
 
