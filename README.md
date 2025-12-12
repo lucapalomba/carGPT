@@ -251,31 +251,6 @@ We love contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
-## 🗺️ Roadmap
-
-### Version 1.1 (Coming Soon)
-- [ ] Price range filters
-- [ ] Fuel type filters (electric, hybrid, etc.)
-- [ ] Export comparison to PDF
-- [ ] Car images integration
-
-### Version 1.2
-- [ ] Multi-language support (Spanish, German, French)
-- [ ] Save favorite searches
-- [ ] Search history
-- [ ] Dark mode
-
-### Version 2.0
-- [ ] Database persistence
-- [ ] User accounts (optional)
-- [ ] Community reviews integration
-- [ ] Real-time market prices
-- [ ] Dealership links
-
-See [full roadmap](https://github.com/yourusername/CarGPT/projects)
-
----
-
 ## 💡 Why Ollama + Ministral?
 
 | Feature | Cloud APIs | CarGPT (Ollama) |
