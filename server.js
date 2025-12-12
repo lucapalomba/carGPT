@@ -11,6 +11,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'ministral';
+// Check environment mode (dev/prod)
+const MODE = process.env.NODE_ENV || 'development';
+const IS_PRODUCTION = MODE === 'production';
 
 // Load Swagger documentation
 const swaggerDocument = JSON.parse(readFileSync('./swagger.json', 'utf8'));
@@ -59,9 +62,10 @@ async function callOllama(messages) {
         messages: messages,
         stream: false,
         options: {
-          temperature: 0.7,
+          temperature: 0,
           num_predict: 2500
-        }
+        },
+        format: "json"
       })
     });
 
@@ -84,6 +88,7 @@ function parseJsonResponse(text) {
   let cleaned = text.trim();
   cleaned = cleaned.replace(/```json\s*/g, '');
   cleaned = cleaned.replace(/```\s*/g, '');
+  cleaned = cleaned.replace(/'\s*/g, '');
   cleaned = cleaned.trim();
 
   // Try to find JSON object in the text
@@ -175,7 +180,7 @@ app.post('/api/find-cars', async (req, res) => {
 
     const response = await callOllama(messages);
 
-    console.log('🤖 Raw response from Ollama:', response.substring(0, 200) + '...');
+    console.log('Raw response from Ollama:', response);
 
     // Parse JSON from response
     let result;
@@ -300,11 +305,6 @@ app.post('/api/compare-cars', async (req, res) => {
 
       console.log('🔍 Parsed comparison:', JSON.stringify(result, null, 2));
 
-      // Validate structure
-      if (!result.comparison || !result.categories || !result.conclusion) {
-        throw new Error('Invalid comparison structure');
-      }
-
     } catch (parseError) {
       console.error('Error parsing comparison:', parseError);
       console.error('Raw response:', response);
@@ -344,8 +344,6 @@ app.post('/api/ask-about-car', async (req, res) => {
       });
     }
 
-   
-
     const askingPromptTemplate = readFileSync('./prompt-templates/asking-car.md', 'utf8');
     const messages = [
       {
@@ -358,15 +356,18 @@ app.post('/api/ask-about-car', async (req, res) => {
       }
     ];
 
-     console.log(`❓ Question about ${car}: ${question}`, messages);
+    console.log(`❓ Question about ${car}: ${question}`);
 
     const response = await callOllama(messages);
+
+    console.log('🤖 Raw answer response:', response);
 
     res.json({
       success: true,
       car: car,
       question: question,
-      answer: response
+      answer: JSON.parse(response).answer || "",
+      metadata: JSON.parse(response).metadata || {}
     });
 
   } catch (error) {
@@ -468,6 +469,26 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// New endpoint to retrieve all stored conversations
+app.get('/api/get-conversations', async (req, res) => {
+  try {
+    // Return all conversations in the Map
+    const conversationsList = Array.from(conversations.entries());
+
+    res.json({
+      success: true,
+      conversations: conversationsList,
+      count: conversationsList.length
+    });
+  } catch (error) {
+    console.error('Error retrieving conversations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error retrieving conversations'
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, async () => {
   console.log(`\n🚗 CarGPT server started on http://localhost:${PORT}`);
@@ -484,5 +505,13 @@ app.listen(PORT, async () => {
     console.log('   4. Restart this server\n');
   } else {
     console.log('✅ All ready! Open http://localhost:3000\n');
+  }
+
+  // Modify console.log statements to conditionally log behavior
+  if (IS_PRODUCTION) {
+    console.log(`🚀 Running in ${MODE} mode (Ollama: ${OLLAMA_MODEL})`);
+  } else {
+    console.log(`🚀 Running in ${MODE} mode (Ollama: ${OLLAMA_MODEL})`);
+    console.log(`⚠️  Note: This is a ${MODE} environment (not production)`);
   }
 });

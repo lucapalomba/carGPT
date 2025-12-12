@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarGPT Conversations</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .session-id { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>CarGPT Conversations</h1>
+  <button id="refreshBtn">Refresh</button>
+  <div id="conversationsTable"></div>
+
+  <script>
+    async function fetchConversations() {
+      const response = await fetch('/api/get-conversations');
+      const data = await response.json();
+
+      if (data.success) {
+        const table = document.getElementById('conversationsTable');
+        table.innerHTML = '';
+
+        data.conversations.forEach(([sessionId, conv]) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><a href="#" class="session-id" data-session-id="${sessionId}">${sessionId.substring(0, 8)}...</a></td>
+            <td>${conv.requirements.substring(0, 50)}...</td>
+            <td>${new Date(conv.createdAt).toLocaleString()}</td>
+          `;
+          table.appendChild(row);
+        });
+      }
+    }
+
+      // Handle click on session ID
+      document.querySelectorAll('.session-id').forEach(el => {
+        el.addEventListener('click', async (e) => {
+          const sessionId = e.target.getAttribute('data-session-id');
+          // TODO: Implement logic to load conversation details (e.g., via AJAX)
+          alert(`View details for session: ${sessionId}`);
+        });
+      });
+
+      // Refresh button
+      document.getElementById('refreshBtn').addEventListener('click', fetchConversations);
+
+      // Initial load
+      fetchConversations();
+    </script>
+</body>
+</html>
