@@ -149,7 +149,9 @@ body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Results */
@@ -171,6 +173,27 @@ body {
 .results-header h2 {
     font-size: 2em;
     color: #333;
+}
+
+.pin-btn {
+    background: transparent;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 0.8em;
+    color: #555;
+}
+
+.pin-btn.active {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+    font-weight: bold;
+}
+
+.refine-section input:focus {
+    outline: 2px solid #007bff;
 }
 
 .btn-secondary {
@@ -622,6 +645,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -633,6 +657,7 @@ body {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -644,6 +669,7 @@ body {
         opacity: 0;
         transform: translateX(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -677,68 +703,68 @@ body {
     body {
         padding: 10px;
     }
-    
+
     .initial-form,
     .results-container {
         padding: 20px;
     }
-    
+
     .header h1 {
         font-size: 2em;
     }
-    
+
     .compare-table {
         font-size: 14px;
     }
-    
+
     .compare-table th,
     .compare-table td {
         padding: 10px;
     }
-    
+
     .car-name {
         font-size: 1em !important;
     }
-    
+
     .compare-selects {
         flex-direction: column;
     }
-    
+
     .vs-text {
         transform: rotate(90deg);
     }
-    
+
     .compare-row {
         grid-template-columns: 1fr;
     }
-    
+
     .compare-col {
         border-right: none;
         border-bottom: 1px solid #e0e0e0;
     }
-    
+
     .compare-col:last-child {
         border-bottom: none;
     }
-    
+
     .qa-input-group {
         flex-direction: column;
     }
-    
+
     .car-select {
         min-width: auto;
         width: 100%;
     }
-    
+
     .action-buttons {
         grid-template-columns: 1fr;
     }
-    
+
     .modal-content {
         width: 95%;
         max-height: 95vh;
     }
-    
+
     .modal-body {
         padding: 20px;
     }

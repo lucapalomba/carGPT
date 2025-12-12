@@ -516,6 +516,147 @@ app.post('/api/get-alternatives', async (req, res) => {
   }
 });
 
+// Endpoint to refine search based on feedback
+app.post('/api/refine-search', async (req, res) => {
+  try {
+    const { feedback, pinnedCars } = req.body;
+    const sessionId = req.sessionID;
+
+    if (!feedback) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide some feedback to refine the search'
+      });
+    }
+
+    const conversation = conversations.get(sessionId);
+    if (!conversation) {
+      return res.status(400).json({
+        success: false,
+        error: 'No active conversation found. Start a new search first.'
+      });
+    }
+
+    // Find the original requirements from history or conversation root
+    let originalRequirements = conversation.requirements || '';
+    if (!originalRequirements && conversation.history) {
+      const findAction = conversation.history.find(h => h.type === 'find-cars');
+      if (findAction) {
+        originalRequirements = findAction.data.requirements;
+      }
+    }
+
+    if (!originalRequirements) {
+      originalRequirements = "User is looking for a car.";
+    }
+
+    // Build full context from history
+    let contextParts = [];
+
+    // 1. Original requirement
+    if (originalRequirements) {
+      contextParts.push(`Original Request: "${originalRequirements}"`);
+    }
+
+    // 2. Previous refinements
+    if (conversation.history) {
+      conversation.history.forEach((h, index) => {
+        if (h.type === 'refine-search' && h.data.feedback) {
+          contextParts.push(`Refinement Step ${index + 1}: "${h.data.feedback}"`);
+        }
+      });
+    }
+
+    const fullContext = contextParts.join('\n');
+    console.log('📜 Construction full context:', fullContext);
+
+    console.log(`🔄 Refining search with feedback: "${feedback}"`);
+    console.log(`📌 Pinned cars: ${pinnedCars ? pinnedCars.length : 0}`);
+
+    const refinePromptTemplate = readFileSync('./prompt-templates/refine-cars.md', 'utf8');
+
+    // Format pinned cars for prompt
+    let pinnedCarsJson = 'None';
+    if (pinnedCars && pinnedCars.length > 0) {
+      pinnedCarsJson = JSON.stringify(pinnedCars);
+    }
+
+    const messages = [
+      {
+        role: "system",
+        content: refinePromptTemplate
+          .replace('${requirements}', fullContext)
+          .replace('${pinnedCars}', pinnedCarsJson)
+          .replace('${feedback}', feedback)
+      },
+      {
+        role: "user",
+        content: "Refine suggestions."
+      }
+    ];
+
+    const response = await callOllama(messages);
+    console.log('🤖 Raw refinement response:', response.substring(0, 200) + '...');
+
+    let result;
+    try {
+      result = parseJsonResponse(response);
+      console.log('🔍 Parsed refinement:', JSON.stringify(result, null, 2));
+
+      if (!result.cars || !Array.isArray(result.cars)) {
+        throw new Error('Invalid JSON structure - expected cars array');
+      }
+
+      // Ensure specific structure
+      result.cars = result.cars.map(car => ({
+        make: car.make || car.marca,
+        model: car.model || car.modello,
+        year: car.year || car.anno,
+        price: car.price || car.prezzo,
+        type: car.type || car.tipo,
+        strengths: car.strengths || car.puntiForza || [],
+        weaknesses: car.weaknesses || car.puntiDeboli || [],
+        reason: car.reason || car.motivazione,
+        properties: car.properties || {}
+      }));
+
+    } catch (parseError) {
+      console.error('Error parsing refinement:', parseError);
+      return res.status(500).json({
+        success: false,
+        error: 'Error refining search. Please try again.',
+        debug: process.env.NODE_ENV === 'development' ? response : undefined
+      });
+    }
+
+    // Save interaction
+    conversation.updatedAt = new Date();
+    conversation.history.push({
+      type: 'refine-search',
+      timestamp: new Date(),
+      data: {
+        feedback,
+        pinnedCars,
+        result,
+        messages
+      }
+    });
+
+    res.json({
+      success: true,
+      analysis: result.analysis,
+      cars: result.cars
+    });
+
+  } catch (error) {
+    console.error('Error in refine-search:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Reset conversation
 app.post('/api/reset-conversation', (req, res) => {
   const sessionId = req.sessionID;
