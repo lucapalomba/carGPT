@@ -125,7 +125,7 @@ ollama pull ministral
 ollama serve
 
 # 4. In a new terminal, clone and setup CarGPT
-git clone https://github.com/yourusername/CarGPT.git
+git clone https://github.com/lucapalomba/CarGPT.git
 cd CarGPT
 npm install
 
@@ -243,7 +243,7 @@ We love contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 - 🎨 UI/UX improvements
 - 🌍 Translations (currently English only)
 - 📝 Documentation improvements
-- ✨ New features (see [issues](https://github.com/yourusername/CarGPT/issues))
+- ✨ New features (see [issues](https://github.com/lucapalomba/CarGPT/issues))
 
 ---
 
@@ -268,7 +268,7 @@ We love contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 - [ ] Real-time market prices
 - [ ] Dealership links
 
-See [full roadmap](https://github.com/yourusername/CarGPT/projects)
+See [full roadmap](https://github.com/lucapalomba/CarGPT/projects)
 
 ---
 
@@ -305,7 +305,7 @@ ollama pull ministral
 - For faster responses, try `phi3` (less accurate but faster)
 
 ### More issues?
-Check our [Issues page](https://github.com/yourusername/CarGPT/issues) or open a new one!
+Check our [Issues page](https://github.com/lucapalomba/CarGPT/issues) or open a new one!
 
 ---
 
@@ -325,8 +325,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/yourusername/CarGPT/issues)
-- **Discussions**: [Ask questions or share ideas](https://github.com/yourusername/CarGPT/discussions)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/lucapalomba/CarGPT/issues)
+- **Discussions**: [Ask questions or share ideas](https://github.com/lucapalomba/CarGPT/discussions)
 
 ---
 
@@ -336,6 +336,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ⭐ Star this repo if you find it useful!
 
-[Report Bug](https://github.com/yourusername/CarGPT/issues) • [Request Feature](https://github.com/yourusername/CarGPT/issues) • [Documentation](docs/)
+[Report Bug](https://github.com/lucapalomba/CarGPT/issues) • [Request Feature](https://github.com/lucapalomba/CarGPT/issues) • [Documentation](docs/)
 
 </div>

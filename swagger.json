@@ -6,7 +6,7 @@
         "description": "AI-powered car recommendation system using Ollama. Find your perfect car by describing your needs in natural language.",
         "contact": {
             "name": "CarGPT Support",
-            "url": "https://github.com/yourusername/CarGPT"
+            "url": "https://github.com/lucapalomba/CarGPT"
         },
         "license": {
             "name": "MIT",
