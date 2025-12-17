@@ -11,6 +11,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'ministral';
+// Check environment mode (dev/prod)
+const MODE = process.env.NODE_ENV || 'development';
+const IS_PRODUCTION = MODE === 'production';
 
 // Load Swagger documentation
 const swaggerDocument = JSON.parse(readFileSync('./swagger.json', 'utf8'));
@@ -59,9 +62,10 @@ async function callOllama(messages) {
         messages: messages,
         stream: false,
         options: {
-          temperature: 0.7,
+          temperature: 0,
           num_predict: 2500
-        }
+        },
+        format: "json"
       })
     });
 
@@ -84,6 +88,7 @@ function parseJsonResponse(text) {
   let cleaned = text.trim();
   cleaned = cleaned.replace(/```json\s*/g, '');
   cleaned = cleaned.replace(/```\s*/g, '');
+  cleaned = cleaned.replace(/'\s*/g, '');
   cleaned = cleaned.trim();
 
   // Try to find JSON object in the text
@@ -158,69 +163,36 @@ app.post('/api/find-cars', async (req, res) => {
       });
     }
 
+    // Get or initialize conversation
+    let conversation = conversations.get(sessionId);
+    if (!conversation) {
+      conversation = {
+        sessionId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        history: []
+      };
+      conversations.set(sessionId, conversation);
+    }
+
     // Prompt to analyze requirements and suggest cars
+    // Add messages to the prompt before calling Ollama
+    const findCarPromptTemplate = readFileSync('./prompt-templates/find-cars.md', 'utf8');
     const messages = [
       {
         role: "system",
-        content: `You are an expert car consultant. Your task is:
-1. Analyze the user's needs and identify their PRIMARY FOCUS (performance, space, economy, luxury, etc.)
-2. Suggest EXACTLY 3 cars that match their requirements
-3. For each car, provide core information AND 3-5 properties most relevant to the user's focus
-
-CRITICAL: You MUST respond with ONLY a VALID JSON object in this EXACT format (no other text, no markdown):
-{
-  "analysis": "brief analysis of user needs (2-3 sentences)",
-  "cars": [
-    {
-      "make": "Brand name",
-      "model": "Model name",
-      "year": "2023",
-      "price": "25,000-30,000€",
-      "type": "SUV/Sedan/Compact/Station Wagon/etc",
-      "properties": {
-        "property1Name": "value1",
-        "property2Name": "value2",
-        "property3Name": "value3"
-      },
-      "strengths": ["point 1", "point 2", "point 3"],
-      "weaknesses": ["point 1", "point 2"],
-      "reason": "brief explanation why it's suitable (1-2 sentences)"
-    }
-  ]
-}
-
-PROPERTY SELECTION GUIDELINES based on user focus:
-- SPORTS/PERFORMANCE: horsepower, acceleration0to60, topSpeed, transmission, handling
-- FAMILY/SPACE: seatingCapacity, trunkSize, cargoSpace, safetyRating, childSeatAnchors
-- ECONOMY/BUDGET: fuelConsumption, maintenanceCost, insuranceCost, depreciation, taxCost
-- LUXURY/COMFORT: interiorQuality, technologyFeatures, soundSystem, comfortFeatures, materials
-- OFF-ROAD/ADVENTURE: groundClearance, fourWheelDrive, towingCapacity, offRoadCapability
-- CITY/URBAN: parkingEase, turningRadius, cityFuelConsumption, compactSize
-- ECO/ELECTRIC: batteryRange, chargingTime, electricMotor, emissions, ecoFeatures
-
-Choose 3-5 properties that best match the user's PRIMARY focus. Use camelCase for property names.
-After choosing property, all vehicles should have an answer for each property.
-
-IMPORTANT:
-- Suggest REAL and AVAILABLE cars on the market
-- Vary proposals (different price ranges, different segments)
-- Be specific with models and versions
-- Consider the European market
-- Use metric sistem and EURO currency
-- ALL 3 cars should have the SAME property names (for comparison)
-- Return ONLY the JSON, nothing else`
+        content: findCarPromptTemplate
       },
       {
         role: "user",
-        content: `My requirements are: ${requirements}`
+        content: requirements
       }
     ];
-
     console.log('📝 Request received:', requirements);
 
     const response = await callOllama(messages);
 
-    console.log('🤖 Raw response from Ollama:', response.substring(0, 200) + '...');
+    console.log('Raw response from Ollama:', response);
 
     // Parse JSON from response
     let result;
@@ -236,41 +208,11 @@ IMPORTANT:
         throw new Error('Invalid JSON structure - expected 3 cars');
       }
 
-      // Normalize field names
-      result.cars = carsArray.map(car => {
-        // Core properties (always present)
-        const normalized = {
-          make: car.make || car.marca,
-          model: car.model || car.modello,
-          year: car.year || car.anno,
-          price: car.price || car.prezzo,
-          type: car.type || car.tipo,
-          strengths: car.strengths || car.puntiForza || [],
-          weaknesses: car.weaknesses || car.puntiDeboli || [],
-          reason: car.reason || car.motivazione
-        };
 
-        // Handle dynamic properties (new format)
-        if (car.properties && typeof car.properties === 'object') {
-          normalized.properties = car.properties;
-        } else {
-          // Backward compatibility: convert old hardcoded fields to properties object
-          normalized.properties = {};
-          if (car.trunkSize || car.bagagliaio) {
-            normalized.properties.trunkSize = car.trunkSize || car.bagagliaio;
-          }
-          if (car.fuelConsumption || car.consumi) {
-            normalized.properties.fuelConsumption = car.fuelConsumption || car.consumi;
-          }
-          if (car.reliability || car.affidabilita) {
-            normalized.properties.reliability = car.reliability || car.affidabilita;
-          }
-        }
-
-        return normalized;
-      });
-
-      result.analysis = result.analysis || result.analisi || 'Based on your requirements, here are the best options.';
+      // Store detected language
+      if (result.userLanguage) {
+        conversation.userLanguage = result.userLanguage;
+      }
 
     } catch (parseError) {
       console.error('Error parsing JSON:', parseError);
@@ -283,12 +225,16 @@ IMPORTANT:
       });
     }
 
-    // Save conversation
-    conversations.set(sessionId, {
-      requirements: requirements,
-      result: result,
-      messages: messages,
-      createdAt: new Date()
+    // Save conversation interaction
+    conversation.updatedAt = new Date();
+    conversation.history.push({
+      type: 'find-cars',
+      timestamp: new Date(),
+      data: {
+        requirements: requirements,
+        result: result,
+        messages: messages
+      }
     });
 
     console.log('✅ Suggestions generated:', result.cars.map(c => `${c.make} ${c.model}`).join(', '));
@@ -321,50 +267,15 @@ app.post('/api/compare-cars', async (req, res) => {
       });
     }
 
+    const sessionId = req.sessionID;
+
     console.log(`📊 Comparing: ${car1} VS ${car2}`);
 
+    const comparePromptTemplate = readFileSync('./prompt-templates/compare-cars.md', 'utf8');
     const messages = [
       {
         role: "system",
-        content: `You are an expert who compares automobiles. Provide a detailed comparison between two specific cars.
-
-Return ONLY this JSON format (no markdown, no other text):
-{
-  "comparison": "introduction to comparison (2-3 sentences)",
-  "categories": [
-    {
-      "name": "Performance",
-      "car1": "description and rating 1-10",
-      "car2": "description and rating 1-10",
-      "winner": "car1/car2/tie"
-    },
-    {
-      "name": "Fuel Consumption",
-      "car1": "...",
-      "car2": "...",
-      "winner": "..."
-    },
-    {
-      "name": "Space and Practicality",
-      "car1": "...",
-      "car2": "...",
-      "winner": "..."
-    },
-    {
-      "name": "Reliability",
-      "car1": "...",
-      "car2": "...",
-      "winner": "..."
-    },
-    {
-      "name": "Cost of Ownership",
-      "car1": "...",
-      "car2": "...",
-      "winner": "..."
-    }
-  ],
-  "conclusion": "which to choose and why (3-4 sentences)"
-}`
+        content: comparePromptTemplate
       },
       {
         role: "user",
@@ -381,11 +292,6 @@ Return ONLY this JSON format (no markdown, no other text):
       result = parseJsonResponse(response);
 
       console.log('🔍 Parsed comparison:', JSON.stringify(result, null, 2));
-
-      // Validate structure
-      if (!result.comparison || !result.categories || !result.conclusion) {
-        throw new Error('Invalid comparison structure');
-      }
 
     } catch (parseError) {
       console.error('Error parsing comparison:', parseError);
@@ -404,6 +310,22 @@ Return ONLY this JSON format (no markdown, no other text):
       success: true,
       comparison: result
     });
+
+    // Save interaction if conversation exists
+    const conversation = conversations.get(sessionId);
+    if (conversation) {
+      conversation.updatedAt = new Date();
+      conversation.history.push({
+        type: 'compare-cars',
+        timestamp: new Date(),
+        data: {
+          car1,
+          car2,
+          result,
+          messages
+        }
+      });
+    }
 
   } catch (error) {
     console.error('Error in compare-cars:', error);
@@ -426,13 +348,13 @@ app.post('/api/ask-about-car', async (req, res) => {
       });
     }
 
-    console.log(`❓ Question about ${car}: ${question}`);
+    const sessionId = req.sessionID;
 
+    const askingPromptTemplate = readFileSync('./prompt-templates/asking-car.md', 'utf8');
     const messages = [
       {
         role: "system",
-        content: `You are a car expert. Answer detailed and precise questions about ${car}.
-        Provide concrete information, real numbers, and practical advice. Respond in 2-4 paragraphs.`
+        content: askingPromptTemplate + ` ${car}`
       },
       {
         role: "user",
@@ -440,14 +362,35 @@ app.post('/api/ask-about-car', async (req, res) => {
       }
     ];
 
+    console.log(`❓ Question about ${car}: ${question}`);
+
     const response = await callOllama(messages);
+
+    console.log('🤖 Raw answer response:', response);
 
     res.json({
       success: true,
       car: car,
       question: question,
-      answer: response
+      answer: JSON.parse(response).answer || "",
+      metadata: JSON.parse(response).metadata || {}
     });
+
+    // Save interaction if conversation exists
+    const conversation = conversations.get(sessionId);
+    if (conversation) {
+      conversation.updatedAt = new Date();
+      conversation.history.push({
+        type: 'ask-about-car',
+        timestamp: new Date(),
+        data: {
+          car,
+          question,
+          answer: JSON.parse(response).answer || "",
+          messages
+        }
+      });
+    }
 
   } catch (error) {
     console.error('Error in ask-about-car:', error);
@@ -470,25 +413,15 @@ app.post('/api/get-alternatives', async (req, res) => {
       });
     }
 
+    const sessionId = req.sessionID;
+
     console.log(`🔄 Finding alternatives for: ${car}`);
 
+    const getAlternativePromptTemplate = readFileSync('./prompt-templates/get-alternative-car.md', 'utf8');
     const messages = [
       {
         role: "system",
-        content: `You are an expert automotive consultant. Suggest 3 concrete alternatives to ${car}.
-        ${reason ? `The user is looking for alternatives because: ${reason}` : ''}
-
-Return ONLY this JSON format (no markdown):
-{
-  "alternatives": [
-    {
-      "make": "...",
-      "model": "...",
-      "reason": "brief explanation (1-2 sentences)",
-      "advantages": "what makes it better/different"
-    }
-  ]
-}`
+        content: getAlternativePromptTemplate + `Car ${car}` + ` and Reason ${reason || 'The user is looking for alternatives because: ${reason}'}`
       },
       {
         role: "user",
@@ -528,8 +461,165 @@ Return ONLY this JSON format (no markdown):
       alternatives: result.alternatives
     });
 
+    // Save interaction if conversation exists
+    const conversation = conversations.get(sessionId);
+    if (conversation) {
+      conversation.updatedAt = new Date();
+      conversation.history.push({
+        type: 'get-alternatives',
+        timestamp: new Date(),
+        data: {
+          car,
+          reason,
+          alternatives: result.alternatives,
+          messages
+        }
+      });
+    }
+
   } catch (error) {
     console.error('Error in get-alternatives:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Endpoint to refine search based on feedback
+app.post('/api/refine-search', async (req, res) => {
+  try {
+    const { feedback, pinnedCars } = req.body;
+    const sessionId = req.sessionID;
+
+    if (!feedback) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide some feedback to refine the search'
+      });
+    }
+
+    const conversation = conversations.get(sessionId);
+    if (!conversation) {
+      return res.status(400).json({
+        success: false,
+        error: 'No active conversation found. Start a new search first.'
+      });
+    }
+
+    // Find the original requirements from history or conversation root
+    let originalRequirements = conversation.requirements || '';
+    if (!originalRequirements && conversation.history) {
+      const findAction = conversation.history.find(h => h.type === 'find-cars');
+      if (findAction) {
+        originalRequirements = findAction.data.requirements;
+      }
+    }
+
+    if (!originalRequirements) {
+      originalRequirements = "User is looking for a car.";
+    }
+
+    // Build full context from history
+    let contextParts = [];
+
+    // 1. Original requirement
+    if (originalRequirements) {
+      contextParts.push(`Original Request: "${originalRequirements}"`);
+    }
+
+    // 2. Previous refinements
+    if (conversation.history) {
+      conversation.history.forEach((h, index) => {
+        if (h.type === 'refine-search' && h.data.feedback) {
+          contextParts.push(`Refinement Step ${index + 1}: "${h.data.feedback}"`);
+        }
+      });
+    }
+
+    const fullContext = contextParts.join('\n');
+    console.log('📜 Construction full context:', fullContext);
+
+    console.log(`🔄 Refining search with feedback: "${feedback}"`);
+    console.log(`📌 Pinned cars: ${pinnedCars ? pinnedCars.length : 0}`);
+
+    const refinePromptTemplate = readFileSync('./prompt-templates/refine-cars.md', 'utf8');
+
+    // Format pinned cars for prompt
+    let pinnedCarsJson = 'None';
+    if (pinnedCars && pinnedCars.length > 0) {
+      pinnedCarsJson = JSON.stringify(pinnedCars);
+    }
+
+    const messages = [
+      {
+        role: "system",
+        content: refinePromptTemplate
+          .replace('${requirements}', fullContext)
+          .replace('${pinnedCars}', pinnedCarsJson)
+          .replace('${feedback}', feedback)
+      },
+      {
+        role: "user",
+        content: "Refine suggestions."
+      }
+    ];
+
+    const response = await callOllama(messages);
+    console.log('🤖 Raw refinement response:', response.substring(0, 200) + '...');
+
+    let result;
+    try {
+      result = parseJsonResponse(response);
+      console.log('🔍 Parsed refinement:', JSON.stringify(result, null, 2));
+
+      if (!result.cars || !Array.isArray(result.cars)) {
+        throw new Error('Invalid JSON structure - expected cars array');
+      }
+
+      // Ensure specific structure
+      result.cars = result.cars.map(car => ({
+        make: car.make || car.marca,
+        model: car.model || car.modello,
+        year: car.year || car.anno,
+        price: car.price || car.prezzo,
+        type: car.type || car.tipo,
+        strengths: car.strengths || car.puntiForza || [],
+        weaknesses: car.weaknesses || car.puntiDeboli || [],
+        reason: car.reason || car.motivazione,
+        properties: car.properties || {}
+      }));
+
+    } catch (parseError) {
+      console.error('Error parsing refinement:', parseError);
+      return res.status(500).json({
+        success: false,
+        error: 'Error refining search. Please try again.',
+        debug: process.env.NODE_ENV === 'development' ? response : undefined
+      });
+    }
+
+    // Save interaction
+    conversation.updatedAt = new Date();
+    conversation.history.push({
+      type: 'refine-search',
+      timestamp: new Date(),
+      data: {
+        feedback,
+        pinnedCars,
+        result,
+        messages
+      }
+    });
+
+    res.json({
+      success: true,
+      analysis: result.analysis,
+      cars: result.cars
+    });
+
+  } catch (error) {
+    console.error('Error in refine-search:', error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -560,6 +650,26 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// New endpoint to retrieve all stored conversations
+app.get('/api/get-conversations', async (req, res) => {
+  try {
+    // Return all conversations in the Map
+    const conversationsList = Array.from(conversations.entries());
+
+    res.json({
+      success: true,
+      conversations: conversationsList,
+      count: conversationsList.length
+    });
+  } catch (error) {
+    console.error('Error retrieving conversations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error retrieving conversations'
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, async () => {
   console.log(`\n🚗 CarGPT server started on http://localhost:${PORT}`);
@@ -576,5 +686,13 @@ app.listen(PORT, async () => {
     console.log('   4. Restart this server\n');
   } else {
     console.log('✅ All ready! Open http://localhost:3000\n');
+  }
+
+  // Modify console.log statements to conditionally log behavior
+  if (IS_PRODUCTION) {
+    console.log(`🚀 Running in ${MODE} mode (Ollama: ${OLLAMA_MODEL})`);
+  } else {
+    console.log(`🚀 Running in ${MODE} mode (Ollama: ${OLLAMA_MODEL})`);
+    console.log(`⚠️  Note: This is a ${MODE} environment (not production)`);
   }
 });
