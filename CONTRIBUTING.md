@@ -45,7 +45,7 @@ Enhancement suggestions are welcome! Please provide:
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/CarGPT.git
+git clone https://github.com/lucapalomba/CarGPT.git
 cd CarGPT
 
 # Install dependencies

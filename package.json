@@ -25,20 +25,20 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/CarGPT.git"
+    "url": "https://github.com/lucapalomba/CarGPT.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/CarGPT/issues"
+    "url": "https://github.com/lucapalomba/CarGPT/issues"
   },
-  "homepage": "https://github.com/yourusername/CarGPT#readme",
+  "homepage": "https://github.com/lucapalomba/CarGPT#readme",
   "engines": {
-    "node": ">=18.0.0",
+    "node": "24.12.0",
     "npm": ">=9.0.0"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^4.18.2",
+    "express": "^5.2.1",
     "express-session": "^1.17.3",
     "swagger-ui-express": "^5.0.1"
   },
