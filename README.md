@@ -23,7 +23,7 @@ CarGPT is an **AI-powered car recommendation system** that helps you find the pe
 
 **Instead of asking** "What do you know about a BMW 3 Series?"
 
-**CarGPT asks** "What do you need from a car?" and then suggests the best options for you!
+**CarGPT asks** "What do you need from a car?" and then suggests the best options for you, tailoring results to your **local market** and **preferred language**!
 
 ### The Problem
 
@@ -74,6 +74,11 @@ This project was born as an exercise to explore how modern AI tools can create d
 - Find similar alternatives to any suggestion
 - Discover options you might have missed
 - Explore different price points and features
+
+### 🌍 Multilingual & Regional Support
+- **Automatic Language Detection**: Detects your browser language to respond in your preferred tongue
+- **Market Precision**: Restricts suggestions to cars available in your local market (e.g., Spain for Spanish, Italy for Italian)
+- **Zero Configuration**: No need to select language or country - it just works
 
 ### 🆓 100% Free & Private
 - Uses **Ollama** - runs locally on your machine
@@ -245,7 +250,7 @@ We love contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 - 🐛 Bug fixes and testing
 - 🎨 UI/UX improvements
-- 🌍 Translations (currently English only)
+- 🌍 Translations (fully automated via browser language detection)
 - 📝 Documentation improvements
 - ✨ New features (see [issues](https://github.com/lucapalomba/CarGPT/issues))
 
