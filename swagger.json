@@ -6,7 +6,7 @@
         "description": "AI-powered car recommendation system using Ollama. Find your perfect car by describing your needs in natural language.",
         "contact": {
             "name": "CarGPT Support",
-            "url": "https://github.com/yourusername/CarGPT"
+            "url": "https://github.com/lucapalomba/CarGPT"
         },
         "license": {
             "name": "MIT",
@@ -46,6 +46,18 @@
                 "summary": "Find cars based on requirements",
                 "description": "Analyzes user requirements and returns 3 personalized car recommendations using AI",
                 "operationId": "findCars",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Preferred language for the response and market restriction (e.g., 'es-ES' for Spain)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "en"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -117,6 +129,18 @@
                 "summary": "Compare two cars in detail",
                 "description": "Provides detailed comparison between two specific cars across multiple categories",
                 "operationId": "compareCars",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Preferred language for the response and market restriction",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "en"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -185,6 +209,18 @@
                 "summary": "Ask a question about a specific car",
                 "description": "Get detailed AI-powered answers about specific aspects of a car",
                 "operationId": "askAboutCar",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Preferred language for the response and market restriction",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "en"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -245,6 +281,44 @@
                 }
             }
         },
+        "/api/get-conversations": {
+            "get": {
+                "tags": [
+                    "Q&A"
+                ],
+                "summary": "Get all active conversations",
+                "description": "Retrieves internal state of all active user conversations (Debug/Admin)",
+                "operationId": "getConversations",
+                "responses": {
+                    "200": {
+                        "description": "List of active conversations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "conversations": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/get-alternatives": {
             "post": {
                 "tags": [
@@ -253,6 +327,18 @@
                 "summary": "Get similar alternative cars",
                 "description": "Find 3 similar alternative cars to a given model",
                 "operationId": "getAlternatives",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Preferred language for the response and market restriction",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "en"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -291,6 +377,87 @@
                     },
                     "400": {
                         "description": "Bad request - Missing car parameter",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/refine-search": {
+            "post": {
+                "tags": [
+                    "Cars"
+                ],
+                "summary": "Refine existing suggestions",
+                "description": "Updates the list of car suggestions based on user feedback and pinned cars",
+                "operationId": "refineSearch",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Preferred language for the response and market restriction",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "en"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "feedback"
+                                ],
+                                "properties": {
+                                    "feedback": {
+                                        "type": "string",
+                                        "description": "User feedback to refine results",
+                                        "example": "Too expensive, I want something under €20k"
+                                    },
+                                    "pinnedCars": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/Car"
+                                        },
+                                        "description": "List of cars to keep in the results"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully refined suggestions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FindCarsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
                         "content": {
                             "application/json": {
                                 "schema": {
