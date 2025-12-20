@@ -32,7 +32,8 @@ document.getElementById('needsForm').addEventListener('submit', async (e) => {
     const response = await fetch('/api/find-cars', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept-Language': navigator.language
       },
       body: JSON.stringify({ requirements })
     });
@@ -234,7 +235,8 @@ async function askQuestion() {
     const response = await fetch('/api/ask-about-car', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept-Language': navigator.language
       },
       body: JSON.stringify({ car: carName, question })
     });
@@ -293,7 +295,8 @@ async function executeComparison() {
     const response = await fetch('/api/compare-cars', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept-Language': navigator.language
       },
       body: JSON.stringify({ car1, car2 })
     });
@@ -359,7 +362,8 @@ async function searchAlternatives() {
     const response = await fetch('/api/get-alternatives', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept-Language': navigator.language
       },
       body: JSON.stringify({ car, reason })
     });
@@ -475,7 +479,10 @@ async function refineSearch() {
   try {
     const response = await fetch('/api/refine-search', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept-Language': navigator.language
+      },
       body: JSON.stringify({ feedback, pinnedCars })
     });
 

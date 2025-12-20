@@ -154,6 +154,7 @@ async function verifyOllama() {
 app.post('/api/find-cars', async (req, res) => {
   try {
     const { requirements } = req.body;
+    const language = req.headers['accept-language'] || 'en';
     const sessionId = req.sessionID;
 
     if (!requirements || requirements.trim().length < 10) {
@@ -182,6 +183,10 @@ app.post('/api/find-cars', async (req, res) => {
       {
         role: "system",
         content: findCarPromptTemplate
+      },
+      {
+        role: "system",
+        content: `User Preferred Language: ${language}. Always respond in this language.`
       },
       {
         role: "user",
@@ -259,6 +264,7 @@ app.post('/api/find-cars', async (req, res) => {
 app.post('/api/compare-cars', async (req, res) => {
   try {
     const { car1, car2 } = req.body;
+    const language = req.headers['accept-language'] || 'en';
 
     if (!car1 || !car2) {
       return res.status(400).json({
@@ -276,6 +282,10 @@ app.post('/api/compare-cars', async (req, res) => {
       {
         role: "system",
         content: comparePromptTemplate
+      },
+      {
+        role: "system",
+        content: `User Preferred Language: ${language}. Always respond in this language.`
       },
       {
         role: "user",
@@ -340,6 +350,7 @@ app.post('/api/compare-cars', async (req, res) => {
 app.post('/api/ask-about-car', async (req, res) => {
   try {
     const { car, question } = req.body;
+    const language = req.headers['accept-language'] || 'en';
 
     if (!car || !question) {
       return res.status(400).json({
@@ -355,6 +366,10 @@ app.post('/api/ask-about-car', async (req, res) => {
       {
         role: "system",
         content: askingPromptTemplate + ` ${car}`
+      },
+      {
+        role: "system",
+        content: `User Preferred Language: ${language}. Always respond in this language.`
       },
       {
         role: "user",
@@ -405,6 +420,7 @@ app.post('/api/ask-about-car', async (req, res) => {
 app.post('/api/get-alternatives', async (req, res) => {
   try {
     const { car, reason } = req.body;
+    const language = req.headers['accept-language'] || 'en';
 
     if (!car) {
       return res.status(400).json({
@@ -422,6 +438,10 @@ app.post('/api/get-alternatives', async (req, res) => {
       {
         role: "system",
         content: getAlternativePromptTemplate + `Car ${car}` + ` and Reason ${reason || 'The user is looking for alternatives because: ${reason}'}`
+      },
+      {
+        role: "system",
+        content: `User Preferred Language: ${language}. Always respond in this language.`
       },
       {
         role: "user",
@@ -490,6 +510,7 @@ app.post('/api/get-alternatives', async (req, res) => {
 app.post('/api/refine-search', async (req, res) => {
   try {
     const { feedback, pinnedCars } = req.body;
+    const language = req.headers['accept-language'] || 'en';
     const sessionId = req.sessionID;
 
     if (!feedback) {
@@ -558,6 +579,10 @@ app.post('/api/refine-search', async (req, res) => {
           .replace('${requirements}', fullContext)
           .replace('${pinnedCars}', pinnedCarsJson)
           .replace('${feedback}', feedback)
+      },
+      {
+        role: "system",
+        content: `User Preferred Language: ${language}. Always respond in this language.`
       },
       {
         role: "user",
