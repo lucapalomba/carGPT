@@ -281,6 +281,44 @@
                 }
             }
         },
+        "/api/get-conversations": {
+            "get": {
+                "tags": [
+                    "Q&A"
+                ],
+                "summary": "Get all active conversations",
+                "description": "Retrieves internal state of all active user conversations (Debug/Admin)",
+                "operationId": "getConversations",
+                "responses": {
+                    "200": {
+                        "description": "List of active conversations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "conversations": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/get-alternatives": {
             "post": {
                 "tags": [
