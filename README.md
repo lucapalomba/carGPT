@@ -197,29 +197,24 @@ Looking for a robust SUV for outdoor adventures:
 
 ## 🏗️ Architecture
 
-```
-┌─────────────┐
-│   Browser   │
-│  (Vanilla)  │
-└──────┬──────┘
-       │ HTTP/REST
-       ▼
-┌─────────────┐
-│   Express   │
-│   Server    │
-└──────┬──────┘
-       │ JSON
-       ▼
-┌─────────────┐
-│   Ollama    │
-│ (Ministral) │
-└─────────────┘
+CarGPT follows a modular **MVC (Model-View-Controller)** and **Service Layer** architecture.
+
+```mermaid
+graph TD
+    A[Browser] -->|HTTP| B[Express server.js]
+    B --> C[Routes]
+    C --> D[Controllers]
+    D --> E[Services]
+    E -->|JSON| F[Ollama]
+    E --> G[In-memory Store]
 ```
 
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Backend**: Node.js, Express
-- **AI**: Ollama with Ministral model
-- **Storage**: In-memory sessions (1 hour TTL)
+- **Controllers**: Request handling and response formatting
+- **Services**: Business logic, Ollama integration, and session management
+- **Storage**: In-memory conversations (1 hour TTL)
+
+For a deep dive into the system design, see [**ARCHITECTURE.md**](ARCHITECTURE.md).
 
 ---
 

@@ -75,29 +75,30 @@ async function runTest() {
         // Since we don't have the sessionID explicitly in the cookie easily extracted without parsing, 
         // we look for one that matches our interactions.
 
-        const myConvEntry = histData.conversations.find(([id, data]) => {
-            // Match if history has our car1
-            return data.history && data.history.some(h =>
-                (h.data.car1 === car1) || (h.data.car === car1) || (h.data.requirements && h.data.requirements.includes('italian streets'))
+        const myConv = histData.conversations.find((conv) => {
+            // Match if history has our car1 or original requirements hint
+            return conv.history && conv.history.some(h =>
+                (h.data.car1 === car1) || 
+                (h.data.car === car1) || 
+                (h.data.requirements && h.data.requirements.includes('cheap city car'))
             );
         });
 
-        if (myConvEntry) {
-            const [id, data] = myConvEntry;
-            console.log('   Conversation found:', id);
-            console.log('   History Length:', data.history ? data.history.length : 'undefined');
-            if (data.history && data.history.length >= 4) {
+        if (myConv) {
+            console.log('   Conversation found:', myConv.id);
+            console.log('   History Length:', myConv.history ? myConv.history.length : 'undefined');
+            
+            if (myConv.history && myConv.history.length >= 4) {
                 console.log('   ✅ SUCCESS: History has expected 4+ items.');
                 // Check types
-                const types = data.history.map(h => h.type);
+                const types = myConv.history.map(h => h.type);
                 console.log('   Types in history:', types);
             } else {
                 console.error('   ❌ FAILURE: History missing or too short.');
-                console.log('   Data:', JSON.stringify(data, null, 2));
+                console.log('   Data:', JSON.stringify(myConv, null, 2));
             }
         } else {
             console.error('   ❌ FAILURE: Conversation not found in list.');
-            // console.log('All Conversations:', JSON.stringify(histData.conversations, null, 2));
         }
 
     } catch (error) {
