@@ -1,5 +1,6 @@
-import { ollamaService } from '../services/ollamaService.js';
-import { conversationService } from '../services/conversationService.js';
+import { Request, Response } from 'express';
+import { ollamaService, Message } from '../services/ollamaService.js';
+import { conversationService, Conversation, ConversationHistoryItem } from '../services/conversationService.js';
 import { promptService } from '../services/promptService.js';
 import { config } from '../config/index.js';
 
@@ -10,10 +11,10 @@ export const carsController = {
   /**
    * Analyzes requirements and finds cars
    * 
-   * @param {Object} req - Express request
-   * @param {Object} res - Express response
+   * @param {Request} req - Express request
+   * @param {Response} res - Express response
    */
-  async findCars(req, res) {
+  async findCars(req: Request, res: Response) {
     try {
       const { requirements } = req.body;
       const language = req.headers['accept-language'] || 'en';
@@ -29,7 +30,8 @@ export const carsController = {
       const conversation = conversationService.getOrInitialize(sessionId);
 
       const findCarPromptTemplate = promptService.loadTemplate('find-cars.md');
-      const messages = [
+      console.log('📝 Request received:', requirements);
+      const messages: Message[] = [
         {
           role: "system",
           content: findCarPromptTemplate
@@ -44,7 +46,6 @@ export const carsController = {
         }
       ];
 
-      console.log('📝 Request received:', requirements);
       const response = await ollamaService.callOllama(messages);
       
       let result;
@@ -80,7 +81,7 @@ export const carsController = {
         }
       });
 
-      console.log('✅ Suggestions generated:', result.cars.map(c => `${c.make} ${c.model}`).join(', '));
+      console.log('✅ Suggestions generated:', result.cars.map((c: any) => `${c.make} ${c.model}`).join(', '));
 
       res.json({
         success: true,
@@ -89,7 +90,7 @@ export const carsController = {
         cars: result.cars
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in find-cars:', error);
       res.status(500).json({
         success: false,
@@ -101,10 +102,10 @@ export const carsController = {
   /**
    * Refines car search based on feedback
    * 
-   * @param {Object} req - Express request
-   * @param {Object} res - Express response
+   * @param {Request} req - Express request
+   * @param {Response} res - Express response
    */
-  async refineSearch(req, res) {
+  async refineSearch(req: Request, res: Response) {
     try {
       const { feedback, pinnedCars } = req.body;
       const language = req.headers['accept-language'] || 'en';
@@ -117,7 +118,7 @@ export const carsController = {
         });
       }
 
-      const conversation = conversationService.get(sessionId);
+      const conversation: Conversation | undefined = conversationService.get(sessionId);
       if (!conversation) {
         return res.status(400).json({
           success: false,
@@ -127,7 +128,7 @@ export const carsController = {
 
       let originalRequirements = conversation.requirements || '';
       if (!originalRequirements && conversation.history) {
-        const findAction = conversation.history.find(h => h.type === 'find-cars');
+        const findAction = conversation.history.find((h: ConversationHistoryItem) => h.type === 'find-cars');
         if (findAction) {
           originalRequirements = findAction.data.requirements;
         }
@@ -141,7 +142,7 @@ export const carsController = {
       if (originalRequirements) contextParts.push(`Original Request: "${originalRequirements}"`);
 
       if (conversation.history) {
-        conversation.history.forEach((h, index) => {
+        conversation.history.forEach((h: ConversationHistoryItem, index: number) => {
           if (h.type === 'refine-search' && h.data.feedback) {
             contextParts.push(`Refinement Step ${index + 1}: "${h.data.feedback}"`);
           }
@@ -179,7 +180,7 @@ export const carsController = {
           throw new Error('Invalid JSON structure - expected cars array');
         }
 
-        result.cars = result.cars.map(car => ({
+        result.cars = result.cars.map((car: any) => ({
           make: car.make || car.marca,
           model: car.model || car.modello,
           year: car.year || car.anno,
@@ -218,7 +219,7 @@ export const carsController = {
         cars: result.cars
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in refine-search:', error);
       res.status(500).json({
         success: false,
@@ -230,10 +231,10 @@ export const carsController = {
   /**
    * Answers a question about a specific car
    * 
-   * @param {Object} req - Express request
-   * @param {Object} res - Express response
+   * @param {Request} req - Express request
+   * @param {Response} res - Express response
    */
-  async askAboutCar(req, res) {
+  async askAboutCar(req: Request, res: Response) {
     try {
       const { car, question } = req.body;
       const language = req.headers['accept-language'] || 'en';
@@ -299,7 +300,7 @@ export const carsController = {
         answer: result.answer
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in ask-about-car:', error);
       res.status(500).json({
         success: false,
@@ -311,10 +312,10 @@ export const carsController = {
   /**
    * Retrieves alternative cars
    * 
-   * @param {Object} req - Express request
-   * @param {Object} res - Express response
+   * @param {Request} req - Express request
+   * @param {Response} res - Express response
    */
-  async getAlternatives(req, res) {
+  async getAlternatives(req: Request, res: Response) {
     try {
       const { car, reason } = req.body;
       const language = req.headers['accept-language'] || 'en';
@@ -378,7 +379,7 @@ export const carsController = {
         alternatives: result.alternatives
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in get-alternatives:', error);
       res.status(500).json({
         success: false,
@@ -390,10 +391,10 @@ export const carsController = {
   /**
    * Compares two cars
    * 
-   * @param {Object} req - Express request
-   * @param {Object} res - Express response
+   * @param {Request} req - Express request
+   * @param {Response} res - Express response
    */
-  async compareCars(req, res) {
+  async compareCars(req: Request, res: Response) {
     try {
       const { car1, car2 } = req.body;
       const language = req.headers['accept-language'] || 'en';
@@ -457,7 +458,7 @@ export const carsController = {
         comparison: result
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in compare-cars:', error);
       res.status(500).json({
         success: false,

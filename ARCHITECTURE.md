@@ -4,29 +4,30 @@ This document describes the architectural structure of the CarGPT backend, which
 
 ## 📐 Overview
 
-CarGPT has transitioned from a monolithic `server.js` to a modular architecture to improve maintainability, testability, and scalability. The system is divided into distinct layers with clear responsibilities.
+CarGPT has transitioned to a powerful **Monorepo** architecture to separate concerns between the modern **React Frontend** and the **Express Backend**.
 
 ---
 
 ## 📂 Directory Structure
 
 ```text
-src/
-├── config/             # Application configuration & constants
-│   └── index.js        # Environment variables, Ollama config, session settings
-├── controllers/        # Request handlers (Parsing req, calling services, sending res)
-│   ├── carsController.js    # All car ops: find, refine, ask, alternatives, compare
-│   ├── healthController.js  # /api/health, /api/reset-conversation
-│   └── qaController.js      # /api/get-conversations (Debug/Admin)
-├── middleware/         # Express middleware (Future: validation, auth)
-├── models/             # Data structures (Future: Mongoose/Prisma schemas)
-├── routes/             # Route definitions
-│   └── api.js          # API route mapping to controllers
-├── services/           # Business logic & external integrations
-│   ├── ollamaService.js       # Ollama API communication & JSON parsing
-│   ├── conversationService.js # In-memory session management
-│   └── promptService.js       # Prompt template loading
-└── utils/              # Helper functions & validators
+/
+├── apps/
+│   ├── web/                # React Frontend (Vite + TS + Tailwind v4)
+│   │   ├── src/
+│   │   │   ├── components/  # Reusable UI components
+│   │   │   ├── App.tsx      # Main application logic
+│   │   │   └── main.tsx     # React entry point
+│   │   └── vite.config.ts  # Frontend build & proxy config
+│   └── server/             # Express Backend (TypeScript + MVC + Services)
+│       ├── server.ts       # API entry point
+│       ├── src/
+│       │   ├── controllers/ # Request handlers (.ts)
+│       │   ├── routes/      # API route definitions (.ts)
+│       │   └── services/    # Business logic & Ollama integration (.ts)
+│       └── prompt-templates/ # LLM prompt definitions
+├── package.json            # Root configuration (Workspaces + Parallel Dev)
+└── .node-version           # Repository-wide Node version (v24.12.0)
 ```
 
 ---
@@ -34,8 +35,8 @@ src/
 ## 🔄 Data Flow
 
 1.  **Request**: The browser sends an HTTP request (e.g., `POST /api/find-cars`) with an `Accept-Language` header.
-2.  **Entry Point**: `server.js` receives the request and passes it to the `api.js` router.
-3.  **Router**: `api.js` identifies the correct controller method.
+2.  **Entry Point**: `server.ts` receives the request and passes it to the `api.ts` router.
+3.  **Router**: `api.ts` identifies the correct controller method.
 4.  **Controller**:
     *   Extracts parameters from `req.body` and headers.
     *   Calls `promptService` to load the appropriate template.
@@ -46,29 +47,33 @@ src/
 
 ---
 
-## 🛠️ Key Components
+## 💻 Frontend Architecture (apps/web)
 
-### 🧠 Ollama Service
-Encapsulates all logic for communicating with the local Ollama instance. It handles:
-- AI chat requests
-- Aggressive JSON cleaning (handling common LLM formatting issues)
-- Connectivity health checks
+The frontend is a modern **Single Page Application (SPA)**:
+- **React 19**: Modern UI library with Functional Components and Hooks.
+- **Tailwind CSS v4**: Utility-first CSS framework for rapid UI styling with zero runtime overhead.
+- **Vite**: Ultra-fast build tool and dev server.
+- **TypeScript**: Ensuring type safety across components and API interactions.
 
-### 💬 Conversation Service
-Manages in-memory storage for user interactions. Features:
-- Session-based isolation
-- 1-hour Time-To-Live (TTL) for conversation data
-- Automated cleanup background task
+### Component Logic
+- **`App.tsx`**: Manages the global state (cars, history, views).
+- **`InitialForm.tsx`**: Handles requirements input.
+- **`ResultsContainer.tsx`**: Orchestrates the display of findings, Q&A, and comparisons.
+- **`ComparisonTable.tsx`**: Renders dynamic feature comparisons.
 
-### 📝 Prompt Service
-Isolates file system operations for loading `.md` prompt templates from the `prompt-templates/` directory.
+---
+
+## ⚙️ Backend Architecture (apps/server)
+
+The backend is built with **TypeScript** and follows the **MVC** and **Service Layer** patterns:
 
 ---
 
 ## ✅ Best Practices Implemented
 
 -   **Separation of Concerns**: Business logic is separated from HTTP handling.
--   **Lean Entry Point**: `server.js` is under 100 lines and focuses solely on initialization.
+-   **Lean Entry Point**: `server.ts` is under 100 lines and focuses solely on initialization.
+-   **TypeScript-First**: Ensuring type safety across all controllers, services, and models.
 -   **JSDoc Documentation**: All exported functions and methods are documented for better IDE support and developer experience.
 -   **Centralized Config**: No hardcoded secrets or environment dependencies outside `src/config/`.
 -   **Localization Native**: Built-in support for browser language detection and market restriction across all layers.

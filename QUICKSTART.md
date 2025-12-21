@@ -45,19 +45,19 @@ Ollama is running
 Open a **NEW** terminal in the `CarGPT` folder:
 
 ```bash
-# Install dependencies
+# Install dependencies for all workspaces
 npm install
 
-# Copy configuration
-cp .env.example .env
+# Copy configuration for the server
+cp apps/server/.env.example apps/server/.env
 
-# Start server
-npm start
+# Start both Frontend and Backend in parallel
+npm run dev
 ```
 
 ### 5️⃣ Open browser
 
-Go to: **http://localhost:3000**
+Go to: **http://localhost:5173**
 
 ---
 
@@ -108,7 +108,7 @@ npm install
 ## 🎯 Next Steps
 
 - Try different models: `ollama pull llama3.2`
-- Customize the system prompt in `server.js`
+- Customize the system prompt in `server.ts`
 - Explore other models at https://ollama.ai/library
 
 ---

@@ -1,7 +1,23 @@
 /**
  * Service to manage in-memory conversations
  */
-const conversations = new Map();
+
+export interface ConversationHistoryItem {
+  type: string;
+  timestamp: Date;
+  data: any;
+}
+
+export interface Conversation {
+  sessionId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userLanguage?: string;
+  requirements?: string;
+  history: ConversationHistoryItem[];
+}
+
+const conversations = new Map<string, Conversation>();
 
 /**
  * Cleanup old conversations every hour
@@ -9,7 +25,7 @@ const conversations = new Map();
 setInterval(() => {
   const now = new Date();
   for (const [key, conv] of conversations.entries()) {
-    const diff = now - conv.createdAt;
+    const diff = now.getTime() - conv.createdAt.getTime();
     if (diff > 3600000) { // 1 hour
       conversations.delete(key);
     }
@@ -21,9 +37,9 @@ export const conversationService = {
    * Retrieves a conversation by session ID.
    * 
    * @param {string} sessionId - The session identifier
-   * @returns {Object|undefined} The conversation object or undefined if not found
+   * @returns {Conversation|undefined} The conversation object or undefined if not found
    */
-  get(sessionId) {
+  get(sessionId: string): Conversation | undefined {
     return conversations.get(sessionId);
   },
 
@@ -31,9 +47,9 @@ export const conversationService = {
    * Retrieves or initializes a conversation for a session.
    * 
    * @param {string} sessionId - The session identifier
-   * @returns {Object} The conversation object
+   * @returns {Conversation} The conversation object
    */
-  getOrInitialize(sessionId) {
+  getOrInitialize(sessionId: string): Conversation {
     let conversation = conversations.get(sessionId);
     if (!conversation) {
       conversation = {
@@ -52,16 +68,16 @@ export const conversationService = {
    * 
    * @param {string} sessionId - The session identifier
    */
-  delete(sessionId) {
+  delete(sessionId: string) {
     conversations.delete(sessionId);
   },
 
   /**
    * Returns all stored conversations.
    * 
-   * @returns {Array<[string, Object]>} Array of [sessionId, conversation] entries
+   * @returns {Array<[string, Conversation]>} Array of [sessionId, conversation] entries
    */
-  getAll() {
+  getAll(): [string, Conversation][] {
     return Array.from(conversations.entries());
   },
 
@@ -70,7 +86,7 @@ export const conversationService = {
    * 
    * @returns {number} The number of active conversations
    */
-  count() {
+  count(): number {
     return conversations.size;
   }
 };

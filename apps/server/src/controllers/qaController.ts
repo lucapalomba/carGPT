@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 import { ollamaService } from '../services/ollamaService.js';
 import { promptService } from '../services/promptService.js';
 import { conversationService } from '../services/conversationService.js';
@@ -10,10 +11,10 @@ export const qaController = {
   /**
    * Retrieves all active conversations (for admin/debug)
    * 
-   * @param {Object} req - Express request
-   * @param {Object} res - Express response
+   * @param {Request} req - Express request
+   * @param {Response} res - Express response
    */
-  getConversations(req, res) {
+  getConversations(req: Request, res: Response) {
     const rawConversations = conversationService.getAll();
     const formattedConversations = rawConversations.map(([id, data]) => ({
       id,
