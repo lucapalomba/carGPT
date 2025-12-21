@@ -7,8 +7,11 @@
 **Find your perfect car using AI - describe what you need, not what you think you want!**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen)](https://nodejs.org)
 [![Ollama](https://img.shields.io/badge/Ollama-Required-blue)](https://ollama.ai)
+[![React](https://img.shields.io/badge/React-19.0-blue)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-6.x-646CFF)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)](https://tailwindcss.com)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 [Features](#features) • [Demo](#demo) • [Installation](#installation) • [Usage](#usage) • [API Docs](docs/API.md) • [Contributing](#contributing)
@@ -80,6 +83,12 @@ This project was born as an exercise to explore how modern AI tools can create d
 - **Market Precision**: Restricts suggestions to cars available in your local market (e.g., Spain for Spanish, Italy for Italian)
 - **Zero Configuration**: No need to select language or country - it just works
 
+### ⚛️ Modern Tech Stack
+-   **Frontend**: React 19 + TypeScript + Vite
+-   **Styling**: Tailwind CSS v4 for a premium, responsive UI
+-   **Backend**: Node.js + Express
+-   **Monorepo**: Clean workspace management with NPM Workspaces
+
 ### 🆓 100% Free & Private
 - Uses **Ollama** - runs locally on your machine
 - **No API costs** - completely free forever
@@ -139,13 +148,14 @@ cd CarGPT
 npm install
 
 # 5. Create config file
-cp .env.example .env
+cp apps/server/.env.example apps/server/.env
 
-# 6. Start the application
-npm start
+# 6. Start both applications (Frontend + Backend)
+npm run dev
 
 # 7. Open your browser
-# Visit: http://localhost:3000
+# Visit Frontend: http://localhost:5173
+# Visit Backend API: http://localhost:3000
 
 # 8. (Optional) View API Documentation
 # Visit: http://localhost:3000/api-docs
@@ -195,24 +205,23 @@ Looking for a robust SUV for outdoor adventures:
 
 ---
 
-## 🏗️ Architecture
-
-CarGPT follows a modular **MVC (Model-View-Controller)** and **Service Layer** architecture.
+CarGPT follows a modern **Monorepo** architecture using **NPM Workspaces**.
 
 ```mermaid
 graph TD
-    A[Browser] -->|HTTP| B[Express server.js]
-    B --> C[Routes]
-    C --> D[Controllers]
-    D --> E[Services]
-    E -->|JSON| F[Ollama]
-    E --> G[In-memory Store]
+    A[Browser] -->|Port 5173| B[Vite Dev Server / apps/web]
+    A -->|Port 3000| C[Express Server / apps/server]
+    B -->|Proxy /api| C
+    C --> D[Routes]
+    D --> E[Controllers]
+    E --> F[Services]
+    F -->|JSON| G[Ollama]
+    F --> H[In-memory Store]
 ```
 
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Controllers**: Request handling and response formatting
-- **Services**: Business logic, Ollama integration, and session management
-- **Storage**: In-memory conversations (1 hour TTL)
+- **Frontend (`apps/web`)**: React 19, TypeScript, Tailwind CSS v4
+- **Backend (`apps/server`)**: Node.js, Express, MVC + Service Layer
+- **Monorepo**: Centralized management via root `package.json`
 
 For a deep dive into the system design, see [**ARCHITECTURE.md**](ARCHITECTURE.md).
 

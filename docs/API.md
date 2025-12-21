@@ -350,4 +350,4 @@ app.use(cors({
 
 ---
 
-For more examples, see the [frontend implementation](../public/app.js).
+For more examples, see the [frontend implementation](../apps/web/src).
