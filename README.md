@@ -220,7 +220,7 @@ graph TD
 ```
 
 - **Frontend (`apps/web`)**: React 19, TypeScript, Tailwind CSS v4
-- **Backend (`apps/server`)**: Node.js, Express, MVC + Service Layer
+- **Backend (`apps/server`)**: Node.js, Express, TypeScript, MVC + Service Layer
 - **Monorepo**: Centralized management via root `package.json`
 
 For a deep dive into the system design, see [**ARCHITECTURE.md**](ARCHITECTURE.md).

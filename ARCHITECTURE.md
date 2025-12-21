@@ -19,12 +19,12 @@ CarGPT has transitioned to a powerful **Monorepo** architecture to separate conc
 │   │   │   ├── App.tsx      # Main application logic
 │   │   │   └── main.tsx     # React entry point
 │   │   └── vite.config.ts  # Frontend build & proxy config
-│   └── server/             # Express Backend (MVC + Services)
-│       ├── server.js       # API entry point
+│   └── server/             # Express Backend (TypeScript + MVC + Services)
+│       ├── server.ts       # API entry point
 │       ├── src/
-│       │   ├── controllers/ # Request handlers
-│       │   ├── routes/      # API route definitions
-│       │   └── services/    # Business logic & Ollama integration
+│       │   ├── controllers/ # Request handlers (.ts)
+│       │   ├── routes/      # API route definitions (.ts)
+│       │   └── services/    # Business logic & Ollama integration (.ts)
 │       └── prompt-templates/ # LLM prompt definitions
 ├── package.json            # Root configuration (Workspaces + Parallel Dev)
 └── .node-version           # Repository-wide Node version (v24.12.0)
@@ -35,8 +35,8 @@ CarGPT has transitioned to a powerful **Monorepo** architecture to separate conc
 ## 🔄 Data Flow
 
 1.  **Request**: The browser sends an HTTP request (e.g., `POST /api/find-cars`) with an `Accept-Language` header.
-2.  **Entry Point**: `server.js` receives the request and passes it to the `api.js` router.
-3.  **Router**: `api.js` identifies the correct controller method.
+2.  **Entry Point**: `server.ts` receives the request and passes it to the `api.ts` router.
+3.  **Router**: `api.ts` identifies the correct controller method.
 4.  **Controller**:
     *   Extracts parameters from `req.body` and headers.
     *   Calls `promptService` to load the appropriate template.
@@ -65,14 +65,15 @@ The frontend is a modern **Single Page Application (SPA)**:
 
 ## ⚙️ Backend Architecture (apps/server)
 
-The backend follows the **MVC** and **Service Layer** patterns:
+The backend is built with **TypeScript** and follows the **MVC** and **Service Layer** patterns:
 
 ---
 
 ## ✅ Best Practices Implemented
 
 -   **Separation of Concerns**: Business logic is separated from HTTP handling.
--   **Lean Entry Point**: `server.js` is under 100 lines and focuses solely on initialization.
+-   **Lean Entry Point**: `server.ts` is under 100 lines and focuses solely on initialization.
+-   **TypeScript-First**: Ensuring type safety across all controllers, services, and models.
 -   **JSDoc Documentation**: All exported functions and methods are documented for better IDE support and developer experience.
 -   **Centralized Config**: No hardcoded secrets or environment dependencies outside `src/config/`.
 -   **Localization Native**: Built-in support for browser language detection and market restriction across all layers.

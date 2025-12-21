@@ -108,7 +108,7 @@ npm install
 ## 🎯 Next Steps
 
 - Try different models: `ollama pull llama3.2`
-- Customize the system prompt in `server.js`
+- Customize the system prompt in `server.ts`
 - Explore other models at https://ollama.ai/library
 
 ---
