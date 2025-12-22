@@ -24,6 +24,14 @@ The Swagger UI provides:
 http://localhost:3000/api
 ```
 
+## Localization
+
+CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred language and regional market.
+
+- **Language Detection**: The AI will respond in the language specified in the header.
+- **Market Restriction**: The system automatically restricts car suggestions to the market corresponding to the detected language (e.g., `es-ES` will prioritize cars available in Spain).
+- **Default**: If the header is missing, it defaults to English (`en`).
+
 ## Endpoints
 
 ### 1. Find Cars Based on Requirements
@@ -277,7 +285,8 @@ async function findCars(requirements) {
     const response = await fetch('/api/find-cars', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept-Language': navigator.language // Important for localization
       },
       body: JSON.stringify({ requirements: requirements })
     });
@@ -341,4 +350,4 @@ app.use(cors({
 
 ---
 
-For more examples, see the [frontend implementation](../public/app.js).
+For more examples, see the [frontend implementation](../apps/web/src).

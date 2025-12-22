@@ -7,8 +7,11 @@
 **Find your perfect car using AI - describe what you need, not what you think you want!**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen)](https://nodejs.org)
 [![Ollama](https://img.shields.io/badge/Ollama-Required-blue)](https://ollama.ai)
+[![React](https://img.shields.io/badge/React-19.0-blue)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-6.x-646CFF)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)](https://tailwindcss.com)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 [Features](#features) • [Demo](#demo) • [Installation](#installation) • [Usage](#usage) • [API Docs](docs/API.md) • [Contributing](#contributing)
@@ -23,7 +26,7 @@ CarGPT is an **AI-powered car recommendation system** that helps you find the pe
 
 **Instead of asking** "What do you know about a BMW 3 Series?"
 
-**CarGPT asks** "What do you need from a car?" and then suggests the best options for you!
+**CarGPT asks** "What do you need from a car?" and then suggests the best options for you, tailoring results to your **local market** and **preferred language**!
 
 ### The Problem
 
@@ -74,6 +77,17 @@ This project was born as an exercise to explore how modern AI tools can create d
 - Find similar alternatives to any suggestion
 - Discover options you might have missed
 - Explore different price points and features
+
+### 🌍 Multilingual & Regional Support
+- **Automatic Language Detection**: Detects your browser language to respond in your preferred tongue
+- **Market Precision**: Restricts suggestions to cars available in your local market (e.g., Spain for Spanish, Italy for Italian)
+- **Zero Configuration**: No need to select language or country - it just works
+
+### ⚛️ Modern Tech Stack
+-   **Frontend**: React 19 + TypeScript + Vite
+-   **Styling**: Tailwind CSS v4 for a premium, responsive UI
+-   **Backend**: Node.js + Express
+-   **Monorepo**: Clean workspace management with NPM Workspaces
 
 ### 🆓 100% Free & Private
 - Uses **Ollama** - runs locally on your machine
@@ -134,13 +148,14 @@ cd CarGPT
 npm install
 
 # 5. Create config file
-cp .env.example .env
+cp apps/server/.env.example apps/server/.env
 
-# 6. Start the application
-npm start
+# 6. Start both applications (Frontend + Backend)
+npm run dev
 
 # 7. Open your browser
-# Visit: http://localhost:3000
+# Visit Frontend: http://localhost:5173
+# Visit Backend API: http://localhost:3000
 
 # 8. (Optional) View API Documentation
 # Visit: http://localhost:3000/api-docs
@@ -190,31 +205,25 @@ Looking for a robust SUV for outdoor adventures:
 
 ---
 
-## 🏗️ Architecture
+CarGPT follows a modern **Monorepo** architecture using **NPM Workspaces**.
 
-```
-┌─────────────┐
-│   Browser   │
-│  (Vanilla)  │
-└──────┬──────┘
-       │ HTTP/REST
-       ▼
-┌─────────────┐
-│   Express   │
-│   Server    │
-└──────┬──────┘
-       │ JSON
-       ▼
-┌─────────────┐
-│   Ollama    │
-│ (Ministral) │
-└─────────────┘
+```mermaid
+graph TD
+    A[Browser] -->|Port 5173| B[Vite Dev Server / apps/web]
+    A -->|Port 3000| C[Express Server / apps/server]
+    B -->|Proxy /api| C
+    C --> D[Routes]
+    D --> E[Controllers]
+    E --> F[Services]
+    F -->|JSON| G[Ollama]
+    F --> H[In-memory Store]
 ```
 
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Backend**: Node.js, Express
-- **AI**: Ollama with Ministral model
-- **Storage**: In-memory sessions (1 hour TTL)
+- **Frontend (`apps/web`)**: React 19, TypeScript, Tailwind CSS v4
+- **Backend (`apps/server`)**: Node.js, Express, TypeScript, MVC + Service Layer
+- **Monorepo**: Centralized management via root `package.json`
+
+For a deep dive into the system design, see [**ARCHITECTURE.md**](ARCHITECTURE.md).
 
 ---
 
@@ -245,7 +254,7 @@ We love contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 - 🐛 Bug fixes and testing
 - 🎨 UI/UX improvements
-- 🌍 Translations (currently English only)
+- 🌍 Translations (fully automated via browser language detection)
 - 📝 Documentation improvements
 - ✨ New features (see [issues](https://github.com/lucapalomba/CarGPT/issues))
 
