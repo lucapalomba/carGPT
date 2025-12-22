@@ -45,9 +45,21 @@ app.use(session({
 
 // Swagger Documentation (Development only)
 
+console.log('DEBUG: Middleware setup - isProduction:', config.isProduction);
 if (!config.isProduction) {
   const swaggerDocument = loadSwaggerDocument();
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  app.use('/api-docs', 
+    (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      console.log(`DEBUG: Accessing Swagger UI at ${req.originalUrl}`);
+      next();
+    },
+    swaggerUi.serve, 
+    swaggerUi.setup(swaggerDocument, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: "CarGPT API Documentation"
+    })
+  );
 }
 
 
