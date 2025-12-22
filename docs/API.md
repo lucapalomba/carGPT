@@ -6,7 +6,7 @@ CarGPT provides a RESTful API for interacting with the AI-powered car recommenda
 
 ## Interactive API Documentation
 
-**🚀 Swagger UI**: For interactive API documentation with the ability to test endpoints directly in your browser, visit:
+**🚀 Swagger UI**: For interactive API documentation with the ability to test endpoints directly in your browser (Development Only), visit:
 
 ```
 http://localhost:3000/api-docs

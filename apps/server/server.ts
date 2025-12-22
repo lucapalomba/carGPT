@@ -8,13 +8,32 @@ import cors from 'cors';
 import { config, loadSwaggerDocument } from './src/config/index.js';
 import { ollamaService } from './src/services/ollamaService.js';
 import apiRoutes from './src/routes/api.js';
+import logger from './src/utils/logger.js';
+import { 
+  errorHandler, 
+  notFoundHandler,
+  unhandledRejectionHandler,
+  uncaughtExceptionHandler 
+} from './src/middleware/errorHandler.js';
+import { 
+  requestLogger, 
+  responseTimeMiddleware,
+  requestIdMiddleware 
+} from './src/middleware/requestLogger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Setup global error handlers
+unhandledRejectionHandler();
+uncaughtExceptionHandler();
+
 // Middleware
+app.use(requestIdMiddleware);
+app.use(responseTimeMiddleware);
+app.use(requestLogger);
 app.use(cors());
 app.use(express.json());
 app.use(session({
@@ -24,36 +43,72 @@ app.use(session({
   cookie: config.session.cookie
 }));
 
-// Swagger Documentation
-const swaggerDocument = loadSwaggerDocument();
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// Swagger Documentation (Development only)
+
+console.log('DEBUG: Middleware setup - isProduction:', config.isProduction);
+if (!config.isProduction) {
+  const swaggerDocument = loadSwaggerDocument();
+  app.use('/api-docs', 
+    (req: express.Request, res: express.Response, next: express.NextFunction) => {
+      console.log(`DEBUG: Accessing Swagger UI at ${req.originalUrl}`);
+      next();
+    },
+    swaggerUi.serve, 
+    swaggerUi.setup(swaggerDocument, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: "CarGPT API Documentation"
+    })
+  );
+}
+
 
 // API Routes
 app.use('/api', apiRoutes);
 
-// Centralized Error Handler (Basic)
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({
-    success: false,
-    error: 'Internal Server Error',
-    debug: !config.isProduction ? err.message : undefined
-  });
-});
+// Error Handling (must be after routes)
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Start Server
 const startServer = async () => {
   const isOllamaReady = await ollamaService.verifyOllama();
   
-  app.listen(config.port, () => {
-    console.log(`
+  const server = app.listen(config.port, () => {
+    logger.info('CarGPT server started successfully', {
+      port: config.port,
+      environment: config.mode,
+      ollamaStatus: isOllamaReady ? 'Ready' : 'Not Detected',
+      model: config.ollama.model
+    });
+    
+    if (!config.isProduction) {
+      console.log(`
 🚀 CarGPT server is running!
 🌐 URL: http://localhost:${config.port}
 📚 API Docs: http://localhost:${config.port}/api-docs
 🤖 AI Model: ${config.ollama.model}
-⚡ Status: ${isOllamaReady ? 'Ready' : 'Ollama not detected'}
-    `);
+      `);
+    }
   });
+
+  // Graceful shutdown
+  const gracefulShutdown = (signal: string) => {
+    logger.info(`${signal} received, shutting down gracefully`);
+    server.close(() => {
+      logger.info('Server closed');
+      process.exit(0);
+    });
+
+    // Force shutdown after 10s
+    setTimeout(() => {
+      logger.error('Forced shutdown after timeout');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 };
 
 startServer();

@@ -2,6 +2,7 @@ import express from 'express';
 import { carsController } from '../controllers/carsController.js';
 import { qaController } from '../controllers/qaController.js';
 import { healthController } from '../controllers/healthController.js';
+import { config } from '../config/index.js';
 
 const router = express.Router();
 
@@ -15,9 +16,11 @@ router.post('/get-alternatives', carsController.getAlternatives);
 router.post('/ask-about-car', carsController.askAboutCar);
 
 /**
- * Management & Debug
+ * Management & Debug (Development only)
  */
-router.get('/get-conversations', qaController.getConversations);
+if (!config.isProduction) {
+  router.get('/get-conversations', qaController.getConversations);
+}
 
 /**
  * System Health

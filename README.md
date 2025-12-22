@@ -150,8 +150,12 @@ npm install
 # 5. Create config file
 cp apps/server/.env.example apps/server/.env
 
-# 6. Start both applications (Frontend + Backend)
+# 6. Start the applications
+# Development: starts both web and server with Swagger UI enabled
 npm run dev
+
+# Production: build and start (Swagger/Debug APIs are disabled)
+# NODE_ENV=production npm run start
 
 # 7. Open your browser
 # Visit Frontend: http://localhost:5173
@@ -221,6 +225,7 @@ graph TD
 
 - **Frontend (`apps/web`)**: React 19, TypeScript, Tailwind CSS v4
 - **Backend (`apps/server`)**: Node.js, Express, TypeScript, MVC + Service Layer
+- **Logging & Observability**: Centralized structured logging with Winston, request correlation, and LLM prompt tracking. See [**LOGGING.md**](apps/server/LOGGING.md).
 - **Monorepo**: Centralized management via root `package.json`
 
 For a deep dive into the system design, see [**ARCHITECTURE.md**](ARCHITECTURE.md).
@@ -230,7 +235,8 @@ For a deep dive into the system design, see [**ARCHITECTURE.md**](ARCHITECTURE.m
 ## 📚 Documentation
 
 - [**API Documentation**](docs/API.md) - Complete API reference
-- [**Swagger UI**](http://localhost:3000/api-docs) - Interactive API documentation (when server is running)
+- [**Swagger UI**](http://localhost:3000/api-docs) - Interactive UI (Development mode only)
+- [**Logging Guide**](apps/server/LOGGING.md) - Structured logging & LLM prompt tracking
 - [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment instructions
 - [Contributing Guide](CONTRIBUTING.md) - How to contribute
 - [Changelog](CHANGELOG.md) - Version history

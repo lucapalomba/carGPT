@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Car } from '../App';
+import { api } from '../utils/api';
 
 interface DetailedComparisonProps {
   cars: Car[];
@@ -35,27 +36,11 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
 
     setIsLoading(true);
     setResult(null);
-    try {
-      const response = await fetch('/api/compare-cars', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept-Language': navigator.language
-        },
-        body: JSON.stringify({ car1: car1Name, car2: car2Name })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setResult(data.comparison);
-      } else {
-        alert(`Error: ${data.error}`);
-      }
-    } catch (error) {
-      alert('Connection error');
-    } finally {
-      setIsLoading(false);
+    const data = await api.post('/api/compare-cars', { car1: car1Name, car2: car2Name });
+    if (data) {
+      setResult(data.comparison);
     }
+    setIsLoading(false);
   };
 
   return (

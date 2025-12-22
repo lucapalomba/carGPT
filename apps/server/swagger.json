@@ -99,7 +99,8 @@
                                 },
                                 "example": {
                                     "success": false,
-                                    "error": "Describe your needs in more detail (at least 10 characters)"
+                                    "status": "fail",
+                                    "message": "Describe your needs in more detail (at least 10 characters)"
                                 }
                             }
                         }
@@ -113,7 +114,8 @@
                                 },
                                 "example": {
                                     "success": false,
-                                    "error": "Unable to connect to Ollama. Make sure it is running (ollama serve)"
+                                    "status": "error",
+                                    "message": "Unable to connect to Ollama. Make sure it is running (ollama serve)"
                                 }
                             }
                         }
@@ -286,8 +288,8 @@
                 "tags": [
                     "Q&A"
                 ],
-                "summary": "Get all active conversations",
-                "description": "Retrieves internal state of all active user conversations (Debug/Admin)",
+                "summary": "Get all active conversations (Development Only)",
+                "description": "Retrieves internal state of all active user conversations. Access is restricted to non-production environments.",
                 "operationId": "getConversations",
                 "responses": {
                     "200": {
@@ -803,16 +805,26 @@
                         "type": "boolean",
                         "example": false
                     },
-                    "error": {
+                    "status": {
                         "type": "string",
-                        "description": "Error message",
+                        "description": "Short error status ('fail' for 4xx, 'error' for 5xx)",
+                        "example": "fail"
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Detailed error message",
                         "example": "Error description"
                     },
-                    "debug": {
+                    "stack": {
                         "type": "string",
-                        "description": "Debug information (only in development mode)"
+                        "description": "Stack trace (only returned in development mode)"
                     }
-                }
+                },
+                "required": [
+                    "success",
+                    "status",
+                    "message"
+                ]
             }
         }
     }

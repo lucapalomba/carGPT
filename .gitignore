@@ -28,3 +28,4 @@ yarn-error.log*
 .vscode/
 .idea/
 problematic_user_prompt.md
+apps/server/logs/

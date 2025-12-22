@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { ollamaService } from '../services/ollamaService.js';
 import { conversationService } from '../services/conversationService.js';
 import { config } from '../config/index.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import logger from '../utils/logger.js';
 
 /**
  * Controller for system health and maintenance operations
@@ -9,11 +11,8 @@ import { config } from '../config/index.js';
 export const healthController = {
   /**
    * Performs a health check on the server and Ollama connection
-   * 
-   * @param {Request} req - Express request
-   * @param {Response} res - Express response
    */
-  async checkHealth(req: Request, res: Response) {
+  checkHealth: asyncHandler(async (req: Request, res: Response) => {
     const isOllamaConnected = await ollamaService.verifyOllama();
     
     res.json({
@@ -22,23 +21,20 @@ export const healthController = {
       model: config.ollama.model,
       active_conversations: conversationService.count()
     });
-  },
+  }),
 
   /**
    * Resets the user's conversation session
-   * 
-   * @param {Request} req - Express request
-   * @param {Response} res - Express response
    */
-  resetConversation(req: Request, res: Response) {
+  resetConversation: asyncHandler(async (req: Request, res: Response) => {
     const sessionId = req.sessionID;
     conversationService.delete(sessionId);
     
-    console.log(`♻️ Conversation reset for session: ${sessionId}`);
+    logger.info('Conversation reset', { sessionId });
     
     res.json({
       success: true,
       message: 'Conversation reset'
     });
-  }
+  })
 };
