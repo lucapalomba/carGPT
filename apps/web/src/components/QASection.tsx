@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Car } from '../App';
+import { api } from '../utils/api';
 
 interface QASectionProps {
   cars: Car[];
@@ -39,27 +40,14 @@ function QASection({ cars }: QASectionProps) {
     setQuestion('');
     setIsLoading(true);
 
-    try {
-      const response = await fetch('/api/ask-about-car', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept-Language': navigator.language
-        },
-        body: JSON.stringify({ car: carName, question: userQuestion })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setHistory(prev => [...prev, { type: 'answer', text: data.answer }]);
-      } else {
-        setHistory(prev => [...prev, { type: 'answer', text: data.error, isError: true }]);
-      }
-    } catch (error) {
-      setHistory(prev => [...prev, { type: 'answer', text: 'Connection error', isError: true }]);
-    } finally {
-      setIsLoading(false);
+    const data = await api.post('/api/ask-about-car', { car: carName, question: userQuestion });
+    if (data) {
+      setHistory(prev => [...prev, { type: 'answer', text: data.answer }]);
+    } else {
+      // api utility already toasted the error, we just add it to history for UI flow
+      setHistory(prev => [...prev, { type: 'answer', text: 'Operation failed', isError: true }]);
     }
+    setIsLoading(false);
   };
 
   return (

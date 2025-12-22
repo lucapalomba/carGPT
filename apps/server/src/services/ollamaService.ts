@@ -1,4 +1,6 @@
 import { config } from '../config/index.js';
+import logger from '../utils/logger.js';
+import { OllamaError } from '../utils/AppError.js';
 
 export interface Message {
   role: string;
@@ -19,6 +21,13 @@ export const ollamaService = {
    */
   async callOllama(messages: Message[]) {
     try {
+      logger.debug('Calling Ollama API', { 
+        model: config.ollama.model,
+        messagesCount: messages.length,
+        // Logging the compiled prompt for debugging
+        fullPrompt: messages 
+      });
+
       const response = await fetch(`${config.ollama.url}/api/chat`, {
         method: 'POST',
         headers: {
@@ -37,15 +46,23 @@ export const ollamaService = {
       });
 
       if (!response.ok) {
-        throw new Error(`Ollama error: ${response.status} - ${response.statusText}`);
+        throw new OllamaError(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data: any = await response.json();
+      logger.debug('Ollama API response received');
       return data.message.content;
 
     } catch (error: any) {
-      console.error('Error calling Ollama:', error);
-      throw new Error('Unable to connect to Ollama. Make sure it is running (ollama serve)');
+      if (error instanceof OllamaError) {
+        throw error;
+      }
+      
+      logger.error('Ollama connection failed', { 
+        error: error.message,
+        url: config.ollama.url
+      });
+      throw new OllamaError('Unable to connect to Ollama. Ensure Ollama is running (ollama serve)');
     }
   },
 
@@ -83,8 +100,7 @@ export const ollamaService = {
       return JSON.parse(cleaned);
     } catch (firstError: any) {
       // If still failing, try more aggressive cleaning
-      console.error('First parse attempt failed:', firstError.message);
-      console.error('Attempting more aggressive cleaning...');
+      logger.warn('First JSON parse attempt failed', { error: firstError.message, text: cleaned.substring(0, 100) + '...' });
 
       // Try to extract just the JSON part more carefully
       const objectMatch = cleaned.match(/\{[\s\S]*\}/);
@@ -92,7 +108,7 @@ export const ollamaService = {
         try {
           return JSON.parse(objectMatch[0]);
         } catch (secondError: any) {
-          console.error('Second parse attempt failed:', secondError.message);
+          logger.error('Second JSON parse attempt failed', { error: secondError.message });
           throw new Error(`Failed to parse JSON: ${firstError.message}`);
         }
       }
@@ -113,16 +129,14 @@ export const ollamaService = {
       const modelExists = data.models.some((m: any) => m.name.includes(config.ollama.model));
 
       if (!modelExists) {
-        console.warn(`⚠️  Model ${config.ollama.model} not found!`);
-        console.warn(`   Run: ollama pull ${config.ollama.model}`);
+        logger.warn(`Model ${config.ollama.model} not found! Run: ollama pull ${config.ollama.model}`);
         return false;
       }
 
-      console.log(`✅ Ollama connected - Model: ${config.ollama.model}`);
+      logger.info('Ollama connected', { model: config.ollama.model });
       return true;
-    } catch (error) {
-      console.error('❌ Ollama not reachable!');
-      console.error('   Make sure Ollama is running: ollama serve');
+    } catch (error: any) {
+      logger.error('Ollama not reachable!', { url: config.ollama.url, error: error.message });
       return false;
     }
   }

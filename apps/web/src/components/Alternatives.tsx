@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Car } from '../App';
+import { api } from '../utils/api';
 
 interface AlternativesProps {
   cars: Car[];
@@ -26,27 +27,11 @@ function Alternatives({ cars, onClose }: AlternativesProps) {
     }
 
     setIsLoading(true);
-    try {
-      const response = await fetch('/api/get-alternatives', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept-Language': navigator.language
-        },
-        body: JSON.stringify({ car: selectedCar, reason })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setAlternatives(data.alternatives);
-      } else {
-        alert(`Error: ${data.error}`);
-      }
-    } catch (error) {
-      alert('Connection error');
-    } finally {
-      setIsLoading(false);
+    const data = await api.post('/api/get-alternatives', { car: selectedCar, reason });
+    if (data) {
+      setAlternatives(data.alternatives);
     }
+    setIsLoading(false);
   };
 
   return (

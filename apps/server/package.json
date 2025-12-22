@@ -13,12 +13,16 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-session": "^1.17.3",
-    "swagger-ui-express": "^5.0.1"
+    "morgan": "^1.10.1",
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.18.2",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^25.0.3",
     "@types/swagger-ui-express": "^4.1.8",
     "tsx": "^4.21.0",

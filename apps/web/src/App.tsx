@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { Toaster } from 'react-hot-toast';
 import InitialForm from './components/InitialForm';
 import ResultsContainer from './components/ResultsContainer';
+import { api } from './utils/api';
 
 export interface Car {
   make: string;
@@ -23,79 +25,43 @@ function App() {
 
   const handleSearch = async (requirements: string) => {
     setIsSearching(true);
-    try {
-      const response = await fetch('/api/find-cars', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept-Language': navigator.language
-        },
-        body: JSON.stringify({ requirements })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setCurrentCars(data.cars);
-        setAnalysisHistory([data.analysis]);
-        setPinnedIndices(new Set());
-        setView('results');
-      } else {
-        alert(`Error: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Connection error. Make sure Ollama is running.');
-    } finally {
-      setIsSearching(false);
+    const data = await api.post('/api/find-cars', { requirements });
+    
+    if (data) {
+      setCurrentCars(data.cars);
+      setAnalysisHistory([data.analysis]);
+      setPinnedIndices(new Set());
+      setView('results');
     }
+    
+    setIsSearching(false);
   };
 
   const refineSearch = async (feedback: string) => {
     const pinnedCars = Array.from(pinnedIndices).map(idx => currentCars[idx]).filter(Boolean);
     
     setIsSearching(true);
-    try {
-      const response = await fetch('/api/refine-search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept-Language': navigator.language
-        },
-        body: JSON.stringify({ feedback, pinnedCars })
-      });
+    const data = await api.post('/api/refine-search', { feedback, pinnedCars });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setCurrentCars(data.cars);
-        setAnalysisHistory(prev => [...prev, data.analysis]);
-        
-        // Pinned cars should still be pinned. They are now at 0, 1, ...
-        const newPinned = new Set<number>();
-        for (let i = 0; i < pinnedCars.length; i++) {
-          newPinned.add(i);
-        }
-        setPinnedIndices(newPinned);
-      } else {
-        alert('Error refining search: ' + data.error);
+    if (data) {
+      setCurrentCars(data.cars);
+      setAnalysisHistory(prev => [...prev, data.analysis]);
+      
+      // Pinned cars should still be pinned. They are now at 0, 1, ...
+      const newPinned = new Set<number>();
+      for (let i = 0; i < pinnedCars.length; i++) {
+        newPinned.add(i);
       }
-    } catch (error) {
-      console.error('Refine error:', error);
-      alert('Connection error.');
-    } finally {
-      setIsSearching(false);
+      setPinnedIndices(newPinned);
     }
+
+    setIsSearching(false);
   };
 
   const resetSearch = async () => {
     if (!confirm('Do you want to start a new search? Current results will be lost.')) return;
 
-    try {
-      await fetch('/api/reset-conversation', { method: 'POST' });
-    } catch (error) {
-      console.error('Reset error:', error);
-    }
+    await api.post('/api/reset-conversation', {});
 
     setView('form');
     setCurrentCars([]);
@@ -115,6 +81,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto">
         {view === 'form' ? (
           <InitialForm onSearch={handleSearch} isSearching={isSearching} />
