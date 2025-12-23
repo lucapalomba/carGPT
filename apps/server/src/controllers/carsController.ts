@@ -134,6 +134,7 @@ export const carsController = {
 
     const fullContext = contextParts.join('\n');
     const refinePromptTemplate = promptService.loadTemplate('refine-cars.md');
+    const jsonGuard = promptService.loadTemplate('json-guard.md');
 
     let pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars) : 'None';
 
@@ -144,6 +145,10 @@ export const carsController = {
           .replace('${requirements}', fullContext)
           .replace('${pinnedCars}', pinnedCarsJson)
           .replace('${feedback}', feedback)
+      },
+      {
+        role: "system",
+        content: jsonGuard
       },
       {
         role: "system",
@@ -162,18 +167,6 @@ export const carsController = {
       if (!result.cars || !Array.isArray(result.cars)) {
         throw new Error('Invalid JSON structure - expected cars array');
       }
-
-      result.cars = result.cars.map((car: any) => ({
-        make: car.make || car.marca,
-        model: car.model || car.modello,
-        year: car.year || car.anno,
-        price: car.price || car.prezzo,
-        type: car.type || car.tipo,
-        strengths: car.strengths || car.puntiForza || [],
-        weaknesses: car.weaknesses || car.puntiDeboli || [],
-        reason: car.reason || car.motivazione,
-        properties: car.properties || {}
-      }));
 
     } catch (parseError: any) {
       logger.error('Error parsing refinement response', { parseError: parseError.message, response });
