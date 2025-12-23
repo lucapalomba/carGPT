@@ -26,12 +26,17 @@ export const carsController = {
     const conversation = conversationService.getOrInitialize(sessionId);
 
     const findCarPromptTemplate = promptService.loadTemplate('find-cars.md');
+    const jsonGuard = promptService.loadTemplate('json-guard.md');
     logger.info('Car search request received', { requirements, sessionId });
     
     const messages: Message[] = [
       {
         role: "system",
         content: findCarPromptTemplate
+      },
+      {
+        role: "system",
+        content: jsonGuard
       },
       {
         role: "system",
@@ -209,6 +214,7 @@ export const carsController = {
     logger.info('Question about car received', { car, question, sessionId });
 
     const askingPromptTemplate = promptService.loadTemplate('asking-car.md');
+    const jsonGuard = promptService.loadTemplate('json-guard.md');
     const messages = [
       {
         role: "system",
@@ -217,6 +223,10 @@ export const carsController = {
       {
         role: "system",
         content: `The answer ashould be relativo to ${car} and only use the information available about this car. If the information is not available, respond with "I don't know".`
+      },
+            {
+        role: "system",
+        content: jsonGuard
       },
       {
         role: "system",
