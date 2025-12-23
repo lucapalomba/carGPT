@@ -26,12 +26,17 @@ export const carsController = {
     const conversation = conversationService.getOrInitialize(sessionId);
 
     const findCarPromptTemplate = promptService.loadTemplate('find-cars.md');
+    const jsonGuard = promptService.loadTemplate('json-guard.md');
     logger.info('Car search request received', { requirements, sessionId });
     
     const messages: Message[] = [
       {
         role: "system",
         content: findCarPromptTemplate
+      },
+      {
+        role: "system",
+        content: jsonGuard
       },
       {
         role: "system",
@@ -129,6 +134,7 @@ export const carsController = {
 
     const fullContext = contextParts.join('\n');
     const refinePromptTemplate = promptService.loadTemplate('refine-cars.md');
+    const jsonGuard = promptService.loadTemplate('json-guard.md');
 
     let pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars) : 'None';
 
@@ -139,6 +145,10 @@ export const carsController = {
           .replace('${requirements}', fullContext)
           .replace('${pinnedCars}', pinnedCarsJson)
           .replace('${feedback}', feedback)
+      },
+      {
+        role: "system",
+        content: jsonGuard
       },
       {
         role: "system",
@@ -157,18 +167,6 @@ export const carsController = {
       if (!result.cars || !Array.isArray(result.cars)) {
         throw new Error('Invalid JSON structure - expected cars array');
       }
-
-      result.cars = result.cars.map((car: any) => ({
-        make: car.make || car.marca,
-        model: car.model || car.modello,
-        year: car.year || car.anno,
-        price: car.price || car.prezzo,
-        type: car.type || car.tipo,
-        strengths: car.strengths || car.puntiForza || [],
-        weaknesses: car.weaknesses || car.puntiDeboli || [],
-        reason: car.reason || car.motivazione,
-        properties: car.properties || {}
-      }));
 
     } catch (parseError: any) {
       logger.error('Error parsing refinement response', { parseError: parseError.message, response });
@@ -209,6 +207,7 @@ export const carsController = {
     logger.info('Question about car received', { car, question, sessionId });
 
     const askingPromptTemplate = promptService.loadTemplate('asking-car.md');
+    const jsonGuard = promptService.loadTemplate('json-guard.md');
     const messages = [
       {
         role: "system",
@@ -216,7 +215,11 @@ export const carsController = {
       },
       {
         role: "system",
-        content: `The answer ashould be relativo to ${car} and only use the information available about this car. If the information is not available, respond with "I don't know".`
+        content: `The answer should be relative to ${car} and only use the information available about this car. If the information is not available, respond with "I don't know".`
+      },
+      {
+        role: "system",
+        content: jsonGuard
       },
       {
         role: "system",
