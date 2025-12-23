@@ -213,8 +213,10 @@ export const carsController = {
       {
         role: "system",
         content: askingPromptTemplate
-          .replace('${car}', car)
-          .replace('${question}', question)
+      },
+      {
+        role: "system",
+        content: `The answer ashould be relativo to ${car} and only use the information available about this car. If the information is not available, respond with "I don't know".`
       },
       {
         role: "system",
