@@ -32,12 +32,12 @@
     "dev:server": "npm run dev -w server",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
     "test": "npm test --workspaces --if-present",
-    "test-history" : "node test/test_history.js",
+    "test-history": "node test/test_history.js",
     "prepare": "husky install"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
-    "nodemon": "^3.0.1",
-    "husky": "^9.0.0"
+    "husky": "^9.1.7",
+    "nodemon": "^3.0.1"
   }
 }
