@@ -1,0 +1,11 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running tests before commit..."
+npm run test
+npm run test-history
+RESULT=$?
+if [ $RESULT -ne 0 ]; then
+  echo "Tests failed, aborting commit."
+  exit 1
+fi
