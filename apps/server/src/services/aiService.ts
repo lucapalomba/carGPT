@@ -1,14 +1,13 @@
-import { config } from '../config/index.js';
 import { ollamaService, Message as OllamaMessage } from './ollamaService.js';
 import { imageSearchService } from './imageSearchService.js';
 import logger from '../utils/logger.js';
 
 /**
- * Unified AI service that can use either Ollama or Claude (Anthropic)
+ * AI service that uses Ollama for car recommendations
  */
 export const aiService = {
   /**
-   * Get car recommendations with images using the configured AI provider
+   * Get car recommendations with images using Ollama
    * 
    * @param requirements - User requirements for car search
    * @param language - User's preferred language
@@ -22,27 +21,11 @@ export const aiService = {
     systemPrompt: string,
     jsonGuard: string
   ): Promise<any> {
-    const provider = config.aiProvider;
-    
-    logger.info('Finding cars with images', { 
-      provider,
+    logger.info('Finding cars with images using Ollama', { 
       requirements: requirements.substring(0, 100),
       language
     });
 
-      return await this.findCarsWithOllama(requirements, language, systemPrompt, jsonGuard);
-  },
-
-
-  /**
-   * Find cars using Ollama and then fetch images separately
-   */
-  async findCarsWithOllama(
-    requirements: string,
-    language: string,
-    systemPrompt: string,
-    jsonGuard: string
-  ): Promise<any> {
     const messages: OllamaMessage[] = [
       {
         role: "system",
@@ -91,13 +74,10 @@ export const aiService = {
   },
 
   /**
-   * Verify that the configured AI provider is available
+   * Verify that the AI provider (Ollama) is available
    */
   async verify(): Promise<boolean> {
-    const provider = config.aiProvider;
-    
-    logger.info('Verifying AI provider', { provider });
-
+    logger.info('Verifying AI provider (Ollama)');
     return await ollamaService.verifyOllama();
   }
 };

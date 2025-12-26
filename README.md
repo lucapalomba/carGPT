@@ -9,6 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen)](https://nodejs.org)
 [![Ollama](https://img.shields.io/badge/Ollama-Required-blue)](https://ollama.ai)
+[![Google Search API](https://img.shields.io/badge/Google%20Search-API-red)](https://programmablesearchengine.google.com/)
 [![React](https://img.shields.io/badge/React-19.0-blue)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6.x-646CFF)](https://vitejs.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)](https://tailwindcss.com)
@@ -89,10 +90,10 @@ This project was born as an exercise to explore how modern AI tools can create d
 -   **Backend**: Node.js + Express
 -   **Monorepo**: Clean workspace management with NPM Workspaces
 
-### 🆓 100% Free & Private
+### 🆓 100% Private Car Search
 - Uses **Ollama** - runs locally on your machine
-- **No API costs** - completely free forever
-- **100% private** - your data never leaves your computer
+- **100% private** - your core analysis never leaves your computer
+- **Google Images Integration**: Fetches real car photos via Google Custom Search API
 - **No registration** required
 
 ---
@@ -147,8 +148,9 @@ git clone https://github.com/lucapalomba/CarGPT.git
 cd CarGPT
 npm install
 
-# 5. Create config file
+# 5. Create config file and add API keys
 cp apps/server/.env.example apps/server/.env
+# Edit apps/server/.env and add GOOGLE_API_KEY and GOOGLE_CX
 
 # 6. Start the applications
 # Development: starts both web and server with Swagger UI enabled

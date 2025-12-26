@@ -24,8 +24,8 @@ async function testHealthCheck() {
       console.log('\n⚠️  Server is degraded');
     }
     
-    if (!data.braveApiConfigured) {
-      console.log('⚠️  WARNING: Brave API key not configured!');
+    if (!data.googleSearchConfigured) {
+      console.log('⚠️  WARNING: Google Search API key or CX not configured!');
       console.log('   Images will not be fetched.');
     }
     
@@ -85,8 +85,8 @@ async function testFindCars() {
       if (totalImages === 0) {
         console.log('⚠️  WARNING: No images were found for any cars!');
         console.log('   Check:');
-        console.log('   1. BRAVE_API_KEY is set in .env');
-        console.log('   2. Brave API key is valid and has quota');
+        console.log('   1. GOOGLE_API_KEY and GOOGLE_CX are set in .env');
+        console.log('   2. Google API key is valid and has quota');
         console.log('   3. Server logs for errors');
       } else {
         console.log(`✅ Successfully found ${totalImages} images across all cars`);

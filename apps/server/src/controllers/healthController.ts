@@ -19,6 +19,7 @@ export const healthController = {
       status: isOllamaConnected ? 'ok' : 'degraded',
       ollama: isOllamaConnected ? 'connected' : 'disconnected',
       model: config.ollama.model,
+      googleSearchConfigured: !!(config.googleSearch.apiKey && config.googleSearch.cx),
       active_conversations: conversationService.count()
     });
   }),

@@ -12,12 +12,15 @@ export const config = {
     url: process.env.OLLAMA_URL || 'http://localhost:11434',
     model: process.env.OLLAMA_MODEL || 'ministral',
   },
-  aiProvider: process.env.AI_PROVIDER || 'ollama', // 'ollama' or 'anthropic'
   mode: process.env.APP_ENV || process.env.NODE_ENV || 'development',
   isProduction: (process.env.APP_ENV || process.env.NODE_ENV) === 'production',
   session: {
     secret: process.env.SESSION_SECRET || 'cargpt-secret-key-change-in-production',
     cookie: { maxAge: 3600000 } // 1 hour
+  },
+  googleSearch: {
+    apiKey: process.env.GOOGLE_API_KEY,
+    cx: process.env.GOOGLE_CX
   }
 };
 
