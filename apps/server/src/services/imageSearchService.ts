@@ -38,8 +38,8 @@ export const imageSearchService = {
 
     try {
       const query = year 
-        ? `${year} ${make} ${model} official car photo`
-        : `${make} ${model} official car photo`;
+        ? `${year} ${make} ${model}`
+        : `${make} ${model}`;
       
       logger.debug('Searching car images with Google Custom Search', { query });
 
