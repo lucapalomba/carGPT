@@ -149,18 +149,8 @@ export const carsController = {
       }
     ];
 
-    const response = await ollamaService.callOllama(messages);
-    let result;
-    try {
-      result = ollamaService.parseJsonResponse(response);
-      if (!result.cars || !Array.isArray(result.cars)) {
-        throw new Error('Invalid JSON structure - expected cars array');
-      }
-
-    } catch (parseError: any) {
-      logger.error('Error parsing refinement response', { parseError: parseError.message, response });
-      throw new Error('Error refining search. Please try again.');
-    }
+    const response = await aiService.refineCarsWithImages(messages);
+    const result = response;
 
     conversation.updatedAt = new Date();
     conversation.history.push({

@@ -12,6 +12,7 @@ export const config = {
     url: process.env.OLLAMA_URL || 'http://localhost:11434',
     model: process.env.OLLAMA_MODEL || 'ministral',
   },
+  aiProvider: process.env.AI_PROVIDER || 'ollama',
   mode: process.env.APP_ENV || process.env.NODE_ENV || 'development',
   isProduction: (process.env.APP_ENV || process.env.NODE_ENV) === 'production',
   session: {

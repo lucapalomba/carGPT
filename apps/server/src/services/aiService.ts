@@ -74,6 +74,42 @@ export const aiService = {
   },
 
   /**
+   * Refine car suggestions with images using Ollama
+   */
+  async refineCarsWithImages(
+    messages: OllamaMessage[]
+  ): Promise<any> {
+    logger.info('Refining cars with images using Ollama');
+
+    const response = await ollamaService.callOllama(messages);
+    const result = ollamaService.parseJsonResponse(response);
+
+    // Validate structure
+    const carsArray = result.cars || result.auto;
+    if (!carsArray || !Array.isArray(carsArray)) {
+      throw new Error('Invalid JSON structure - expected cars array');
+    }
+
+    // Fetch images for all cars in parallel
+    logger.info(`Searching images for ${carsArray.length} cars`);
+    const imageMap = await imageSearchService.searchMultipleCars(carsArray);
+
+    // Enrich cars with images
+    const carsWithImages = carsArray.map((car: any) => {
+      const key = `${car.make}-${car.model}`;
+      return {
+        ...car,
+        images: imageMap[key] || []
+      };
+    });
+
+    return {
+      ...result,
+      cars: carsWithImages
+    };
+  },
+
+  /**
    * Verify that the AI provider (Ollama) is available
    */
   async verify(): Promise<boolean> {

@@ -10,6 +10,19 @@ export interface CarImage {
   height?: number;
 }
 
+interface GoogleSearchResponse {
+  items?: Array<{
+    link?: string;
+    image?: {
+      thumbnailLink?: string;
+      width?: number;
+      height?: number;
+    };
+    title?: string;
+    displayLink?: string;
+  }>;
+}
+
 /**
  * Service to search car images using Google Custom Search API
  */
@@ -57,7 +70,7 @@ export const imageSearchService = {
         throw new Error(`Google API Error ${res.status}: ${JSON.stringify(errorData)}`);
       }
 
-      const data = await res.json();
+      const data = await res.json() as GoogleSearchResponse;
       
       if (!data.items || !Array.isArray(data.items)) {
         return [];
