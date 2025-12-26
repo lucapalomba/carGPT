@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ollamaService, Message } from '../services/ollamaService.js';
+import { aiService } from '../services/aiService.js';
 import { conversationService, Conversation, ConversationHistoryItem } from '../services/conversationService.js';
 import { promptService } from '../services/promptService.js';
 import { config } from '../config/index.js';
@@ -12,7 +13,7 @@ import logger from '../utils/logger.js';
  */
 export const carsController = {
   /**
-   * Analyzes requirements and finds cars
+   * Analyzes requirements and finds cars with images
    */
   findCars: asyncHandler(async (req: Request, res: Response) => {
     const { requirements } = req.body;
@@ -27,47 +28,32 @@ export const carsController = {
 
     const findCarPromptTemplate = promptService.loadTemplate('find-cars.md');
     const jsonGuard = promptService.loadTemplate('json-guard.md');
-    logger.info('Car search request received', { requirements, sessionId });
     
-    const messages: Message[] = [
-      {
-        role: "system",
-        content: findCarPromptTemplate
-      },
-      {
-        role: "system",
-        content: jsonGuard
-      },
-      {
-        role: "system",
-        content: `User Preferred Language: ${language}. Always respond in this language.`
-      },
-      {
-        role: "user",
-        content: requirements
-      }
-    ];
+    logger.info('Car search request received', { 
+      requirements, 
+      sessionId,
+      provider: config.aiProvider
+    });
 
-    const response = await ollamaService.callOllama(messages);
-    
-    let result;
-    try {
-      result = ollamaService.parseJsonResponse(response);
-      const carsArray = result.cars || result.auto;
+    // Use unified AI service that handles both Ollama and Claude
+    const result = await aiService.findCarsWithImages(
+      requirements,
+      language,
+      findCarPromptTemplate,
+      jsonGuard
+    );
 
-      if (!carsArray || !Array.isArray(carsArray) || carsArray.length !== 3) {
-        throw new Error('Invalid JSON structure - expected 3 cars');
-      }
-
-      if (result.userLanguage) {
-        conversation.userLanguage = result.userLanguage;
-      }
-
-    } catch (parseError: any) {
-      logger.error('Error parsing Ollama response in findCars', { parseError: parseError.message, response });
-      throw new Error('Error analyzing requirements. Please try with a different description.');
+    // Validate response
+    if (!result.cars || !Array.isArray(result.cars)) {
+      throw new Error('Invalid response structure from AI provider');
     }
 
+    // Update conversation language if provided
+    if (result.userLanguage) {
+      conversation.userLanguage = result.userLanguage;
+    }
+
+    // Update conversation
     conversation.updatedAt = new Date();
     conversation.history.push({
       type: 'find-cars',
@@ -75,20 +61,23 @@ export const carsController = {
       data: {
         requirements: requirements,
         result: result,
-        messages: messages
+        provider: config.aiProvider
       }
     });
 
     logger.info('Suggestions generated successfully', { 
       sessionId, 
-      cars: result.cars.map((c: any) => `${c.make} ${c.model}`).join(', ') 
+      provider: config.aiProvider,
+      cars: result.cars.map((c: any) => `${c.make} ${c.model}`).join(', '),
+      imagesFound: result.cars.reduce((sum: number, c: any) => sum + (c.images?.length || 0), 0)
     });
 
     res.json({
       success: true,
       conversationId: sessionId,
       analysis: result.analysis,
-      cars: result.cars
+      cars: result.cars,
+      provider: config.aiProvider
     });
   }),
 
