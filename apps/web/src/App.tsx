@@ -14,6 +14,12 @@ export interface Car {
   weaknesses: string[];
   reason: string;
   properties?: Record<string, any>;
+  images?: Array<{
+    url: string;
+    title: string;
+    thumbnail?: string;
+    source?: string;
+  }>;
 }
 
 function App() {

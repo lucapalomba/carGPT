@@ -1,4 +1,5 @@
 import type { Car } from '../App';
+import ImageCarousel from './ImageCarousel';
 
 interface ComparisonTableProps {
   cars: Car[];
@@ -42,6 +43,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
                 </div>
                 <div className="text-xl font-bold text-gray-900">{car.make} {car.model}</div>
                 <div className="text-gray-500">{car.year}</div>
+                <ImageCarousel images={car.images || []} />
               </th>
             ))}
           </tr>
