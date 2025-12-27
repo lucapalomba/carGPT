@@ -26,7 +26,10 @@ function InitialForm({ onSearch, isSearching }: InitialFormProps) {
   return (
     <div className="bg-white p-8 rounded-2xl shadow-xl max-w-2xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">🚗 CarGPT</h1>
+        <div className="flex justify-center mb-4">
+          <img src="/cargpt_logo.jpeg" alt="CarGPT Logo" className="h-full object-contain" />
+        </div>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">CarGPT</h1>
         <p className="text-gray-600">Describe what you're looking for in a car and we'll suggest the perfect models for you</p>
       </div>
 
