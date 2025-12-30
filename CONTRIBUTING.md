@@ -72,15 +72,17 @@ npm run dev
 
 ## Project Structure
 
-```
+This project uses a **Monorepo** architecture with NPM Workspaces:
+
+```text
 CarGPT/
-├── server.js          # Backend - API endpoints and Ollama integration
-├── public/
-│   ├── index.html     # Main UI structure
-│   ├── style.css      # All styles (no external CSS frameworks)
-│   └── app.js         # Frontend logic and API calls
-├── package.json       # Dependencies and scripts
-└── .env              # Configuration (not in repo)
+├── apps/
+│   ├── web/           # React Frontend (Vite + TS + Tailwind v4)
+│   └── server/        # Express Backend (Node.js + TS)
+├── docs/              # Project documentation
+├── scripts/           # Utility scripts (e.g., commit validation)
+├── package.json       # Root configuration and workspace definitions
+└── .env               # Environment config (managed per app)
 ```
 
 ## Areas for Contribution
@@ -113,7 +115,7 @@ CarGPT/
 Currently, testing is manual. To test your changes:
 
 1. **Start Ollama**: `ollama serve`
-2. **Start server**: `npm start`
+2. **Start development**: `npm run dev`
 3. **Test basic flow**:
    - Submit requirements
    - Verify 3 cars are suggested
