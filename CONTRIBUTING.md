@@ -39,6 +39,7 @@ Enhancement suggestions are welcome! Please provide:
 - Update documentation if needed
 - Add comments for complex logic
 - Test with Ollama before submitting
+- **Commit Messages**: Validated by AI for Conventional Commits format, **English grammar**, and **typos**.
 - Keep PRs focused - one feature/fix per PR
 
 ## Development Setup
