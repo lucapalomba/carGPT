@@ -59,13 +59,15 @@ export const aiService = {
     const imageMap = await imageSearchService.searchMultipleCars(carsArray);
 
     // Enrich cars with images
-    const carsWithImages = carsArray.map((car: any) => {
+    const carsWithImages = await Promise.all(carsArray.map(async (car: any) => {
       const key = `${car.make}-${car.model}`;
+      const rawImages = imageMap[key] || [];
+      const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages);
       return {
         ...car,
-        images: imageMap[key] || []
+        images: verifiedImages
       };
-    });
+    }));
 
     return {
       ...result,
@@ -95,13 +97,15 @@ export const aiService = {
     const imageMap = await imageSearchService.searchMultipleCars(carsArray);
 
     // Enrich cars with images
-    const carsWithImages = carsArray.map((car: any) => {
+    const carsWithImages = await Promise.all(carsArray.map(async (car: any) => {
       const key = `${car.make}-${car.model}`;
+      const rawImages = imageMap[key] || [];
+      const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages);
       return {
         ...car,
-        images: imageMap[key] || []
+        images: verifiedImages
       };
-    });
+    }));
 
     return {
       ...result,
@@ -115,5 +119,31 @@ export const aiService = {
   async verify(): Promise<boolean> {
     logger.info('Verifying AI provider (Ollama)');
     return await ollamaService.verifyOllama();
+  },
+
+  /**
+   * Filters images using vision to ensure they contain the specified car
+   */
+  async filterImages(make: string, model: string, year: string | number, images: any[]): Promise<any[]> {
+    if (images.length === 0) return [];
+
+    logger.info(`Filtering ${images.length} images for ${year} ${make} ${model} using vision`);
+    
+    const carInfo = `${make} ${model}`;
+    const verifiedImages = [];
+
+    for (const image of images) {
+      // Use thumbnail for faster processing if available
+      const urlToVerify = image.thumbnail || image.url;
+      const isValid = await ollamaService.verifyImageContainsCar(carInfo, year, urlToVerify);
+      
+      if (isValid) {
+        verifiedImages.push(image);
+      } else {
+        logger.warn(`Image filtered out (not a ${year} ${carInfo}):`, { url: image.url });
+      }
+    }
+
+    return verifiedImages;
   }
 };

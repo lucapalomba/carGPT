@@ -40,7 +40,7 @@ export const imageSearchService = {
     make: string, 
     model: string, 
     year: string = '', 
-    count: number = 3
+    count: number = 1
   ): Promise<CarImage[]> {
     const { apiKey, cx } = config.googleSearch;
 
@@ -61,6 +61,8 @@ export const imageSearchService = {
       url.searchParams.set('cx', cx);
       url.searchParams.set('q', query);
       url.searchParams.set('searchType', 'image');
+      url.searchParams.set('imgType', 'photo');
+      url.searchParams.set('safe', 'active');
       url.searchParams.set('num', count.toString());
 
       const res = await fetch(url.href);
@@ -117,7 +119,7 @@ export const imageSearchService = {
         car.make, 
         car.model, 
         car.year?.toString() || '', 
-        3
+        config.carouselImageLength
       );
       
       const carKey = `${car.make}-${car.model}`;

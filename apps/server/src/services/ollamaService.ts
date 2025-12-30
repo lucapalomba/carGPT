@@ -1,10 +1,12 @@
 import { config } from '../config/index.js';
 import logger from '../utils/logger.js';
 import { OllamaError } from '../utils/AppError.js';
+import { promptService } from './promptService.js';
 
 export interface Message {
   role: string;
   content: string;
+  images?: string[];
 }
 
 /**
@@ -16,13 +18,15 @@ export const ollamaService = {
    * 
    * @param {Array<Object>} messages - Array of message objects {role, content}
    * @param {Array<Message>} messages - Array of message objects {role, content}
+   * @param {string} format - Optional format (e.g., "json")
    * @returns {Promise<string>} The response content from Ollama
    * @throws {Error} If the connection fails or Ollama returns an error
    */
-  async callOllama(messages: Message[]) {
+  async callOllama(messages: Message[], format?: string, overrideModel?: string) {
     try {
+      const model = overrideModel || config.ollama.model;
       logger.debug('Calling Ollama API', { 
-        model: config.ollama.model,
+        model,
         messagesCount: messages.length,
         // Logging the compiled prompt for debugging
         fullPrompt: messages 
@@ -34,7 +38,7 @@ export const ollamaService = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: config.ollama.model,
+          model: model,
           messages: messages,
           stream: false,
           options: {
@@ -137,6 +141,62 @@ export const ollamaService = {
       return true;
     } catch (error: any) {
       logger.error('Ollama not reachable!', { url: config.ollama.url, error: error.message });
+      return false;
+    }
+  },
+
+  /**
+   * Verifies if an image contains the searched car using vision
+   */
+  async verifyImageContainsCar(carInfo: string, year: string | number, imageUrl: string): Promise<boolean> {
+    try {
+      logger.info(`[Vision] Verifying ${year} ${carInfo}...`, { imageUrl });
+
+      const imgRes = await fetch(imageUrl);
+      if (!imgRes.ok) {
+        logger.warn(`[Vision] Failed to fetch image: ${imageUrl}`, { status: imgRes.status });
+        return false;
+      }
+
+      const buffer = await imgRes.arrayBuffer();
+      const base64Image = Buffer.from(buffer).toString('base64');
+
+      const checkImagePrompt = promptService.loadTemplate('verify-car.md');
+
+      const messages: Message[] = [
+        {
+          role: 'user',
+          content: checkImagePrompt
+            .replace('{carInfo}', carInfo)
+            .replace('{year}', year.toString()),
+          images: [base64Image]
+        }
+      ];
+
+      const response = await this.callOllama(messages, 'json', config.ollama.visionModel);
+      const data = this.parseJsonResponse(response);
+      
+      const modelConfidence = data.modelConfidence || 0;
+      const textConfidence = data.textConfidence || 0;
+      
+      const modelThreshold = config.vision.modelConfidenceThreshold;
+      const textThreshold = config.vision.textConfidenceThreshold;
+
+      const isModelMatch = modelConfidence >= modelThreshold;
+      const hasTooMuchText = textConfidence > textThreshold;
+      
+      const isMatch = isModelMatch && !hasTooMuchText;
+
+      if (isMatch) {
+        logger.info(`[Vision] ✅ Match! (Model: ${modelConfidence.toFixed(2)}, Text: ${textConfidence.toFixed(2)})`, { imageUrl });
+      } else {
+        const reason = !isModelMatch ? `Low model confidence (${modelConfidence.toFixed(2)} < ${modelThreshold})` : `Too much text (${textConfidence.toFixed(2)} > ${textThreshold})`;
+        logger.info(`[Vision] ❌ Reject: (Model: ${modelConfidence.toFixed(2)}, Text: ${textConfidence.toFixed(2)}) ${reason}`, { imageUrl });
+      }
+
+      return isMatch;
+    } catch (error: any) {
+      logger.error('[Vision] Error during verification', { error: error.message, imageUrl });
       return false;
     }
   }
