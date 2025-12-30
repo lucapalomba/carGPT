@@ -22,7 +22,8 @@ export const config = {
   googleSearch: {
     apiKey: process.env.GOOGLE_API_KEY,
     cx: process.env.GOOGLE_CX
-  }
+  },
+  carouselImageLength: Number(process.env.CAROUSEL_IMAGES_LENGHT) || 1
 };
 
 /**
