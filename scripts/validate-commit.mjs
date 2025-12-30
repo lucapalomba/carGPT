@@ -42,25 +42,38 @@ async function validate() {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a strict Git Conventional Commits validator. You check if messages follow the <type>(optional scope): <description> format. The scope is OPTIONAL. The description MUST NOT end with a period.' 
+            content: 'You are a strict Git Conventional Commits validator. You also check for English grammar and typos. You check if messages follow the <type>(optional scope): <description> format. The scope is OPTIONAL. The description MUST NOT end with a period.' 
           },
           { 
             role: 'user', 
             content: `Validate this commit message: "${commitMsg}"
             
 Rules:
+1. Conventional Commits:
 - Valid types: feat, fix, docs, style, refactor, test, chore, perf, build, ci
 - Scope is OPTIONAL. Do NOT require it.
 - Format example: "feat: something" is VALID. "feat(scope): something" is VALID.
 - No period at the end.
 
-Respond ONLY with JSON: {"valid": boolean, "reason": "string", "suggestion": "string"}` 
+2. English Language:
+- Check for grammar errors.
+- Check for typos.
+
+Respond ONLY with JSON: 
+{
+  "valid": boolean, 
+  "reason": "string", 
+  "suggestion": "string",
+  "grammar_issues": ["string"],
+  "typos": ["string"]
+}
+If valid is false, reason should explain why (can be format, grammar, or typos).` 
           }
         ],
         stream: false,
         options: { 
           temperature: 0,
-          num_predict: 200
+          num_predict: 300
         },
         format: "json"
       })
@@ -89,11 +102,20 @@ Respond ONLY with JSON: {"valid": boolean, "reason": "string", "suggestion": "st
     }
 
     if (result.valid) {
-      console.log('\x1b[32m%s\x1b[0m', '✔ Commit message follows Conventional Commits standard.');
+      console.log('\x1b[32m%s\x1b[0m', '✔ Commit message follows Conventional Commits standard and is grammatically correct.');
       process.exit(0);
     } else {
-      console.error('\x1b[31m%s\x1b[0m', '✖ Commit message does not follow Conventional Commits standard.');
+      console.error('\x1b[31m%s\x1b[0m', '✖ Commit message validation failed.');
       console.error('\x1b[33m%s\x1b[0m', `Reason: ${result.reason}`);
+      
+      if (result.grammar_issues && result.grammar_issues.length > 0) {
+        console.error('\x1b[33m%s\x1b[0m', `Grammar Issues: ${result.grammar_issues.join(', ')}`);
+      }
+
+      if (result.typos && result.typos.length > 0) {
+        console.error('\x1b[33m%s\x1b[0m', `Typos: ${result.typos.join(', ')}`);
+      }
+
       if (result.suggestion) {
         console.error('\x1b[32m%s\x1b[0m', `Suggestion: ${result.suggestion}`);
       }
