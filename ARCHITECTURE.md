@@ -4,8 +4,6 @@ This document describes the architectural structure of the CarGPT backend, which
 
 ## 📐 Overview
 
-## 📐 Overview
-
 CarGPT has transitioned to a powerful **Monorepo** architecture to separate concerns between the modern **React Frontend** and the **Express Backend**.
 
 ---
