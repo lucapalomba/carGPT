@@ -1,10 +1,12 @@
 import { config } from '../config/index.js';
 import logger from '../utils/logger.js';
 import { OllamaError } from '../utils/AppError.js';
+import { promptService } from './promptService.js';
 
 export interface Message {
   role: string;
   content: string;
+  images?: string[];
 }
 
 /**
@@ -16,10 +18,11 @@ export const ollamaService = {
    * 
    * @param {Array<Object>} messages - Array of message objects {role, content}
    * @param {Array<Message>} messages - Array of message objects {role, content}
+   * @param {string} format - Optional format (e.g., "json")
    * @returns {Promise<string>} The response content from Ollama
    * @throws {Error} If the connection fails or Ollama returns an error
    */
-  async callOllama(messages: Message[]) {
+  async callOllama(messages: Message[], format?: string) {
     try {
       logger.debug('Calling Ollama API', { 
         model: config.ollama.model,
@@ -137,6 +140,53 @@ export const ollamaService = {
       return true;
     } catch (error: any) {
       logger.error('Ollama not reachable!', { url: config.ollama.url, error: error.message });
+      return false;
+    }
+  },
+
+  /**
+   * Verifies if an image contains the searched car using vision
+   */
+  async verifyImageContainsCar(carInfo: string, year: string | number, imageUrl: string): Promise<boolean> {
+    try {
+      logger.info(`[Vision] Checking if image contains ${year} ${carInfo}...`, { imageUrl });
+
+      const imgRes = await fetch(imageUrl);
+      if (!imgRes.ok) {
+        logger.warn(`[Vision] Failed to fetch image: ${imageUrl}`, { status: imgRes.status });
+        return false;
+      }
+
+      const buffer = await imgRes.arrayBuffer();
+      const base64Image = Buffer.from(buffer).toString('base64');
+      logger.debug(`[Vision] Image fetched and converted to base64 (${Math.round(base64Image.length / 1024)} KB)`);
+
+      const checkImagePrompt = promptService.loadTemplate('verify-car.md');
+
+      const messages: Message[] = [
+        {
+          role: 'user',
+          content: checkImagePrompt
+            .replace('{carInfo}', carInfo)
+            .replace('{year}', year.toString()),
+          images: [base64Image]
+        }
+      ];
+
+      const response = await this.callOllama(messages, 'json');
+      const data = this.parseJsonResponse(response);
+      const isMatch = !!data.containsCar;
+
+      if (isMatch) {
+        logger.info(`[Vision] ✅ Match found: This image is a ${year} ${carInfo}`, { imageUrl });
+      } else {
+        logger.info(`[Vision] ❌ No match: Not a ${year} ${carInfo}`, { imageUrl });
+      }
+
+      logger.debug('Image verification full response', { response });
+      return isMatch;
+    } catch (error: any) {
+      logger.error('[Vision] Error verifying image with Ollama', { error: error.message, imageUrl });
       return false;
     }
   }
