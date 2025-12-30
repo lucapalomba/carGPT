@@ -43,6 +43,19 @@ For AI observability, the **complete compiled prompt** (all system messages, his
 
 Every request is assigned a unique `X-Request-ID` header. This ID is included in all logs associated with that request, allowing you to trace the entire lifecycle of a single user interaction across different services.
 
+## LLM Vision Observability
+
+For visibility into the image filtering process, logs related to Ollama Vision are prefixed with `[Vision]`. These logs include:
+- **Image Fetching**: Tracks when an image is fetched and its base64 size.
+- **Verification Results**: Clearly shows whether a car model match was found (✅) or not (❌) for specific image URLs.
+- **Filtering Logic**: Logs the specific car description and year being verified.
+
+Example vision log:
+```text
+info: [Vision] Checking if image contains 2024 Toyota Camry... {"imageUrl": "..."}
+info: [Vision] ✅ Match found: This image is a 2024 Toyota Camry {"imageUrl": "..."}
+```
+
 Always use the central logger instead of `console.log`:
 
 ```typescript

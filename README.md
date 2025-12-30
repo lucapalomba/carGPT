@@ -79,10 +79,10 @@ This project was born as an exercise to explore how modern AI tools can create d
 - Discover options you might have missed
 - Explore different price points and features
 
-### 🌍 Multilingual & Regional Support
-- **Automatic Language Detection**: Detects your browser language to respond in your preferred tongue
-- **Market Precision**: Restricts suggestions to cars available in your local market (e.g., Spain for Spanish, Italy for Italian)
-- **Zero Configuration**: No need to select language or country - it just works
+### 🏘️ AI-Powered Image Verification (VLM)
+- Uses **Ollama Vision** (e.g., LLaVA, BakLLaVA) to analyze car images
+- **Automatic Filtering**: Removes incorrect car models or low-quality results
+- Ensures you only see the cars you are actually looking for
 
 ### ⚛️ Modern Tech Stack
 -   **Frontend**: React 19 + TypeScript + Vite
@@ -92,7 +92,7 @@ This project was born as an exercise to explore how modern AI tools can create d
 
 ### 🆓 100% Private Car Search
 - Uses **Ollama** - runs locally on your machine
-- **100% private** - your core analysis never leaves your computer
+- **100% private** - your core analysis and **image vision verification** never leave your computer
 - **Google Images Integration**: Fetches real car photos via Google Custom Search API
 - **No registration** required
 
