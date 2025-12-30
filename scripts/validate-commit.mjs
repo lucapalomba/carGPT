@@ -31,27 +31,6 @@ if (!commitMsg) {
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'ministral-3:3b';
 
-const prompt = `
-You are a git commit message validator. Check if the following commit message follows the Conventional Commits specification (v1.0.0).
-
-Specification Summary:
-- Format: <type>[optional scope]: <description>
-- Allowed types: feat, fix, docs, style, refactor, test, chore, perf, build, ci, etc.
-- Description must start with a lowercase letter and not end with a period.
-- Optional body and footer(s) are allowed.
-
-Message to check:
-"""
-${commitMsg}
-"""
-
-Respond ONLY with a JSON object in this format:
-{
-  "valid": boolean,
-  "reason": "string (brief explanation if invalid, empty if valid)",
-  "suggestion": "string (a corrected version of the message if invalid, empty if valid)"
-}
-`;
 
 async function validate() {
   try {
@@ -60,11 +39,28 @@ async function validate() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: OLLAMA_MODEL,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a strict Git Conventional Commits validator. You check if messages follow the <type>(optional scope): <description> format. The scope is OPTIONAL. The description MUST NOT end with a period.' 
+          },
+          { 
+            role: 'user', 
+            content: `Validate this commit message: "${commitMsg}"
+            
+Rules:
+- Valid types: feat, fix, docs, style, refactor, test, chore, perf, build, ci
+- Scope is OPTIONAL. Do NOT require it.
+- Format example: "feat: something" is VALID. "feat(scope): something" is VALID.
+- No period at the end.
+
+Respond ONLY with JSON: {"valid": boolean, "reason": "string", "suggestion": "string"}` 
+          }
+        ],
         stream: false,
         options: { 
           temperature: 0,
-          num_predict: 500
+          num_predict: 200
         },
         format: "json"
       })
@@ -76,11 +72,19 @@ async function validate() {
     }
 
     const data = await response.json();
+    let content = data.message.content.trim();
+    
+    // Clean up potential markdown code blocks
+    if (content.startsWith('```')) {
+      content = content.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+
     let result;
     try {
-      result = JSON.parse(data.message.content);
+      result = JSON.parse(content);
     } catch (e) {
-      console.warn('Failed to parse AI response. Skipping check.');
+      console.warn('Failed to parse AI response. Content was:', content);
+      console.warn('Skipping check.');
       process.exit(0);
     }
 

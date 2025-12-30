@@ -72,8 +72,8 @@ The backend is built with **TypeScript** and follows the **MVC** and **Service L
 ## ✅ Best Practices Implemented
 
 -   **Separation of Concerns**: Business logic is separated from HTTP handling.
--   **Lean Entry Point**: `server.ts` is under 100 lines and focuses solely on initialization.
+-   **Lean Entry Point**: `server.ts` is approximately 100 lines and focuses solely on initialization.
 -   **TypeScript-First**: Ensuring type safety across all controllers, services, and models.
 -   **JSDoc Documentation**: All exported functions and methods are documented for better IDE support and developer experience.
 -   **Centralized Config**: No hardcoded secrets or environment dependencies outside `src/config/`.
--   **Localization Native**: Built-in support for browser language detection and market restriction across all layers.
+-   **Native Localization**: Built-in support for browser language detection and market restriction across all layers.

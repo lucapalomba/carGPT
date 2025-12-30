@@ -23,9 +23,9 @@ ollama pull ministral
 # Start Ollama
 ollama serve
 
-# Start CarGPT
+# Start development
 npm install
-npm start
+npm run dev
 ```
 
 ---
@@ -209,7 +209,7 @@ sleep 5
 ollama pull ministral
 
 # Start Node.js app
-exec node server.js
+exec npm run start -w server
 ```
 
 ### Docker Compose

@@ -27,7 +27,7 @@ CarGPT is an **AI-powered car recommendation system** that helps you find the pe
 
 **Instead of asking** "What do you know about a BMW 3 Series?"
 
-**CarGPT asks** "What do you need from a car?" and then suggests the best options for you, tailoring results to your **local market** and **preferred language**!
+**CarGPT asks** "What do you need from a car?" and then suggests the best options for you, tailoring results to your **local market** and **preferred language**.
 
 ### The Problem
 
