@@ -22,10 +22,11 @@ export const ollamaService = {
    * @returns {Promise<string>} The response content from Ollama
    * @throws {Error} If the connection fails or Ollama returns an error
    */
-  async callOllama(messages: Message[], format?: string) {
+  async callOllama(messages: Message[], format?: string, overrideModel?: string) {
     try {
+      const model = overrideModel || config.ollama.model;
       logger.debug('Calling Ollama API', { 
-        model: config.ollama.model,
+        model,
         messagesCount: messages.length,
         // Logging the compiled prompt for debugging
         fullPrompt: messages 
@@ -37,7 +38,7 @@ export const ollamaService = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: config.ollama.model,
+          model: model,
           messages: messages,
           stream: false,
           options: {
@@ -149,7 +150,7 @@ export const ollamaService = {
    */
   async verifyImageContainsCar(carInfo: string, year: string | number, imageUrl: string): Promise<boolean> {
     try {
-      logger.info(`[Vision] Checking if image contains ${year} ${carInfo}...`, { imageUrl });
+      logger.info(`[Vision] Verifying ${year} ${carInfo}...`, { imageUrl });
 
       const imgRes = await fetch(imageUrl);
       if (!imgRes.ok) {
@@ -159,7 +160,6 @@ export const ollamaService = {
 
       const buffer = await imgRes.arrayBuffer();
       const base64Image = Buffer.from(buffer).toString('base64');
-      logger.debug(`[Vision] Image fetched and converted to base64 (${Math.round(base64Image.length / 1024)} KB)`);
 
       const checkImagePrompt = promptService.loadTemplate('verify-car.md');
 
@@ -173,20 +173,30 @@ export const ollamaService = {
         }
       ];
 
-      const response = await this.callOllama(messages, 'json');
+      const response = await this.callOllama(messages, 'json', config.ollama.visionModel);
       const data = this.parseJsonResponse(response);
-      const isMatch = !!data.containsCar;
+      
+      const modelConfidence = data.modelConfidence || 0;
+      const textConfidence = data.textConfidence || 0;
+      
+      const modelThreshold = config.vision.modelConfidenceThreshold;
+      const textThreshold = config.vision.textConfidenceThreshold;
+
+      const isModelMatch = modelConfidence >= modelThreshold;
+      const hasTooMuchText = textConfidence > textThreshold;
+      
+      const isMatch = isModelMatch && !hasTooMuchText;
 
       if (isMatch) {
-        logger.info(`[Vision] ✅ Match found: This image is a ${year} ${carInfo}`, { imageUrl });
+        logger.info(`[Vision] ✅ Match! (Model: ${modelConfidence.toFixed(2)}, Text: ${textConfidence.toFixed(2)})`, { imageUrl });
       } else {
-        logger.info(`[Vision] ❌ No match: Not a ${year} ${carInfo}`, { imageUrl });
+        const reason = !isModelMatch ? `Low model confidence (${modelConfidence.toFixed(2)} < ${modelThreshold})` : `Too much text (${textConfidence.toFixed(2)} > ${textThreshold})`;
+        logger.info(`[Vision] ❌ Reject: (Model: ${modelConfidence.toFixed(2)}, Text: ${textConfidence.toFixed(2)}) ${reason}`, { imageUrl });
       }
 
-      logger.debug('Image verification full response', { response });
       return isMatch;
     } catch (error: any) {
-      logger.error('[Vision] Error verifying image with Ollama', { error: error.message, imageUrl });
+      logger.error('[Vision] Error during verification', { error: error.message, imageUrl });
       return false;
     }
   }

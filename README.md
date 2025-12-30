@@ -167,6 +167,17 @@ npm run dev
 # Visit: http://localhost:3000/api-docs
 ```
 
+### 🛠️ Advanced Configuration
+
+You can fine-tune the AI's behavior by modifying the `.env` file:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `OLLAMA_VISION_MODEL` | Specific model for image analysis (e.g., `llava`) | `llava` |
+| `VISION_MODEL_CONFIDENCE_THRESHOLD` | Min confidence (0-1) to accept a car match | `0.8` |
+| `VISION_TEXT_CONFIDENCE_THRESHOLD` | Max confidence (0-1) allowed for text/overlays | `0.2` |
+| `CAROUSEL_IMAGES_LENGHT` | Number of images to verify/show per car (max 10) | `1` |
+
 That's it! 🎉
 
 ---

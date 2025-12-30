@@ -11,6 +11,7 @@ export const config = {
   ollama: {
     url: process.env.OLLAMA_URL || 'http://localhost:11434',
     model: process.env.OLLAMA_MODEL || 'ministral',
+    visionModel: process.env.OLLAMA_VISION_MODEL || 'llava',
   },
   aiProvider: process.env.AI_PROVIDER || 'ollama',
   mode: process.env.APP_ENV || process.env.NODE_ENV || 'development',
@@ -23,7 +24,11 @@ export const config = {
     apiKey: process.env.GOOGLE_API_KEY,
     cx: process.env.GOOGLE_CX
   },
-  carouselImageLength: Number(process.env.CAROUSEL_IMAGES_LENGHT) || 1
+  carouselImageLength: Number(process.env.CAROUSEL_IMAGES_LENGHT) || 1,
+  vision: {
+    modelConfidenceThreshold: Number(process.env.VISION_MODEL_CONFIDENCE_THRESHOLD) || 0.8,
+    textConfidenceThreshold: Number(process.env.VISION_TEXT_CONFIDENCE_THRESHOLD) || 0.2
+  }
 };
 
 /**
