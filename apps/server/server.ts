@@ -1,3 +1,14 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+import { Openlit } from 'openlit';
+
+// Initialize OpenLIT before any other imports to capture telemetry
+if (process.env.OPENLIT_DISABLED !== 'true') {
+  Openlit.init({
+    otlpEndpoint: process.env.OPENLIT_OTLP_ENDPOINT || 'http://localhost:4318',
+  });
+}
+
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';

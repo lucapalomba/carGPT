@@ -2,12 +2,18 @@ import { config } from '../config/index.js';
 import logger from '../utils/logger.js';
 import { OllamaError } from '../utils/AppError.js';
 import { promptService } from './promptService.js';
+import { Ollama } from 'ollama';
 
 export interface Message {
   role: string;
   content: string;
   images?: string[];
 }
+
+// Initialize Ollama client
+const ollama = new Ollama({
+  host: config.ollama.url
+});
 
 /**
  * Service to handle communication with Ollama
@@ -16,7 +22,6 @@ export const ollamaService = {
   /**
    * Sends a list of messages to Ollama and returns the content of the response.
    * 
-   * @param {Array<Object>} messages - Array of message objects {role, content}
    * @param {Array<Message>} messages - Array of message objects {role, content}
    * @param {string} format - Optional format (e.g., "json")
    * @returns {Promise<string>} The response content from Ollama
@@ -25,55 +30,41 @@ export const ollamaService = {
   async callOllama(messages: Message[], format?: string, overrideModel?: string) {
     try {
       const model = overrideModel || config.ollama.model;
-      logger.debug('Calling Ollama API', { 
+      logger.debug('Calling Ollama API (via SDK)', { 
         model,
-        messagesCount: messages.length,
-        // Logging the compiled prompt for debugging
-        fullPrompt: messages 
+        messagesCount: messages.length
       });
 
-      const response = await fetch(`${config.ollama.url}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await ollama.chat({
+        model: model,
+        messages: messages.map(m => ({
+          role: m.role,
+          content: m.content,
+          images: m.images
+        })),
+        stream: false,
+        options: {
+          temperature: 0,
+          num_predict: 2500
         },
-        body: JSON.stringify({
-          model: model,
-          messages: messages,
-          stream: false,
-          options: {
-            temperature: 0,
-            num_predict: 2500
-          },
-          format: "json"
-        })
+        format: "json"
       });
 
-      if (!response.ok) {
-        throw new OllamaError(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data: any = await response.json();
       logger.debug('Ollama API response received');
-      return data.message.content;
+      return response.message.content;
 
     } catch (error: any) {
-      if (error instanceof OllamaError) {
-        throw error;
-      }
-      
       logger.error('Ollama connection failed', { 
         error: error.message,
         url: config.ollama.url
       });
-      throw new OllamaError('Unable to connect to Ollama. Ensure Ollama is running (ollama serve)');
+      throw new OllamaError(`Unable to connect to Ollama: ${error.message}`);
     }
   },
 
   /**
    * Attempts to parse a JSON response from the LLM, cleaning it of common issues.
    * 
-   * @param {string} text - The raw text response from the LLM
    * @param {string} text - The raw text response from the LLM
    * @returns {any} The parsed JSON object
    * @throws {Error} If parsing fails after cleaning attempts
@@ -127,8 +118,7 @@ export const ollamaService = {
    */
   async verifyOllama(): Promise<boolean> {
     try {
-      const response = await fetch(`${config.ollama.url}/api/tags`);
-      const data: any = await response.json();
+      const data = await ollama.list();
 
       const modelExists = data.models.some((m: any) => m.name.includes(config.ollama.model));
 
