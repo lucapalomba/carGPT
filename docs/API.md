@@ -53,6 +53,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
   "success": true,
   "conversationId": "session-id-here",
   "analysis": "Analysis of user requirements...",
+  "user_market": "United States",
   "cars": [
     {
       "make": "Skoda",
@@ -60,6 +61,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
       "year": "2023",
       "price": "25,000-30,000€",
       "type": "Station Wagon",
+      "market_availability": "Available in the US market",
       "strengths": ["Huge trunk", "Reliable", "Spacious"],
       "weaknesses": ["Conservative design", "Average resale value"],
       "trunkSize": "640 liters",
@@ -85,7 +87,64 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 
 ---
 
-### 2. Compare Two Cars
+### 2. Refine Search
+
+**Endpoint**: `POST /api/refine-search`
+
+**Description**: Updates the list of car suggestions based on user feedback and pinned cars.
+
+**Request Body**:
+```json
+{
+  "feedback": "Too expensive, I want something under €20k",
+  "pinnedCars": [
+    {
+      "make": "Skoda",
+      "model": "Octavia Wagon",
+      "year": "2023",
+      "price": "25,000-30,000€",
+      "type": "Station Wagon",
+      "market_availability": "Available in the US market",
+      "strengths": ["Huge trunk", "Reliable", "Spacious"],
+      "weaknesses": ["Conservative design", "Average resale value"],
+      "trunkSize": "640 liters",
+      "fuelConsumption": "5.2 l/100km",
+      "reliability": "High",
+      "reason": "Perfect for families thanks to the space..."
+    }
+  ]
+}
+```
+
+**Response** (Success - 200):
+```json
+{
+  "success": true,
+  "analysis": "Based on your feedback...",
+  "user_market": "United States",
+  "cars": [
+    {
+      "make": "Skoda",
+      "model": "Fabia",
+      "year": "2023",
+      "price": "18,000-22,000€",
+      "type": "Compact",
+      "market_availability": "Available in the US market",
+      "strengths": ["Affordable", "Compact", "Efficient"],
+      "weaknesses": ["Smaller trunk", "Less power"],
+      "trunkSize": "380 liters",
+      "fuelConsumption": "4.5 l/100km",
+      "reliability": "High",
+      "reason": "A more affordable option fitting your budget..."
+    }
+    // ... 2 more cars (pinned ones included)
+  ]
+}
+```
+
+---
+
+### 3. Compare Two Cars
 
 **Endpoint**: `POST /api/compare-cars`
 
@@ -128,7 +187,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 
 ---
 
-### 3. Ask About a Specific Car
+### 4. Ask About a Specific Car
 
 **Endpoint**: `POST /api/ask-about-car`
 
@@ -154,7 +213,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 
 ---
 
-### 4. Get Similar Alternatives
+### 5. Get Similar Alternatives
 
 **Endpoint**: `POST /api/get-alternatives`
 
@@ -186,7 +245,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 
 ---
 
-### 5. Reset Conversation
+### 6. Reset Conversation
 
 **Endpoint**: `POST /api/reset-conversation`
 
@@ -204,7 +263,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 
 ---
 
-### 6. Health Check
+### 7. Health Check
 
 **Endpoint**: `GET /api/health`
 

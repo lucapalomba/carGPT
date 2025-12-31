@@ -608,6 +608,11 @@
                         "type": "string",
                         "description": "Why this car is suitable",
                         "example": "Perfect for families thanks to the space and reliability"
+                    },
+                    "market_availability": {
+                        "type": "string",
+                        "description": "Availability in the user's market",
+                        "example": "Available in the US market"
                     }
                 }
             },
@@ -627,6 +632,11 @@
                         "type": "string",
                         "description": "AI analysis of user requirements",
                         "example": "Based on your needs for a spacious family car..."
+                    },
+                    "user_market": {
+                        "type": "string",
+                        "description": "The market inferred from the user's language",
+                        "example": "United States"
                     },
                     "cars": {
                         "type": "array",

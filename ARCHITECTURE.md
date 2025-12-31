@@ -68,7 +68,7 @@ The frontend is a modern **Single Page Application (SPA)**:
 The backend is built with **TypeScript** and follows the **MVC** and **Service Layer** patterns:
 - **`ollamaService`**: Handles LLM communication and executes **Vision-Language Model (VLM)** tasks to verify that search results correctly match the requested car models.
 - **`aiService`**: Orchestrates the search flow, combining LLM analysis with Google Image search and vision-based filtering.
-- **`promptService`**: Manages Markdown-based prompt templates for consistent AI behavior.
+- **`promptService`**: Manages Markdown-based prompt templates. It supports a **modular architecture** where reusable components (like `search-rules.md` and `car-response-schema.md`) are injected into specific task templates (`find-cars.md`, `refine-cars.md`) to ensure consistency and maintainability.
 
 ---
 
