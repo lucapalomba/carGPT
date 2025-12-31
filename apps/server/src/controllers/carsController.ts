@@ -27,6 +27,7 @@ export const carsController = {
     const conversation = conversationService.getOrInitialize(sessionId);
 
     const findCarPromptTemplate = promptService.loadTemplate('find-cars.md');
+    const searchRules = promptService.loadTemplate('search-rules.md');
     const responseSchema = promptService.loadTemplate('car-response-schema.md');
     const jsonGuard = promptService.loadTemplate('json-guard.md');
     
@@ -41,6 +42,7 @@ export const carsController = {
       requirements,
       language,
       findCarPromptTemplate,
+      searchRules,
       responseSchema,
       jsonGuard
     );
@@ -78,6 +80,7 @@ export const carsController = {
       success: true,
       conversationId: sessionId,
       analysis: result.analysis,
+      user_market: result.user_market,
       cars: result.cars,
       provider: config.aiProvider
     });
@@ -125,6 +128,7 @@ export const carsController = {
 
     const fullContext = contextParts.join('\n');
     const refinePromptTemplate = promptService.loadTemplate('refine-cars.md');
+    const searchRules = promptService.loadTemplate('search-rules.md');
     const responseSchema = promptService.loadTemplate('car-response-schema.md');
     const jsonGuard = promptService.loadTemplate('json-guard.md');
 
@@ -137,6 +141,10 @@ export const carsController = {
           .replace('${requirements}', fullContext)
           .replace('${pinnedCars}', pinnedCarsJson)
           .replace('${feedback}', feedback)
+      },
+      {
+        role: "system",
+        content: searchRules
       },
       {
         role: "system",
@@ -174,6 +182,7 @@ export const carsController = {
     res.json({
       success: true,
       analysis: result.analysis,
+      user_market: result.user_market,
       cars: result.cars
     });
   }),
