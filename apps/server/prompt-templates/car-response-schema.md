@@ -1,6 +1,6 @@
 Return ONLY valid JSON, with no extra text:
 {
-  "analysis": "brief analysis of user needs OR explanation of adaptation (2-3 sentences)",
+  "analysis": "Brief analysis of the user's needs OR explanation of the adaptation (2–3 sentences)",
   "cars": [
     {
       "make": "Brand name",
@@ -10,14 +10,14 @@ Return ONLY valid JSON, with no extra text:
       "price": "25,000-30,000€",
       "type": "SUV/Sedan/Compact/Station Wagon/etc",
       "properties": {
-        "propertyName1": "value1",
-        "propertyName2": "value2",
-        "propertyName3": "value3"
+        "propertyName1": "value1 (unit)",
+        "propertyName2": "value2 (unit)",
+        "propertyName3": "value3 (unit)"
       },
       "strengths": ["point 1", "point 2", "point 3"],
       "weaknesses": ["point 1", "point 2", "point 3"],
       "reason": "brief explanation why it's suitable (1-2 sentences)",
-      "percentage": "The percentage from 0 to 100% what this car is aligned to the start request"
+      "percentage": "Percentage from 0 to 100 indicating how well this car matches the initial request"
     }
   ]
 }
