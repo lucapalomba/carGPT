@@ -27,6 +27,7 @@ export const carsController = {
     const conversation = conversationService.getOrInitialize(sessionId);
 
     const findCarPromptTemplate = promptService.loadTemplate('find-cars.md');
+    const responseSchema = promptService.loadTemplate('car-response-schema.md');
     const jsonGuard = promptService.loadTemplate('json-guard.md');
     
     logger.info('Car search request received', { 
@@ -40,6 +41,7 @@ export const carsController = {
       requirements,
       language,
       findCarPromptTemplate,
+      responseSchema,
       jsonGuard
     );
 
@@ -123,6 +125,7 @@ export const carsController = {
 
     const fullContext = contextParts.join('\n');
     const refinePromptTemplate = promptService.loadTemplate('refine-cars.md');
+    const responseSchema = promptService.loadTemplate('car-response-schema.md');
     const jsonGuard = promptService.loadTemplate('json-guard.md');
 
     let pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars) : 'None';
@@ -134,6 +137,10 @@ export const carsController = {
           .replace('${requirements}', fullContext)
           .replace('${pinnedCars}', pinnedCarsJson)
           .replace('${feedback}', feedback)
+      },
+      {
+        role: "system",
+        content: responseSchema
       },
       {
         role: "system",

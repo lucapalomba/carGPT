@@ -19,6 +19,7 @@ export const aiService = {
     requirements: string,
     language: string,
     systemPrompt: string,
+    responseSchema: string,
     jsonGuard: string
   ): Promise<any> {
     logger.info('Finding cars with images using Ollama', { 
@@ -30,6 +31,10 @@ export const aiService = {
       {
         role: "system",
         content: systemPrompt
+      },
+      {
+        role: "system",
+        content: responseSchema
       },
       {
         role: "system",
