@@ -17,39 +17,31 @@ export const ollamaService = {
   /**
    * Sends a list of messages to Ollama and returns the content of the response.
    * 
-   * @param {Array<Object>} messages - Array of message objects {role, content}
    * @param {Array<Message>} messages - Array of message objects {role, content}
-   * @param {string} format - Optional format (e.g., "json")
-   * @param {any} parent - Optional Langfuse parent trace or span
-   * @param {string} spanName - Optional span name
+   * @param {any} trace - Optional Langfuse trace
+   * @param {string} operationName - Optional operation name
    * @returns {Promise<string>} The response content from Ollama
    * @throws {Error} If the connection fails or Ollama returns an error
    */
-  async callOllama(messages: Message[], format?: string, overrideModel?: string, parent?: any, spanName?: string) {
+  async callOllama(messages: Message[], trace?: any, operationName?: string) {
 
-     const model = overrideModel || config.ollama.model;
-     const ollamaResponseFormat = format || "json";
+     const model = config.ollama.model;
+     const ollamaResponseFormat = "json";
      const options = {
        temperature: 0,
        num_predict: 2500
      };
      const messagesCount = messages.length;
 
-    const span = (parent || langfuse).span({
-        name: parent ? spanName : "ollama_generation",
-        input: { messages, model, format: ollamaResponseFormat, options }
-      });
-
     try {
      
       logger.debug('Calling Ollama API', { 
         model,
         messagesCount,
-        // Logging the compiled prompt for debugging
         fullPrompt: messages 
       });
 
-      const start = Date.now();
+      const start = performance.now();
 
       const response = await fetch(`${config.ollama.url}/api/chat`, {
         method: 'POST',
@@ -65,6 +57,8 @@ export const ollamaService = {
         })
       });
 
+      const durationMs = performance.now() - start;
+
       if (!response.ok) {
         throw new OllamaError(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -72,11 +66,18 @@ export const ollamaService = {
       const data: any = await response.json();
       logger.debug('Ollama API response received');
 
-      span.end({
+      langfuse.generation({
+        input: messages,
         output: data,
-        metadata: {
-          duration_ms: Date.now() - start,
-        },
+        traceId: trace.id,
+        name: operationName,
+        startTime: new Date(Date.now() - durationMs),
+        endTime: new Date(),
+        usage: {
+          input: data.prompt_eval_count,
+          output: data.eval_count,
+          total: data.prompt_eval_count + data.eval_count
+        }
       });
 
       return data.message.content;
@@ -91,7 +92,7 @@ export const ollamaService = {
         url: config.ollama.url
       });
 
-      span.end({
+      langfuse.generation({
         level: "ERROR",
         statusMessage: String(error)
       });
@@ -203,7 +204,7 @@ export const ollamaService = {
         }
       ];
 
-      const response = await this.callOllama(messages, 'json', config.ollama.visionModel, trace, 'verify_image');
+      const response = await this.callOllama(messages,trace, 'verify_image_' + carInfo);
       const data = this.parseJsonResponse(response);
       
       const modelConfidence = data.modelConfidence || 0;

@@ -2,6 +2,7 @@ import { ollamaService, Message as OllamaMessage } from './ollamaService.js';
 import { imageSearchService } from './imageSearchService.js';
 import logger from '../utils/logger.js';
 import { langfuse } from '../utils/langfuse.js';
+import { config } from '../config/index.js';
 
 /**
  * AI service that uses Ollama for car recommendations
@@ -58,12 +59,14 @@ export const aiService = {
     ];
 
     const trace = langfuse.trace({
-      name: "find_cars",
+      name: "search_cars_API",
       sessionId: sessionId,
+      model:config.ollama.model,
       input: requirements,
+      environment: config.isProduction ? 'production' : 'development'
     });
 
-    const response = await ollamaService.callOllama(messages, "json", undefined, trace, 'search_cars');
+    const response = await ollamaService.callOllama(messages, trace, 'search_cars');
     const result = ollamaService.parseJsonResponse(response);
 
     // Validate structure
@@ -86,13 +89,6 @@ export const aiService = {
         images: verifiedImages
       };
     }));
-
-    trace.update({
-      output: {
-      ...result,
-      cars: carsWithImages
-    }
-    });
 
     return {
       ...result,
@@ -111,12 +107,12 @@ export const aiService = {
     logger.info('Refining cars with images using Ollama');
 
     const trace = langfuse.trace({
-      name: "refine_cars",
+      name: "refine_cars_API",
       input: userInput,
       sessionId: sessionId,
     });
 
-    const response = await ollamaService.callOllama(messages, "json" , undefined, trace, 'refine_search_cars');
+    const response = await ollamaService.callOllama(messages, trace, 'refine_search_cars');
     const result = ollamaService.parseJsonResponse(response);
 
     // Validate structure
@@ -144,6 +140,11 @@ export const aiService = {
       output: {
       ...result,
       cars: carsWithImages
+    },
+    usage: {
+      input: 10,
+      output: 10,
+      total: 20
     }
     });
 

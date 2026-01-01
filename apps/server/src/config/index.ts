@@ -10,8 +10,7 @@ export const config = {
   port: process.env.PORT || 3000,
   ollama: {
     url: process.env.OLLAMA_URL || 'http://localhost:11434',
-    model: process.env.OLLAMA_MODEL || 'ministral',
-    visionModel: process.env.OLLAMA_VISION_MODEL || 'llava',
+    model: process.env.OLLAMA_MODEL || 'ministral'
   },
   aiProvider: process.env.AI_PROVIDER || 'ollama',
   mode: process.env.APP_ENV || process.env.NODE_ENV || 'development',
