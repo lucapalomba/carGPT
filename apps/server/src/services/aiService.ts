@@ -22,7 +22,8 @@ export const aiService = {
     systemPrompt: string,
     searchRules: string,
     responseSchema: string,
-    jsonGuard: string
+    jsonGuard: string,
+    sessionId: string
   ): Promise<any> {
     logger.info('Finding cars with images using Ollama', { 
       requirements: requirements.substring(0, 100),
@@ -57,7 +58,9 @@ export const aiService = {
     ];
 
     const trace = langfuse.trace({
-      name: "find_cars"
+      name: "find_cars",
+      sessionId: sessionId,
+      input: requirements,
     });
 
     const response = await ollamaService.callOllama(messages, "json", undefined, trace, 'search_cars');
@@ -94,12 +97,16 @@ export const aiService = {
    * Refine car suggestions with images using Ollama
    */
   async refineCarsWithImages(
-    messages: OllamaMessage[]
+    messages: OllamaMessage[],
+    sessionId: string,
+    userInput: string
   ): Promise<any> {
     logger.info('Refining cars with images using Ollama');
 
     const trace = langfuse.trace({
-      name: "refine_cars"
+      name: "refine_cars",
+      input: userInput,
+      sessionId: sessionId,
     });
 
     const response = await ollamaService.callOllama(messages, "json" , undefined, trace, 'refine_search_cars');

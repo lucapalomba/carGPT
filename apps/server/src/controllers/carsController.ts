@@ -44,7 +44,8 @@ export const carsController = {
       findCarPromptTemplate,
       searchRules,
       responseSchema,
-      jsonGuard
+      jsonGuard,
+      sessionId
     );
 
     // Validate response
@@ -164,7 +165,7 @@ export const carsController = {
       }
     ];
 
-    const response = await aiService.refineCarsWithImages(messages);
+    const response = await aiService.refineCarsWithImages(messages, sessionId, feedback);
     const result = response;
 
     conversation.updatedAt = new Date();
