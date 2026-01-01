@@ -87,6 +87,13 @@ export const aiService = {
       };
     }));
 
+    trace.update({
+      output: {
+      ...result,
+      cars: carsWithImages
+    }
+    });
+
     return {
       ...result,
       cars: carsWithImages
@@ -132,6 +139,13 @@ export const aiService = {
         images: verifiedImages
       };
     }));
+
+    trace.update({
+      output: {
+      ...result,
+      cars: carsWithImages
+    }
+    });
 
     return {
       ...result,
