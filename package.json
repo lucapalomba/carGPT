@@ -39,5 +39,8 @@
     "concurrently": "^9.1.0",
     "husky": "^9.1.7",
     "nodemon": "^3.0.1"
+  },
+  "dependencies": {
+    "langfuse": "^3.38.6"
   }
 }
