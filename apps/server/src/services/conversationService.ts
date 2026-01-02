@@ -5,7 +5,7 @@
 export interface ConversationHistoryItem {
   type: string;
   timestamp: Date;
-  data: any;
+  data: any; /* eslint-disable-line @typescript-eslint/no-explicit-any */
 }
 
 export interface Conversation {

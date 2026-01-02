@@ -7,6 +7,22 @@ import { config } from '../config/index.js';
 /**
  * AI service that uses Ollama for car recommendations
  */
+export interface Car {
+  make: string;
+  model: string;
+  year: number | string;
+  [key: string]: unknown;
+}
+
+export interface SearchResponse {
+  cars: Car[];
+  analysis?: string;
+  auto?: Car[]; // For some LLM responses that might stick to 'auto' key
+  userLanguage?: string;
+  user_market?: string;
+  [key: string]: unknown;
+}
+
 export const aiService = {
   /**
    * Get car recommendations with images using Ollama
@@ -24,8 +40,9 @@ export const aiService = {
     searchRules: string,
     responseSchema: string,
     jsonGuard: string,
+
     sessionId: string
-  ): Promise<any> {
+  ): Promise<SearchResponse> {
     logger.info('Finding cars with images using Ollama', { 
       requirements: requirements.substring(0, 100),
       language
@@ -82,7 +99,7 @@ export const aiService = {
     const imageMap = await imageSearchService.searchMultipleCars(carsArray, trace);
 
     // Enrich cars with images
-    const carsWithImages = await Promise.all(carsArray.map(async (car: any) => {
+    const carsWithImages = await Promise.all(carsArray.map(async (car: Car) => {
       const key = `${car.make}-${car.model}`;
       const rawImages = imageMap[key] || [];
       const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages, trace);
@@ -105,7 +122,7 @@ export const aiService = {
     messages: OllamaMessage[],
     sessionId: string,
     userInput: string
-  ): Promise<any> {
+  ): Promise<SearchResponse> {
     logger.info('Refining cars with images using Ollama');
 
     const trace = langfuse.trace({
@@ -128,7 +145,7 @@ export const aiService = {
     const imageMap = await imageSearchService.searchMultipleCars(carsArray, trace);
 
     // Enrich cars with images
-    const carsWithImages = await Promise.all(carsArray.map(async (car: any) => {
+    const carsWithImages = await Promise.all(carsArray.map(async (car: Car) => {
       const key = `${car.make}-${car.model}`;
       const rawImages = imageMap[key] || [];
       const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages, trace);
@@ -140,14 +157,9 @@ export const aiService = {
 
     trace.update({
       output: {
-      ...result,
-      cars: carsWithImages
-    },
-    usage: {
-      input: 10,
-      output: 10,
-      total: 20
-    }
+        ...result,
+        cars: carsWithImages
+      }
     });
 
     return {
@@ -167,7 +179,7 @@ export const aiService = {
   /**
    * Filters images using vision to ensure they contain the specified car
    */
-  async filterImages(make: string, model: string, year: string | number, images: any[], trace: any): Promise<any[]> {
+  async filterImages(make: string, model: string, year: string | number, images: unknown[], trace: any /* eslint-disable-line @typescript-eslint/no-explicit-any */): Promise<any[]> {
     if (images.length === 0) return [];
 
     logger.info(`Filtering ${images.length} images for ${year} ${make} ${model} using vision`);
@@ -175,7 +187,8 @@ export const aiService = {
     const carInfo = `${make} ${model}`;
     const verifiedImages = [];
 
-    for (const image of images) {
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    for (const image of images as any[]) {
       // Use thumbnail for faster processing if available
       const urlToVerify = image.thumbnail || image.url;
       const isValid = await ollamaService.verifyImageContainsCar(carInfo, year, urlToVerify, trace);

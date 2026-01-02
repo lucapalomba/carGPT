@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ollamaService, Message } from '../services/ollamaService.js';
+import { ollamaService } from '../services/ollamaService.js';
 import { aiService } from '../services/aiService.js';
 import { conversationService, Conversation, ConversationHistoryItem } from '../services/conversationService.js';
 import { promptService } from '../services/promptService.js';
@@ -74,8 +74,8 @@ export const carsController = {
     logger.info('Suggestions generated successfully', { 
       sessionId, 
       provider: config.aiProvider,
-      cars: result.cars.map((c: any) => `${c.make} ${c.model}`).join(', '),
-      imagesFound: result.cars.reduce((sum: number, c: any) => sum + (c.images?.length || 0), 0)
+      cars: result.cars.map((c) => `${c.make} ${c.model}`).join(', '),
+      imagesFound: result.cars.reduce((sum, c) => sum + ((c.images && Array.isArray(c.images)) ? c.images.length : 0), 0)
     });
 
     res.json({
@@ -117,7 +117,7 @@ export const carsController = {
       originalRequirements = "User is looking for a car.";
     }
 
-    let contextParts = [];
+    const contextParts = [];
     if (originalRequirements) contextParts.push(`Original Request: "${originalRequirements}"`);
 
     if (conversation.history) {
@@ -134,7 +134,7 @@ export const carsController = {
     const responseSchema = promptService.loadTemplate('car-response-schema.md');
     const jsonGuard = promptService.loadTemplate('json-guard.md');
 
-    let pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars) : 'None';
+    const pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars) : 'None';
 
     const messages = [
       {
@@ -245,8 +245,9 @@ export const carsController = {
     let result;
     try {
       result = ollamaService.parseJsonResponse(response);
-    } catch (parseError: any) {
-      logger.error('Error parsing askAboutCar response', { parseError: parseError.message, response });
+    } catch (parseError: unknown) {
+      const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
+      logger.error('Error parsing askAboutCar response', { parseError: errorMessage, response });
       throw new Error('Error retrieving answer. Please try again.');
     }
 
@@ -320,8 +321,9 @@ export const carsController = {
     let result;
     try {
       result = ollamaService.parseJsonResponse(response);
-    } catch (parseError: any) {
-      logger.error('Error parsing alternatives response', { parseError: parseError.message, response });
+    } catch (parseError: unknown) {
+      const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
+      logger.error('Error parsing alternatives response', { parseError: errorMessage, response });
       throw new Error('Error generating alternatives. Please try again.');
     }
 
@@ -393,8 +395,9 @@ export const carsController = {
     let result;
     try {
       result = ollamaService.parseJsonResponse(response);
-    } catch (parseError: any) {
-      logger.error('Error parsing comparison response', { parseError: parseError.message, response });
+    } catch (parseError: unknown) {
+      const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
+      logger.error('Error parsing comparison response', { parseError: errorMessage, response });
       throw new Error('Error generating comparison. Please try again.');
     }
 

@@ -13,6 +13,7 @@ export interface Message {
 /**
  * Service to handle communication with Ollama
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const ollamaService = {
   /**
    * Sends a list of messages to Ollama and returns the content of the response.
@@ -84,13 +85,15 @@ export const ollamaService = {
 
       return data.message.content;
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof OllamaError) {
         throw error;
       }
       
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
       logger.error('Ollama connection failed', { 
-        error: error.message,
+        error: errorMessage,
         url: config.ollama.url
       });
 
@@ -139,18 +142,20 @@ export const ollamaService = {
     // 3. Try to parse
     try {
       return JSON.parse(cleaned);
-    } catch (firstError: any) {
+    } catch (firstError: unknown) {
       // If still failing, try more aggressive cleaning
-      logger.warn('First JSON parse attempt failed', { error: firstError.message, text: cleaned.substring(0, 100) + '...' });
+      const firstErrorMessage = firstError instanceof Error ? firstError.message : String(firstError);
+      logger.warn('First JSON parse attempt failed', { error: firstErrorMessage, text: cleaned.substring(0, 100) + '...' });
 
       // Try to extract just the JSON part more carefully
       const objectMatch = cleaned.match(/\{[\s\S]*\}/);
       if (objectMatch) {
         try {
           return JSON.parse(objectMatch[0]);
-        } catch (secondError: any) {
-          logger.error('Second JSON parse attempt failed', { error: secondError.message });
-          throw new Error(`Failed to parse JSON: ${firstError.message}`);
+        } catch (secondError: unknown) {
+          const secondErrorMessage = secondError instanceof Error ? secondError.message : String(secondError);
+          logger.error('Second JSON parse attempt failed', { error: secondErrorMessage });
+          throw new Error(`Failed to parse JSON: ${firstErrorMessage}`);
         }
       }
       throw firstError;
@@ -166,7 +171,6 @@ export const ollamaService = {
     try {
       const response = await fetch(`${config.ollama.url}/api/tags`);
       const data: any = await response.json();
-
       const modelExists = data.models.some((m: any) => m.name.includes(config.ollama.model));
 
       if (!modelExists) {
@@ -176,8 +180,9 @@ export const ollamaService = {
 
       logger.info('Ollama connected', { model: config.ollama.model });
       return true;
-    } catch (error: any) {
-      logger.error('Ollama not reachable!', { url: config.ollama.url, error: error.message });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Ollama not reachable!', { url: config.ollama.url, error: errorMessage });
       return false;
     }
   },
@@ -232,9 +237,11 @@ export const ollamaService = {
       }
 
       return isMatch;
-    } catch (error: any) {
-      logger.error('[Vision] Error during verification', { error: error.message, imageUrl });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('[Vision] Error during verification', { error: errorMessage, imageUrl });
       return false;
     }
   }
 };
+/* eslint-enable @typescript-eslint/no-explicit-any */

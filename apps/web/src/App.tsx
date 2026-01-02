@@ -13,13 +13,18 @@ export interface Car {
   strengths: string[];
   weaknesses: string[];
   reason: string;
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
   images?: Array<{
     url: string;
     title: string;
     thumbnail?: string;
     source?: string;
   }>;
+}
+
+interface SearchResponse {
+  cars: Car[];
+  analysis: string;
 }
 
 function App() {
@@ -31,7 +36,7 @@ function App() {
 
   const handleSearch = async (requirements: string) => {
     setIsSearching(true);
-    const data = await api.post('/api/find-cars', { requirements });
+    const data = await api.post<SearchResponse>('/api/find-cars', { requirements });
     
     if (data) {
       setCurrentCars(data.cars);
@@ -47,7 +52,7 @@ function App() {
     const pinnedCars = Array.from(pinnedIndices).map(idx => currentCars[idx]).filter(Boolean);
     
     setIsSearching(true);
-    const data = await api.post('/api/refine-search', { feedback, pinnedCars });
+    const data = await api.post<SearchResponse>('/api/refine-search', { feedback, pinnedCars });
 
     if (data) {
       setCurrentCars(data.cars);

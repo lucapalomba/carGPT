@@ -2,6 +2,11 @@
 . "$(dirname "$0")/_/husky.sh"
 
 echo "Running tests before commit..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "Linting failed, aborting commit."
+  exit 1
+fi
 npm run test
 npm run test-history
 RESULT=$?

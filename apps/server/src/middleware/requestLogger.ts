@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
-import logger, { stream } from '../utils/logger.js';
+import { stream } from '../utils/logger.js';
 
 // Custom Morgan tokens
 morgan.token('session-id', (req: Request) => req.sessionID || '-');
-morgan.token('request-id', (req: Request) => (req as any).id || '-');
+morgan.token('request-id', (req: Request) => (req as any).id || '-'); /* eslint-disable-line @typescript-eslint/no-explicit-any */
 
 // Custom format: method url status response-time session-id request-id
 const morganFormat = ':method :url :status :response-time ms - :session-id - :request-id';
@@ -24,10 +24,10 @@ export const requestLogger = morgan(morganFormat, {
  * Add response time header
  */
 export const responseTimeMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const start = Date.now();
+  // const start = Date.now();
 
   res.on('finish', () => {
-    const duration = Date.now() - start;
+    // const _duration = Date.now() - start;
     // Log duration internally if needed, but don't set headers here
     // as the response is already sent.
     // Morgan is already logging this via :response-time token.
@@ -41,7 +41,7 @@ export const responseTimeMiddleware = (req: Request, res: Response, next: NextFu
  */
 export const requestIdMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-  (req as any).id = requestId;
+  (req as any).id = requestId; /* eslint-disable-line @typescript-eslint/no-explicit-any */
   res.setHeader('X-Request-ID', requestId);
   next();
 };
