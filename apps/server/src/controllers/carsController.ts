@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ollamaService } from '../services/ollamaService.js';
-import { aiService } from '../services/aiService.js';
+import { aiService, Car } from '../services/aiService.js';
 import { conversationService, Conversation, ConversationHistoryItem } from '../services/conversationService.js';
 import { promptService } from '../services/promptService.js';
 import { config } from '../config/index.js';
@@ -134,7 +134,7 @@ export const carsController = {
     const responseSchema = promptService.loadTemplate('car-response-schema.md');
     const jsonGuard = promptService.loadTemplate('json-guard.md');
 
-    const pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars) : 'None';
+    const pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars.map((c: Car) => `${c.make} ${c.model} ${c.year}`)) : 'None';
 
     const messages = [
       {
