@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![CarGPT Logo](docs/cargpt_logo.jpeg)
+![CarGPT Logo](docs/cargpt_logo.png)
 
 **Find your perfect car using AI - describe what you need, not what you think you want!**
 
