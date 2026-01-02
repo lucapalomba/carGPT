@@ -69,8 +69,10 @@ export const ollamaService = {
       langfuse.generation({
         input: messages,
         output: data,
-        traceId: trace.id,
+        traceId: trace?.id,
         name: operationName,
+        model: model,
+        modelParameters: options,
         startTime: new Date(Date.now() - durationMs),
         endTime: new Date(),
         usage: {
@@ -93,6 +95,10 @@ export const ollamaService = {
       });
 
       langfuse.generation({
+        traceId: trace?.id,
+        name: operationName,
+        model: model,
+        modelParameters: options,
         level: "ERROR",
         statusMessage: String(error)
       });
@@ -212,6 +218,18 @@ export const ollamaService = {
       
       const modelThreshold = config.vision.modelConfidenceThreshold;
       const textThreshold = config.vision.textConfidenceThreshold;
+
+      if (trace) {
+        trace.score({
+          name: "vision-model-confidence",
+          value: modelConfidence,
+          comment: imageUrl
+        });
+        trace.score({
+          name: "vision-text-confidence",
+          value: textConfidence
+        });
+      }
 
       const isModelMatch = modelConfidence >= modelThreshold;
       const hasTooMuchText = textConfidence > textThreshold;

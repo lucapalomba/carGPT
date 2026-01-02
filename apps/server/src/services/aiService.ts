@@ -61,9 +61,11 @@ export const aiService = {
     const trace = langfuse.trace({
       name: "search_cars_API",
       sessionId: sessionId,
-      model:config.ollama.model,
+      metadata: {
+        model: config.ollama.model,
+        environment: config.isProduction ? 'production' : 'development'
+      },
       input: requirements,
-      environment: config.isProduction ? 'production' : 'development'
     });
 
     const response = await ollamaService.callOllama(messages, trace, 'search_cars');
@@ -77,7 +79,7 @@ export const aiService = {
 
     // Fetch images for all cars in parallel
     logger.info(`Searching images for ${carsArray.length} cars`);
-    const imageMap = await imageSearchService.searchMultipleCars(carsArray);
+    const imageMap = await imageSearchService.searchMultipleCars(carsArray, trace);
 
     // Enrich cars with images
     const carsWithImages = await Promise.all(carsArray.map(async (car: any) => {
@@ -123,7 +125,7 @@ export const aiService = {
 
     // Fetch images for all cars in parallel
     logger.info(`Searching images for ${carsArray.length} cars`);
-    const imageMap = await imageSearchService.searchMultipleCars(carsArray);
+    const imageMap = await imageSearchService.searchMultipleCars(carsArray, trace);
 
     // Enrich cars with images
     const carsWithImages = await Promise.all(carsArray.map(async (car: any) => {

@@ -176,7 +176,11 @@ You can fine-tune the AI's behavior by modifying the `.env` file:
 | `OLLAMA_VISION_MODEL` | Specific model for image analysis (e.g., `llava`) | `llava` |
 | `VISION_MODEL_CONFIDENCE_THRESHOLD` | Min confidence (0-1) to accept a car match | `0.8` |
 | `VISION_TEXT_CONFIDENCE_THRESHOLD` | Max confidence (0-1) allowed for text/overlays | `0.2` |
+| `VISION_TEXT_CONFIDENCE_THRESHOLD` | Max confidence (0-1) allowed for text/overlays | `0.2` |
 | `CAROUSEL_IMAGES_LENGHT` | Number of images to verify/show per car (max 10) | `1` |
+| `LANGFUSE_PUBLIC_KEY` | Public key for Langfuse tracing | `pk-lf-...` |
+| `LANGFUSE_SECRET_KEY` | Secret key for Langfuse tracing | `sk-lf-...` |
+| `LANGFUSE_BASE_URL` | Langfuse Host (Cloud or Local) | `https://cloud.langfuse.com` |
 
 That's it! 🎉
 
@@ -238,7 +242,8 @@ graph TD
 
 - **Frontend (`apps/web`)**: React 19, TypeScript, Tailwind CSS v4
 - **Backend (`apps/server`)**: Node.js, Express, TypeScript, MVC + Service Layer
-- **Logging & Observability**: Centralized structured logging with Winston, request correlation, and LLM prompt tracking. See [**LOGGING.md**](apps/server/LOGGING.md).
+- **Logging**: Centralized structured logging with Winston.
+- **Observability**: **Langfuse** integration for tracing LLM chains, latency, and costs (token usage).
 - **Monorepo**: Centralized management via root `package.json`
 
 For a deep dive into the system design, see [**ARCHITECTURE.md**](ARCHITECTURE.md).
