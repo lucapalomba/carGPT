@@ -219,18 +219,6 @@ export const ollamaService = {
       const modelThreshold = config.vision.modelConfidenceThreshold;
       const textThreshold = config.vision.textConfidenceThreshold;
 
-      if (trace) {
-        trace.score({
-          name: "vision-model-confidence",
-          value: modelConfidence,
-          comment: imageUrl
-        });
-        trace.score({
-          name: "vision-text-confidence",
-          value: textConfidence
-        });
-      }
-
       const isModelMatch = modelConfidence >= modelThreshold;
       const hasTooMuchText = textConfidence > textThreshold;
       
