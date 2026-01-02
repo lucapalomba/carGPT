@@ -3,13 +3,14 @@ import logger from '../utils/logger.js';
 import { AppError } from '../utils/AppError.js';
 import { config } from '../config/index.js';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Convert common errors to AppError
  */
-const normalizeError = (err: any): AppError => {
+const normalizeError = (err: unknown): any => {
   // Validation errors (if any from other libraries)
-  if (err.name === 'ValidationError') {
-    return new AppError(err.message, 400);
+  if (err && typeof err === 'object' && 'name' in err && (err as any).name === 'ValidationError') {
+    return new AppError((err as any).message || 'Validation Error', 400);
   }
 
   // JSON parsing errors
@@ -23,13 +24,13 @@ const normalizeError = (err: any): AppError => {
 /**
  * Main error handling middleware
  */
-export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  let error = normalizeError(err);
+export const errorHandler = (err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  let error: any = normalizeError(err);
 
   // Default to 500 if not an AppError
   if (!(error instanceof AppError)) {
-    const originalMessage = (error as any).message || 'Internal Server Error';
-    const originalStatusCode = (error as any).statusCode || 500;
+    const originalMessage = error.message || 'Internal Server Error';
+    const originalStatusCode = error.statusCode || 500;
     error = new AppError(
       originalMessage,
       originalStatusCode,
@@ -62,10 +63,10 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     success: false,
     status: error.status,
     message: error.message,
-    ...(error.details && { details: error.details }),
+    ...(error.details ? { details: error.details } : {}),
     ...(!config.isProduction && { stack: error.stack }),
     ...(!config.isProduction && !error.isOperational && { 
-      originalError: err.message 
+      originalError: (err instanceof Error) ? err.message : String(err)
     })
   });
 };
@@ -85,7 +86,7 @@ export const notFoundHandler = (req: Request, res: Response, next: NextFunction)
  * Unhandled rejection handler
  */
 export const unhandledRejectionHandler = () => {
-  process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+  process.on('unhandledRejection', (reason: unknown, _promise: Promise<unknown>) => {
     logger.error('Unhandled Rejection', {
       reason: reason instanceof Error ? reason.message : reason,
       stack: reason instanceof Error ? reason.stack : undefined
@@ -106,3 +107,4 @@ export const uncaughtExceptionHandler = () => {
     process.exit(1);
   });
 };
+/* eslint-enable @typescript-eslint/no-explicit-any */

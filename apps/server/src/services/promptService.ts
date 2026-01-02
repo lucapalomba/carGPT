@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import path from 'path';
+import logger from '../utils/logger.js';
 
 /**
  * Service to handle loading and managing prompt templates
@@ -16,8 +17,8 @@ export const promptService = {
     try {
       const templatePath = path.join(process.cwd(), 'prompt-templates', fileName);
       return readFileSync(templatePath, 'utf8');
-    } catch (error: any) {
-      console.error(`Error loading template ${fileName}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Error loading template ${fileName}:`, { error });
       throw new Error(`Unable to load prompt template: ${fileName}`);
     }
   }

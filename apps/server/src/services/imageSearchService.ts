@@ -42,7 +42,7 @@ export const imageSearchService = {
     model: string, 
     year: string = '', 
     count: number = 1,
-    trace?: any
+    trace?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */
   ): Promise<CarImage[]> {
     const { apiKey, cx } = config.googleSearch;
 
@@ -89,7 +89,7 @@ export const imageSearchService = {
         return [];
       }
 
-      const images: CarImage[] = data.items.map((item: any) => ({
+      const images: CarImage[] = data.items.map((item) => ({
         url: item.link || '',
         thumbnail: item.image?.thumbnailLink || '',
         title: item.title || `${make} ${model}`,
@@ -108,9 +108,10 @@ export const imageSearchService = {
       if (span) span.end({ output: { count: images.length } });
       return images;
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Error searching images with Google Custom Search API', { 
-        error: error.message,
+        error: errorMessage,
         make,
         model,
         year
@@ -119,7 +120,7 @@ export const imageSearchService = {
       if (span) {
         span.end({ 
           level: "ERROR",
-          statusMessage: error.message
+          statusMessage: errorMessage
         });
       }
 
@@ -132,7 +133,7 @@ export const imageSearchService = {
    */
   async searchMultipleCars(
     cars: Array<{ make: string; model: string; year?: string }>,
-    trace?: any
+    trace?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */
   ): Promise<Record<string, CarImage[]>> {
     const promises = cars.map(async (car) => {
       const images = await this.searchCarImages(

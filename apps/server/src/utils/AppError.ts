@@ -5,7 +5,7 @@ export class AppError extends Error {
   public statusCode: number;
   public status: string;
   public isOperational: boolean;
-  public details: any;
+  public details: unknown;
 
   constructor(message: string, statusCode = 500, isOperational = true) {
     super(message);
@@ -21,7 +21,7 @@ export class AppError extends Error {
  * Validation errors (400)
  */
 export class ValidationError extends AppError {
-  constructor(message: string, details: any = null) {
+  constructor(message: string, details: unknown = null) {
     super(message, 400);
     this.details = details;
     this.name = 'ValidationError';

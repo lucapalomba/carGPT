@@ -1,6 +1,6 @@
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
+
+
 import session from 'express-session';
 import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
@@ -21,8 +21,8 @@ import {
   requestIdMiddleware 
 } from './src/middleware/requestLogger.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -45,12 +45,12 @@ app.use(session({
 
 // Swagger Documentation (Development only)
 
-console.log('DEBUG: Middleware setup - isProduction:', config.isProduction);
+logger.info(`Server running in ${config.isProduction ? 'production' : 'development'} mode`);
 if (!config.isProduction) {
   const swaggerDocument = loadSwaggerDocument();
   app.use('/api-docs', 
     (req: express.Request, res: express.Response, next: express.NextFunction) => {
-      console.log(`DEBUG: Accessing Swagger UI at ${req.originalUrl}`);
+      logger.debug(`Accessing Swagger UI at ${req.originalUrl}`);
       next();
     },
     swaggerUi.serve, 
@@ -83,7 +83,7 @@ const startServer = async () => {
     });
     
     if (!config.isProduction) {
-      console.log(`
+      logger.info(`
 🚀 CarGPT server is running!
 🌐 URL: http://localhost:${config.port}
 📚 API Docs: http://localhost:${config.port}/api-docs

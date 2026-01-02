@@ -10,7 +10,7 @@ const consoleFormat = printf(({ level, message, timestamp, stack, ...meta }) => 
 
   if (Object.keys(meta).length > 0) {
     // Exclude service and environment from meta to keep console clean
-    const { service, environment, ...rest } = meta as any;
+    const { service: _s, environment: _e, ...rest } = meta as any; /* eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
     if (Object.keys(rest).length > 0) {
       log += `\n${JSON.stringify(rest, null, 2)}`;
     }
