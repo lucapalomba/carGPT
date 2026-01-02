@@ -2,6 +2,7 @@ import { config } from '../config/index.js';
 import logger from '../utils/logger.js';
 import { OllamaError } from '../utils/AppError.js';
 import { promptService } from './promptService.js';
+import { langfuse } from '../utils/langfuse.js';
 
 export interface Message {
   role: string;
@@ -16,21 +17,31 @@ export const ollamaService = {
   /**
    * Sends a list of messages to Ollama and returns the content of the response.
    * 
-   * @param {Array<Object>} messages - Array of message objects {role, content}
    * @param {Array<Message>} messages - Array of message objects {role, content}
-   * @param {string} format - Optional format (e.g., "json")
+   * @param {any} trace - Optional Langfuse trace
+   * @param {string} operationName - Optional operation name
    * @returns {Promise<string>} The response content from Ollama
    * @throws {Error} If the connection fails or Ollama returns an error
    */
-  async callOllama(messages: Message[], format?: string, overrideModel?: string) {
+  async callOllama(messages: Message[], trace?: any, operationName?: string) {
+
+     const model = config.ollama.model;
+     const ollamaResponseFormat = "json";
+     const options = {
+       temperature: 0,
+       num_predict: 2500
+     };
+     const messagesCount = messages.length;
+
     try {
-      const model = overrideModel || config.ollama.model;
+     
       logger.debug('Calling Ollama API', { 
         model,
-        messagesCount: messages.length,
-        // Logging the compiled prompt for debugging
+        messagesCount,
         fullPrompt: messages 
       });
+
+      const start = performance.now();
 
       const response = await fetch(`${config.ollama.url}/api/chat`, {
         method: 'POST',
@@ -41,13 +52,12 @@ export const ollamaService = {
           model: model,
           messages: messages,
           stream: false,
-          options: {
-            temperature: 0,
-            num_predict: 2500
-          },
-          format: "json"
+          options,
+          format: ollamaResponseFormat
         })
       });
+
+      const durationMs = performance.now() - start;
 
       if (!response.ok) {
         throw new OllamaError(`HTTP ${response.status}: ${response.statusText}`);
@@ -55,6 +65,23 @@ export const ollamaService = {
 
       const data: any = await response.json();
       logger.debug('Ollama API response received');
+
+      langfuse.generation({
+        input: messages,
+        output: data,
+        traceId: trace?.id,
+        name: operationName,
+        model: model,
+        modelParameters: options,
+        startTime: new Date(Date.now() - durationMs),
+        endTime: new Date(),
+        usage: {
+          input: data.prompt_eval_count,
+          output: data.eval_count,
+          total: data.prompt_eval_count + data.eval_count
+        }
+      });
+
       return data.message.content;
 
     } catch (error: any) {
@@ -66,6 +93,16 @@ export const ollamaService = {
         error: error.message,
         url: config.ollama.url
       });
+
+      langfuse.generation({
+        traceId: trace?.id,
+        name: operationName,
+        model: model,
+        modelParameters: options,
+        level: "ERROR",
+        statusMessage: String(error)
+      });
+
       throw new OllamaError('Unable to connect to Ollama. Ensure Ollama is running (ollama serve)');
     }
   },
@@ -148,7 +185,7 @@ export const ollamaService = {
   /**
    * Verifies if an image contains the searched car using vision
    */
-  async verifyImageContainsCar(carInfo: string, year: string | number, imageUrl: string): Promise<boolean> {
+  async verifyImageContainsCar(carInfo: string, year: string | number, imageUrl: string, trace: any): Promise<boolean> {
     try {
       logger.info(`[Vision] Verifying ${year} ${carInfo}...`, { imageUrl });
 
@@ -173,7 +210,7 @@ export const ollamaService = {
         }
       ];
 
-      const response = await this.callOllama(messages, 'json', config.ollama.visionModel);
+      const response = await this.callOllama(messages,trace, 'verify_image_' + carInfo);
       const data = this.parseJsonResponse(response);
       
       const modelConfidence = data.modelConfidence || 0;

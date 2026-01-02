@@ -34,19 +34,29 @@ export const imageSearchService = {
    * @param model - Car model name
    * @param year - Car year
    * @param count - Number of images to return (default: 3)
+   * @param trace - Optional Langfuse trace for observability
    * @returns Array of car images
    */
   async searchCarImages(
     make: string, 
     model: string, 
     year: string = '', 
-    count: number = 1
+    count: number = 1,
+    trace?: any
   ): Promise<CarImage[]> {
     const { apiKey, cx } = config.googleSearch;
 
     if (!apiKey || !cx) {
       logger.warn('Google Search API Key or CX not configured. Skipping image search.');
       return [];
+    }
+
+    let span;
+    if (trace) {
+      span = trace.span({
+        name: "google_image_search",
+        input: { make, model, year, count }
+      });
     }
 
     try {
@@ -75,6 +85,7 @@ export const imageSearchService = {
       const data = await res.json() as GoogleSearchResponse;
       
       if (!data.items || !Array.isArray(data.items)) {
+        if (span) span.end({ output: { count: 0 } });
         return [];
       }
 
@@ -94,6 +105,7 @@ export const imageSearchService = {
         count: images.length 
       });
 
+      if (span) span.end({ output: { count: images.length } });
       return images;
 
     } catch (error: any) {
@@ -104,6 +116,13 @@ export const imageSearchService = {
         year
       });
       
+      if (span) {
+        span.end({ 
+          level: "ERROR",
+          statusMessage: error.message
+        });
+      }
+
       return [];
     }
   },
@@ -112,14 +131,16 @@ export const imageSearchService = {
    * Search images for multiple cars in parallel
    */
   async searchMultipleCars(
-    cars: Array<{ make: string; model: string; year?: string }>
+    cars: Array<{ make: string; model: string; year?: string }>,
+    trace?: any
   ): Promise<Record<string, CarImage[]>> {
     const promises = cars.map(async (car) => {
       const images = await this.searchCarImages(
         car.make, 
         car.model, 
         car.year?.toString() || '', 
-        config.carouselImageLength
+        config.carouselImageLength,
+        trace
       );
       
       const carKey = `${car.make}-${car.model}`;

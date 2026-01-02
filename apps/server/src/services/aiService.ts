@@ -1,6 +1,8 @@
 import { ollamaService, Message as OllamaMessage } from './ollamaService.js';
 import { imageSearchService } from './imageSearchService.js';
 import logger from '../utils/logger.js';
+import { langfuse } from '../utils/langfuse.js';
+import { config } from '../config/index.js';
 
 /**
  * AI service that uses Ollama for car recommendations
@@ -21,7 +23,8 @@ export const aiService = {
     systemPrompt: string,
     searchRules: string,
     responseSchema: string,
-    jsonGuard: string
+    jsonGuard: string,
+    sessionId: string
   ): Promise<any> {
     logger.info('Finding cars with images using Ollama', { 
       requirements: requirements.substring(0, 100),
@@ -55,7 +58,17 @@ export const aiService = {
       }
     ];
 
-    const response = await ollamaService.callOllama(messages);
+    const trace = langfuse.trace({
+      name: "search_cars_API",
+      sessionId: sessionId,
+      metadata: {
+        model: config.ollama.model,
+        environment: config.isProduction ? 'production' : 'development'
+      },
+      input: requirements,
+    });
+
+    const response = await ollamaService.callOllama(messages, trace, 'search_cars');
     const result = ollamaService.parseJsonResponse(response);
 
     // Validate structure
@@ -66,13 +79,13 @@ export const aiService = {
 
     // Fetch images for all cars in parallel
     logger.info(`Searching images for ${carsArray.length} cars`);
-    const imageMap = await imageSearchService.searchMultipleCars(carsArray);
+    const imageMap = await imageSearchService.searchMultipleCars(carsArray, trace);
 
     // Enrich cars with images
     const carsWithImages = await Promise.all(carsArray.map(async (car: any) => {
       const key = `${car.make}-${car.model}`;
       const rawImages = imageMap[key] || [];
-      const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages);
+      const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages, trace);
       return {
         ...car,
         images: verifiedImages
@@ -89,11 +102,19 @@ export const aiService = {
    * Refine car suggestions with images using Ollama
    */
   async refineCarsWithImages(
-    messages: OllamaMessage[]
+    messages: OllamaMessage[],
+    sessionId: string,
+    userInput: string
   ): Promise<any> {
     logger.info('Refining cars with images using Ollama');
 
-    const response = await ollamaService.callOllama(messages);
+    const trace = langfuse.trace({
+      name: "refine_cars_API",
+      input: userInput,
+      sessionId: sessionId,
+    });
+
+    const response = await ollamaService.callOllama(messages, trace, 'refine_search_cars');
     const result = ollamaService.parseJsonResponse(response);
 
     // Validate structure
@@ -104,18 +125,30 @@ export const aiService = {
 
     // Fetch images for all cars in parallel
     logger.info(`Searching images for ${carsArray.length} cars`);
-    const imageMap = await imageSearchService.searchMultipleCars(carsArray);
+    const imageMap = await imageSearchService.searchMultipleCars(carsArray, trace);
 
     // Enrich cars with images
     const carsWithImages = await Promise.all(carsArray.map(async (car: any) => {
       const key = `${car.make}-${car.model}`;
       const rawImages = imageMap[key] || [];
-      const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages);
+      const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages, trace);
       return {
         ...car,
         images: verifiedImages
       };
     }));
+
+    trace.update({
+      output: {
+      ...result,
+      cars: carsWithImages
+    },
+    usage: {
+      input: 10,
+      output: 10,
+      total: 20
+    }
+    });
 
     return {
       ...result,
@@ -134,7 +167,7 @@ export const aiService = {
   /**
    * Filters images using vision to ensure they contain the specified car
    */
-  async filterImages(make: string, model: string, year: string | number, images: any[]): Promise<any[]> {
+  async filterImages(make: string, model: string, year: string | number, images: any[], trace: any): Promise<any[]> {
     if (images.length === 0) return [];
 
     logger.info(`Filtering ${images.length} images for ${year} ${make} ${model} using vision`);
@@ -145,7 +178,7 @@ export const aiService = {
     for (const image of images) {
       // Use thumbnail for faster processing if available
       const urlToVerify = image.thumbnail || image.url;
-      const isValid = await ollamaService.verifyImageContainsCar(carInfo, year, urlToVerify);
+      const isValid = await ollamaService.verifyImageContainsCar(carInfo, year, urlToVerify, trace);
       
       if (isValid) {
         verifiedImages.push(image);

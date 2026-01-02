@@ -43,7 +43,18 @@ CarGPT has transitioned to a powerful **Monorepo** architecture to separate conc
     *   Calls `ollamaService` to interact with the LLM.
     *   Parses the LLM response using `ollamaService.parseJsonResponse`.
     *   Saves the interaction to `conversationService`.
+    *   **Observability**: All model interactions are traced using **Langfuse**.
 5.  **Response**: The controller sends the processed JSON back to the client.
+
+---
+
+## 🔍 Observability (Langfuse)
+
+CarGPT uses **Langfuse** for end-to-end tracing of AI operations:
+- **Traces**: Created at the controller level (e.g., `search_cars_API`, `ask_about_car_API`) to track the entire user request.
+- **Spans**: Track specific operations like **Google Image Search** or **Ollama Generations**.
+- **Generations**: specifically track the input/output and token usage of the LLM.
+- **Scores**: (Future) Can be used to track user feedback (refinements).
 
 ---
 

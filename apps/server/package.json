@@ -13,6 +13,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-session": "^1.17.3",
+    "langfuse": "^3.38.6",
     "morgan": "^1.10.1",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.19.0",

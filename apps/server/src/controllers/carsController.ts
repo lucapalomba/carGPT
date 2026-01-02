@@ -7,6 +7,7 @@ import { config } from '../config/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ValidationError } from '../utils/AppError.js';
 import logger from '../utils/logger.js';
+import { langfuse } from '../utils/langfuse.js';
 
 /**
  * Controller for car search operations
@@ -44,7 +45,8 @@ export const carsController = {
       findCarPromptTemplate,
       searchRules,
       responseSchema,
-      jsonGuard
+      jsonGuard,
+      sessionId
     );
 
     // Validate response
@@ -164,7 +166,7 @@ export const carsController = {
       }
     ];
 
-    const response = await aiService.refineCarsWithImages(messages);
+    const response = await aiService.refineCarsWithImages(messages, sessionId, feedback);
     const result = response;
 
     conversation.updatedAt = new Date();
@@ -226,7 +228,20 @@ export const carsController = {
       }
     ];
 
-    const response = await ollamaService.callOllama(messages);
+    const trace = langfuse.trace({
+      name: "ask_about_car_API",
+      sessionId: sessionId,
+      metadata: {
+        model: config.ollama.model,
+        environment: config.isProduction ? 'production' : 'development'
+      },
+      input: {
+        car,
+        question
+      },
+    });
+
+    const response = await ollamaService.callOllama(messages, trace, 'ask_about_car');
     let result;
     try {
       result = ollamaService.parseJsonResponse(response);
@@ -288,7 +303,20 @@ export const carsController = {
       }
     ];
 
-    const response = await ollamaService.callOllama(messages);
+    const trace = langfuse.trace({
+      name: "get_alternatives_API",
+      sessionId: sessionId,
+      metadata: {
+        model: config.ollama.model,
+        environment: config.isProduction ? 'production' : 'development'
+      },
+      input: {
+        car,
+        reason
+      },
+    });
+
+    const response = await ollamaService.callOllama(messages, trace, 'get_alternatives');
     let result;
     try {
       result = ollamaService.parseJsonResponse(response);
@@ -348,7 +376,20 @@ export const carsController = {
       }
     ];
 
-    const response = await ollamaService.callOllama(messages);
+    const trace = langfuse.trace({
+      name: "compare_cars_API",
+      sessionId: sessionId,
+      metadata: {
+        model: config.ollama.model,
+        environment: config.isProduction ? 'production' : 'development'
+      },
+      input: {
+        car1,
+        car2
+      },
+    });
+
+    const response = await ollamaService.callOllama(messages, trace, 'compare_cars');
     let result;
     try {
       result = ollamaService.parseJsonResponse(response);
