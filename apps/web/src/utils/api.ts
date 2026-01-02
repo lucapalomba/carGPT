@@ -18,7 +18,7 @@ async function getErrorMessage(response: Response): Promise<string> {
 }
 
 export const api = {
-  async post<T = any>(url: string, body: any): Promise<T | null> {
+  async post<T = unknown>(url: string, body: unknown): Promise<T | null> {
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -50,7 +50,7 @@ export const api = {
     }
   },
 
-  async get<T = any>(url: string): Promise<T | null> {
+  async get<T = unknown>(url: string): Promise<T | null> {
     try {
       const response = await fetch(url, {
         method: 'GET',

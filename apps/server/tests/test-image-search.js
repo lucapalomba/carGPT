@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Manual test script for image search functionality
  * 

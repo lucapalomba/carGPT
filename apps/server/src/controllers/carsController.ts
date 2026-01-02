@@ -117,7 +117,7 @@ export const carsController = {
       originalRequirements = "User is looking for a car.";
     }
 
-    let contextParts = [];
+    const contextParts = [];
     if (originalRequirements) contextParts.push(`Original Request: "${originalRequirements}"`);
 
     if (conversation.history) {
@@ -134,7 +134,7 @@ export const carsController = {
     const responseSchema = promptService.loadTemplate('car-response-schema.md');
     const jsonGuard = promptService.loadTemplate('json-guard.md');
 
-    let pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars) : 'None';
+    const pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars) : 'None';
 
     const messages = [
       {

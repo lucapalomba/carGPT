@@ -24,6 +24,7 @@ export const aiService = {
     searchRules: string,
     responseSchema: string,
     jsonGuard: string,
+
     sessionId: string
   ): Promise<any> {
     logger.info('Finding cars with images using Ollama', { 
@@ -140,14 +141,9 @@ export const aiService = {
 
     trace.update({
       output: {
-      ...result,
-      cars: carsWithImages
-    },
-    usage: {
-      input: 10,
-      output: 10,
-      total: 20
-    }
+        ...result,
+        cars: carsWithImages
+      }
     });
 
     return {
