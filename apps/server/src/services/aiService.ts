@@ -40,6 +40,7 @@ export const aiService = {
     searchRules: string,
     responseSchema: string,
     jsonGuard: string,
+    tonePrompt: string,
 
     sessionId: string
   ): Promise<SearchResponse> {
@@ -55,6 +56,10 @@ export const aiService = {
       },
       {
         role: "system",
+        content: tonePrompt
+      },
+      {
+        role: "system",
         content: searchRules
       },
       {
@@ -64,10 +69,6 @@ export const aiService = {
       {
         role: "system",
         content: jsonGuard
-      },
-      {
-        role: "system",
-        content: `User Preferred Language: ${language}. Always respond in this language.`
       },
       {
         role: "user",

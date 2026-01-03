@@ -2,3 +2,22 @@
 . "$(dirname "$0")/_/husky.sh"
 
 node scripts/validate-commit.mjs "$1"
+VALID_MSG=$?
+
+if [ $VALID_MSG -ne 0 ]; then
+  exit $VALID_MSG
+fi
+
+echo "Commit message valid. Running tests/linting..."
+
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "Linting failed, aborting commit."
+  exit 1
+fi
+
+npm run test && npm run test-history
+if [ $? -ne 0 ]; then
+  echo "Tests failed, aborting commit."
+  exit 1
+fi

@@ -30,7 +30,7 @@ export const ollamaService = {
      const ollamaResponseFormat = "json";
      const options = {
        temperature: 0,
-       num_predict: 2500
+       num_predict: -1,
      };
      const messagesCount = messages.length;
 
@@ -52,6 +52,7 @@ export const ollamaService = {
         body: JSON.stringify({
           model: model,
           messages: messages,
+          think: false,
           stream: false,
           options,
           format: ollamaResponseFormat
@@ -121,44 +122,39 @@ export const ollamaService = {
   parseJsonResponse(text: string): any {
     // Remove markdown code blocks
     let cleaned = text.trim();
-    cleaned = cleaned.replace(/```json\s*/g, '');
-    cleaned = cleaned.replace(/```\s*/g, '');
-    cleaned = cleaned.replace(/'\s*/g, '');
-    cleaned = cleaned.trim();
-
-    // Try to find JSON object in the text
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      cleaned = jsonMatch[0];
+    // Remove leading/trailing markdown code blocks
+    cleaned = cleaned.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    
+    // Try to find JSON from the first '{' to the last '}'
+    // This helps when the LLM adds text before or after the JSON
+    const firstOpen = cleaned.indexOf('{');
+    const lastClose = cleaned.lastIndexOf('}');
+    
+    if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+      cleaned = cleaned.substring(firstOpen, lastClose + 1);
     }
 
     // Fix common JSON issues from LLMs
-    // 1. Replace single quotes with double quotes (but not inside strings)
-    cleaned = cleaned.replace(/'/g, '"');
-
-    // 2. Remove trailing commas before closing braces/brackets
+    // NOTE: We do NOT globally replace single quotes with double quotes as it corrupts content like "driver's seat"
+    
+    // Remove trailing commas before closing braces/brackets (common LLM error)
     cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
 
-    // 3. Try to parse
+    // Remove control characters that might break JSON.parse
+    // eslint-disable-next-line no-control-regex
+    cleaned = cleaned.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+
+    // Try to parse
     try {
       return JSON.parse(cleaned);
     } catch (firstError: unknown) {
-      // If still failing, try more aggressive cleaning
+      // If still failing, logging the error and re-throwing
       const firstErrorMessage = firstError instanceof Error ? firstError.message : String(firstError);
-      logger.warn('First JSON parse attempt failed', { error: firstErrorMessage, text: cleaned.substring(0, 100) + '...' });
-
-      // Try to extract just the JSON part more carefully
-      const objectMatch = cleaned.match(/\{[\s\S]*\}/);
-      if (objectMatch) {
-        try {
-          return JSON.parse(objectMatch[0]);
-        } catch (secondError: unknown) {
-          const secondErrorMessage = secondError instanceof Error ? secondError.message : String(secondError);
-          logger.error('Second JSON parse attempt failed', { error: secondErrorMessage });
-          throw new Error(`Failed to parse JSON: ${firstErrorMessage}`);
-        }
-      }
-      throw firstError;
+      logger.warn('JSON parse failed', { error: firstErrorMessage, textSnippet: cleaned.substring(0, 200) + '...' });
+      
+      // We could add more aggressive recovery here if needed, but avoiding destruction is the priority now.
+      // Re-throwing the original error so the caller knows parsing failed.
+      throw new Error(`Failed to parse JSON: ${firstErrorMessage}`);
     }
   },
 
