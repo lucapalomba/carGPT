@@ -34,4 +34,5 @@ Return ONLY valid JSON, with no extra text:
 }
 
 PROPERTY NAMING RULES:
-- All cars must share the exact same property key names.
+- All cars must share the exact same propertyID in order to make them comparable.
+- Each property must have a translatedLabel and a value.
