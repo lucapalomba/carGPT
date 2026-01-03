@@ -1,6 +1,6 @@
 
 // ESM compatible script
-const baseUrl = 'http://localhost:3000/api';
+const baseUrl = 'http://localhost:3001/api';
 let cookie = '';
 
 async function runTest() {
