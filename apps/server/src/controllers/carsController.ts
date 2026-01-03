@@ -142,7 +142,6 @@ export const carsController = {
         content: refinePromptTemplate
           .replace('${requirements}', fullContext)
           .replace('${pinnedCars}', pinnedCarsJson)
-          .replace('${feedback}', feedback)
       },
       {
         role: "system",
@@ -162,7 +161,7 @@ export const carsController = {
       },
       {
         role: "user",
-        content: "Refine suggestions."
+        content: "Refine suggestions this feedback/critique: " + feedback
       }
     ];
 
