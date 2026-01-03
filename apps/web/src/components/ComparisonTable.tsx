@@ -69,7 +69,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
             {cars.map((car, i) => (
               <td key={i} className="p-6">
                 <ul className="space-y-1">
-                  {car.strengths.map((s, idx) => (
+                  {car && car.strengths && car.strengths.map((s, idx) => (
                     <li key={idx} className="text-sm text-green-700 flex items-start gap-2">
                         <span className="mt-1">✅</span>
                         <span>{s}</span>
@@ -84,7 +84,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
             {cars.map((car, i) => (
               <td key={i} className="p-6">
                 <ul className="space-y-1">
-                  {car.weaknesses.map((w, idx) => (
+                  {car && car.weaknesses && car.weaknesses.map((w, idx) => (
                     <li key={idx} className="text-sm text-red-700 flex items-start gap-2">
                         <span className="mt-1">❌</span>
                         <span>{w}</span>
