@@ -30,7 +30,7 @@ export const ollamaService = {
      const ollamaResponseFormat = "json";
      const options = {
        temperature: 0,
-       num_predict: 2500
+       num_predict: 2500,
      };
      const messagesCount = messages.length;
 
@@ -52,6 +52,7 @@ export const ollamaService = {
         body: JSON.stringify({
           model: model,
           messages: messages,
+          think: false,
           stream: false,
           options,
           format: ollamaResponseFormat
