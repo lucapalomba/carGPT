@@ -551,6 +551,11 @@
                         "description": "Car model",
                         "example": "Octavia Wagon"
                     },
+                    "precise_model": {
+                        "type": "string",
+                        "description": "Precise brand, model, year, and equipment level",
+                        "example": "Skoda Octavia Wagon 2.0 TDI 2023 Style"
+                    },
                     "year": {
                         "type": "string",
                         "description": "Recommended year",
@@ -558,13 +563,43 @@
                     },
                     "price": {
                         "type": "string",
-                        "description": "Price range",
+                        "description": "Price range when new",
                         "example": "25,000-30,000€"
                     },
                     "type": {
                         "type": "string",
                         "description": "Car type/category",
                         "example": "Station Wagon"
+                    },
+                    "market_availability": {
+                        "type": "string",
+                        "description": "Availability in the user's market",
+                        "example": "Available in the US market"
+                    },
+                    "properties": {
+                        "type": "object",
+                        "description": "Dynamic properties of the car",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "translatedLabel": {
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "example": {
+                            "trunk_size": {
+                                "translatedLabel": "Trunk Size",
+                                "value": "640 liters"
+                            },
+                            "fuel_consumption": {
+                                "translatedLabel": "Fuel Consumption",
+                                "value": "5.2 l/100km"
+                            }
+                        }
                     },
                     "strengths": {
                         "type": "array",
@@ -589,30 +624,31 @@
                             "Average resale value"
                         ]
                     },
-                    "trunkSize": {
-                        "type": "string",
-                        "description": "Trunk capacity",
-                        "example": "640 liters"
-                    },
-                    "fuelConsumption": {
-                        "type": "string",
-                        "description": "Fuel consumption",
-                        "example": "5.2 l/100km"
-                    },
-                    "reliability": {
-                        "type": "string",
-                        "description": "Reliability rating",
-                        "example": "High"
-                    },
                     "reason": {
                         "type": "string",
                         "description": "Why this car is suitable",
                         "example": "Perfect for families thanks to the space and reliability"
                     },
-                    "market_availability": {
+                    "percentage": {
                         "type": "string",
-                        "description": "Availability in the user's market",
-                        "example": "Available in the US market"
+                        "description": "Match percentage (0-100)",
+                        "example": "95"
+                    },
+                    "reasoning": {
+                        "type": "string",
+                        "description": "Detailed reasoning behind the selection",
+                        "example": "This car matches your need for space and efficiency perfectly."
+                    },
+                    "images": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "url": { "type": "string" },
+                                "thumbnail": { "type": "string" },
+                                "title": { "type": "string" }
+                            }
+                        }
                     }
                 }
             },
@@ -646,6 +682,11 @@
                         "minItems": 3,
                         "maxItems": 3,
                         "description": "Array of 3 recommended cars"
+                    },
+                    "provider": {
+                        "type": "string",
+                        "description": "AI provider used",
+                        "example": "ollama"
                     }
                 }
             },
