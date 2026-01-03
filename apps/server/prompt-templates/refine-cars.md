@@ -13,4 +13,3 @@ INSTRUCTIONS:
 3. The list MUST include all the "Pinned Cars" FIRST, exactly as they were provided.
 4. Fill the remaining spots with NEW suggestions that respect the feedback.
 5. Do NOT suggest cars that were previously suggested but NOT pinned (unless the feedback specifically asks for them again).
-
