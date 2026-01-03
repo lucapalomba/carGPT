@@ -58,19 +58,41 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
     {
       "make": "Skoda",
       "model": "Octavia Wagon",
+      "precise_model": "Skoda Octavia Wagon 2.0 TDI 2023 Style",
       "year": "2023",
       "price": "25,000-30,000€",
       "type": "Station Wagon",
       "market_availability": "Available in the US market",
+      "properties": {
+        "trunk_size": {
+          "translatedLabel": "Trunk Size",
+          "value": "640 liters"
+        },
+        "fuel_consumption": {
+          "translatedLabel": "Fuel Consumption",
+          "value": "5.2 l/100km"
+        },
+        "reliability": {
+          "translatedLabel": "Reliability",
+          "value": "High"
+        }
+      },
       "strengths": ["Huge trunk", "Reliable", "Spacious"],
       "weaknesses": ["Conservative design", "Average resale value"],
-      "trunkSize": "640 liters",
-      "fuelConsumption": "5.2 l/100km",
-      "reliability": "High",
-      "reason": "Perfect for families thanks to the space..."
+      "reason": "Perfect for families thanks to the space...",
+      "percentage": "95",
+      "reasoning": "This car matches your need for space and efficiency perfectly.",
+      "images": [
+        {
+          "url": "https://example.com/car.jpg",
+          "thumbnail": "https://example.com/car-thumb.jpg",
+          "title": "Skoda Octavia Wagon"
+        }
+      ]
     }
     // ... 2 more cars
-  ]
+  ],
+  "provider": "ollama"
 }
 ```
 
@@ -126,16 +148,37 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
     {
       "make": "Skoda",
       "model": "Fabia",
+      "precise_model": "Skoda Fabia 1.0 TSI 2023 Selection",
       "year": "2023",
       "price": "18,000-22,000€",
       "type": "Compact",
       "market_availability": "Available in the US market",
+      "properties": {
+        "trunk_size": {
+          "translatedLabel": "Trunk Size",
+          "value": "380 liters"
+        },
+        "fuel_consumption": {
+          "translatedLabel": "Fuel Consumption",
+          "value": "4.5 l/100km"
+        },
+        "reliability": {
+          "translatedLabel": "Reliability",
+          "value": "High"
+        }
+      },
       "strengths": ["Affordable", "Compact", "Efficient"],
       "weaknesses": ["Smaller trunk", "Less power"],
-      "trunkSize": "380 liters",
-      "fuelConsumption": "4.5 l/100km",
-      "reliability": "High",
-      "reason": "A more affordable option fitting your budget..."
+      "reason": "A more affordable option fitting your budget...",
+      "percentage": "90",
+      "reasoning": "This car is a great budget-friendly alternative with excellent efficiency.",
+      "images": [
+        {
+          "url": "https://example.com/fabia.jpg",
+          "thumbnail": "https://example.com/fabia-thumb.jpg",
+          "title": "Skoda Fabia"
+        }
+      ]
     }
     // ... 2 more cars (pinned ones included)
   ]
