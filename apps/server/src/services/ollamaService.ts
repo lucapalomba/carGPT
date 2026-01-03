@@ -141,6 +141,7 @@ export const ollamaService = {
     cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
 
     // Remove control characters that might break JSON.parse
+    // eslint-disable-next-line no-control-regex
     cleaned = cleaned.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
 
     // Try to parse
