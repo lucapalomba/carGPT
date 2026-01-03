@@ -31,6 +31,7 @@ export const carsController = {
     const searchRules = promptService.loadTemplate('search-rules.md');
     const responseSchema = promptService.loadTemplate('car-response-schema.md');
     const jsonGuard = promptService.loadTemplate('json-guard.md');
+    const tonePrompt = promptService.loadTemplate('tone.md').replace('${userLanguage}', language);
     
     logger.info('Car search request received', { 
       requirements, 
@@ -46,6 +47,7 @@ export const carsController = {
       searchRules,
       responseSchema,
       jsonGuard,
+      tonePrompt,
       sessionId
     );
 
@@ -145,6 +147,10 @@ export const carsController = {
       },
       {
         role: "system",
+        content: promptService.loadTemplate('tone.md').replace('${userLanguage}', language)
+      },
+      {
+        role: "system",
         content: searchRules
       },
       {
@@ -154,10 +160,6 @@ export const carsController = {
       {
         role: "system",
         content: jsonGuard
-      },
-      {
-        role: "system",
-        content: `User Preferred Language: ${language}. Always respond in this language.`
       },
       {
         role: "user",
@@ -211,15 +213,15 @@ export const carsController = {
       },
       {
         role: "system",
+        content: promptService.loadTemplate('tone.md').replace('${userLanguage}', language)
+      },
+      {
+        role: "system",
         content: `The answer should be relative to ${car} and only use the information available about this car. If the information is not available, respond with "I don't know".`
       },
       {
         role: "system",
         content: jsonGuard
-      },
-      {
-        role: "system",
-        content: `User Preferred Language: ${language}. Always respond in this language.`
       },
       {
         role: "user",
@@ -295,7 +297,7 @@ export const carsController = {
       },
       {
         role: "system",
-        content: `User Preferred Language: ${language}. Always respond in this language.`
+        content: promptService.loadTemplate('tone.md').replace('${userLanguage}', language)
       },
       {
         role: "user",
@@ -369,7 +371,7 @@ export const carsController = {
       },
       {
         role: "system",
-        content: `User Preferred Language: ${language}. Always respond in this language.`
+        content: promptService.loadTemplate('tone.md').replace('${userLanguage}', language)
       },
       {
         role: "user",
