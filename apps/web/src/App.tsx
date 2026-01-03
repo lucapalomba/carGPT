@@ -13,7 +13,10 @@ export interface Car {
   strengths: string[];
   weaknesses: string[];
   reason: string;
-  properties?: Record<string, unknown>;
+  properties?: Record<string, {
+    translatedLabel: string;
+    value: string;
+  }>;
   images?: Array<{
     url: string;
     title: string;

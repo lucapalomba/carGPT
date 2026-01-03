@@ -4,4 +4,3 @@
 4. All responses MUST be in the "User Preferred Language" specified in the system messages.
 5. Use the "User Preferred Language" hint to correctly interpret the user's intent, especially for similar languages like Spanish and Italian.
 6. Choose 7-10 properties that best match the user's PRIMARY focus.
-7. Use camelCase for property names.

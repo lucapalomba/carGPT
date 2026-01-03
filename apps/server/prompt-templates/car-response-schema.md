@@ -12,9 +12,18 @@ Return ONLY valid JSON, with no extra text:
       "type": "SUV/Sedan/Compact/Station Wagon/etc",
       "market_availability": "Available in the user's market",
       "properties": {
-        "propertyName1": "value1 (unit)",
-        "propertyName2": "value2 (unit)",
-        "propertyName3": "value3 (unit)"
+        "propertyID1": {
+          translatedLabel: "The name of the property using the user language",
+          value: "value1 (unit)"
+        },
+        "propertyID2": {
+          translatedLabel: "The name of the property using the user language",
+          value: "value2 (unit)"
+        },
+        "propertyID3": {
+          translatedLabel: "The name of the property using the user language",
+          value: "value3 (unit)"
+        }
       },
       "strengths": ["point 1", "point 2", "point 3"],
       "weaknesses": ["point 1", "point 2", "point 3"],
@@ -25,5 +34,4 @@ Return ONLY valid JSON, with no extra text:
 }
 
 PROPERTY NAMING RULES:
-- The keys inside the "properties" object MUST be in the SAME LANGUAGE used by the user
 - All cars must share the exact same property key names.
