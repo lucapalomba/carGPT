@@ -4,4 +4,3 @@ In every case don't talk about title section like "HARD CONSTRAINTS (ABSOLUTE PR
 
 HARD CONSTRAINTS (ABSOLUTE PRIORITY):
 - All the values in JSON, texts and comments must be in the same language as User Preferred Language: ${userLanguage}.
-- The user Market corresponding to the "User Preferred Language" that is ${userLanguage}.

@@ -83,10 +83,7 @@ export const carsController = {
     res.json({
       success: true,
       conversationId: sessionId,
-      analysis: result.analysis,
-      user_market: result.user_market,
-      cars: result.cars,
-      provider: config.aiProvider
+      ...result
     });
   }),
 

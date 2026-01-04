@@ -3,6 +3,7 @@ import { imageSearchService } from './imageSearchService.js';
 import logger from '../utils/logger.js';
 import { langfuse } from '../utils/langfuse.js';
 import { config } from '../config/index.js';
+import { promptService } from '../services/promptService.js';
 
 /**
  * AI service that uses Ollama for car recommendations
@@ -49,6 +50,42 @@ export const aiService = {
       language
     });
 
+      const trace = langfuse.trace({
+      name: "search_cars_API",
+      sessionId: sessionId,
+      metadata: {
+        model: config.ollama.model,
+        environment: config.isProduction ? 'production' : 'development'
+      },
+      input: requirements,
+    });
+
+
+    /**
+     * Add a search for important search focus.
+     */
+
+    const intentPromptTemplate = promptService.loadTemplate('search_intent.md');
+
+    const searchIntentMessages: OllamaMessage[] = [
+      {
+        role: "system",
+        content: intentPromptTemplate.replace(/\${language}/g, language)
+      },
+      {
+        role: "system",
+        content: jsonGuard
+      },
+      {
+        role: "user",
+        content: requirements
+      }
+    ];
+
+     const searchIntentResponse = await ollamaService.callOllama(searchIntentMessages, trace, 'search_intent');
+
+     const searchIntentResult = ollamaService.parseJsonResponse(searchIntentResponse);
+
     const messages: OllamaMessage[] = [
       {
         role: "system",
@@ -57,6 +94,10 @@ export const aiService = {
       {
         role: "system",
         content: tonePrompt
+      },
+      {
+        role: "system",
+        content: JSON.stringify(searchIntentResult)
       },
       {
         role: "system",
@@ -76,16 +117,7 @@ export const aiService = {
       }
     ];
 
-    const trace = langfuse.trace({
-      name: "search_cars_API",
-      sessionId: sessionId,
-      metadata: {
-        model: config.ollama.model,
-        environment: config.isProduction ? 'production' : 'development'
-      },
-      input: requirements,
-    });
-
+  
     const response = await ollamaService.callOllama(messages, trace, 'search_cars');
     const result = ollamaService.parseJsonResponse(response);
 
