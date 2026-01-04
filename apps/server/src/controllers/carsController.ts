@@ -419,5 +419,20 @@ export const carsController = {
       success: true,
       comparison: result
     });
+  }),
+
+  /**
+   * Resets the user's conversation session
+   */
+  resetConversation: asyncHandler(async (req: Request, res: Response) => {
+    const sessionId = req.sessionID;
+    conversationService.delete(sessionId);
+    
+    logger.info('Conversation reset', { sessionId });
+    
+    res.json({
+      success: true,
+      message: 'Conversation reset'
+    });
   })
 };
