@@ -1,6 +1,6 @@
 Return ONLY valid JSON, with no extra text:
 {
-  "analysis": "A short analysis of the selection",
+  "analysis": "Brief analysis of the user's needs OR explanation of the adaptation (2–3 sentences) in user_preferred_language",
   "cars": [
     {
       "make": "Brand name",
@@ -13,7 +13,7 @@ Return ONLY valid JSON, with no extra text:
       "constraints_satisfaction": "The constraints_satisfaction in the Cars suggestions JSON",
       "properties": {
         "propertyID": {
-          translatedLabel: "The name of the property in the “User Preferred Language”",
+          translatedLabel: "The name of the property in the user_preferred_language",
           value: "value1 (unit)"
         }
       },

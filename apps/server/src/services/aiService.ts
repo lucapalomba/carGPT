@@ -122,10 +122,6 @@ export const aiService = {
       },
       {
         role: "system",
-        content: tonePrompt
-      },
-      {
-        role: "system",
         content: "Cars suggestions JSON: " + JSON.stringify(carsSuggestionResult)
       },
       {
@@ -135,6 +131,10 @@ export const aiService = {
       {
         role: "system",
         content: "Car response schema JSON: " + carResponseSchema
+      },
+      {
+        role: "system",
+        content: tonePrompt
       },
       {
         role: "system",
