@@ -37,20 +37,17 @@ export const aiService = {
   async findCarsWithImages(
     requirements: string,
     language: string,
-    systemPrompt: string,
-    searchRules: string,
-    responseSchema: string,
-    jsonGuard: string,
-    tonePrompt: string,
-
     sessionId: string
   ): Promise<SearchResponse> {
-    logger.info('Finding cars with images using Ollama', { 
+    logger.info('Finding cars with images using Ollama', {
       requirements: requirements.substring(0, 100),
       language
     });
 
-      const trace = langfuse.trace({
+    const jsonGuard = promptService.loadTemplate('json-guard.md');
+    const tonePrompt = promptService.loadTemplate('tone.md').replace('${userLanguage}', language);
+
+    const trace = langfuse.trace({
       name: "search_cars_API",
       sessionId: sessionId,
       metadata: {
@@ -62,7 +59,7 @@ export const aiService = {
 
 
     /**
-     * Add a search for important search focus.
+     * Add a search for important search intent.
      */
 
     const intentPromptTemplate = promptService.loadTemplate('search_intent.md');
@@ -82,14 +79,46 @@ export const aiService = {
       }
     ];
 
-     const searchIntentResponse = await ollamaService.callOllama(searchIntentMessages, trace, 'search_intent');
+    const searchIntentResponse = await ollamaService.callOllama(searchIntentMessages, trace, 'search_intent');
 
-     const searchIntentResult = ollamaService.parseJsonResponse(searchIntentResponse);
+    const searchIntentResult = ollamaService.parseJsonResponse(searchIntentResponse);
 
-    const messages: OllamaMessage[] = [
+    /**
+     * Suggest cars based on the search intent.
+     */
+
+    const carsSuggestionTemplates = promptService.loadTemplate('cars_suggestions.md');
+
+    const carsSuggestionMessages: OllamaMessage[] = [
       {
         role: "system",
-        content: systemPrompt
+        content: carsSuggestionTemplates
+      },
+      {
+        role: "system",
+        content: "User intent JSON: " + JSON.stringify(searchIntentResult)
+      },
+      {
+        role: "system",
+        content: jsonGuard
+      }
+    ];
+
+    const carsSuggestionResponse = await ollamaService.callOllama(carsSuggestionMessages, trace, 'cars_suggestions');
+
+    const carsSuggestionResult = ollamaService.parseJsonResponse(carsSuggestionResponse);
+
+    /**
+     * Now glue the suggestion with the car presentation schema.
+     */
+
+    const carsElaborationTemplates = promptService.loadTemplate('elaborate_suggestion.md');
+    const carResponseSchema = promptService.loadTemplate('car-response-schema.md');
+
+    const carsElaborationMessages: OllamaMessage[] = [
+      {
+        role: "system",
+        content: carsElaborationTemplates
       },
       {
         role: "system",
@@ -97,32 +126,27 @@ export const aiService = {
       },
       {
         role: "system",
-        content: JSON.stringify(searchIntentResult)
+        content: "Cars suggestions JSON: " + JSON.stringify(carsSuggestionResult)
       },
       {
         role: "system",
-        content: searchRules
+        content: "User intent JSON: " + JSON.stringify(searchIntentResult)
       },
       {
         role: "system",
-        content: responseSchema
+        content: "Car response schema JSON: " + carResponseSchema
       },
       {
         role: "system",
         content: jsonGuard
       },
-      {
-        role: "user",
-        content: requirements
-      }
     ];
 
-  
-    const response = await ollamaService.callOllama(messages, trace, 'search_cars');
+    const response = await ollamaService.callOllama(carsElaborationMessages, trace, 'elaborate_suggestion');
     const result = ollamaService.parseJsonResponse(response);
 
     // Validate structure
-    const carsArray = result.cars || result.auto;
+    const carsArray = result.cars;
     if (!carsArray || !Array.isArray(carsArray)) {
       throw new Error('Invalid JSON structure - expected cars array');
     }
@@ -144,6 +168,8 @@ export const aiService = {
 
     return {
       ...result,
+      ...searchIntentResult,
+      ...carsSuggestionResult,
       cars: carsWithImages
     };
   },
@@ -216,7 +242,7 @@ export const aiService = {
     if (images.length === 0) return [];
 
     logger.info(`Filtering ${images.length} images for ${year} ${make} ${model} using vision`);
-    
+
     const carInfo = `${make} ${model}`;
     const verifiedImages = [];
 
@@ -225,7 +251,7 @@ export const aiService = {
       // Use thumbnail for faster processing if available
       const urlToVerify = image.thumbnail || image.url;
       const isValid = await ollamaService.verifyImageContainsCar(carInfo, year, urlToVerify, trace);
-      
+
       if (isValid) {
         verifiedImages.push(image);
       } else {

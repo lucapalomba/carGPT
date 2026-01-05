@@ -27,12 +27,6 @@ export const carsController = {
 
     const conversation = conversationService.getOrInitialize(sessionId);
 
-    const findCarPromptTemplate = promptService.loadTemplate('find-cars.md');
-    const searchRules = promptService.loadTemplate('search-rules.md');
-    const responseSchema = promptService.loadTemplate('car-response-schema.md');
-    const jsonGuard = promptService.loadTemplate('json-guard.md');
-    const tonePrompt = promptService.loadTemplate('tone.md').replace('${userLanguage}', language);
-    
     logger.info('Car search request received', { 
       requirements, 
       sessionId,
@@ -43,11 +37,6 @@ export const carsController = {
     const result = await aiService.findCarsWithImages(
       requirements,
       language,
-      findCarPromptTemplate,
-      searchRules,
-      responseSchema,
-      jsonGuard,
-      tonePrompt,
       sessionId
     );
 
