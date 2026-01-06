@@ -185,29 +185,137 @@ export const aiService = {
    * Refine car suggestions with images using Ollama
    */
   async refineCarsWithImages(
-    messages: OllamaMessage[],
+    feedback: string,
+    language: string,
     sessionId: string,
-    userInput: string
+    pinnedCars: Car[] = []
   ): Promise<SearchResponse> {
-    logger.info('Refining cars with images using Ollama');
+    logger.info('Refining cars with images using Ollama', {
+      feedback: feedback.substring(0, 100),
+      language,
+      pinnedCount: pinnedCars.length
+    });
+
+    const jsonGuard = promptService.loadTemplate('json-guard.md');
+    const tonePrompt = promptService.loadTemplate('tone.md').replace('${userLanguage}', language);
 
     const trace = langfuse.trace({
       name: "refine_cars_API",
-      input: userInput,
       sessionId: sessionId,
+      metadata: {
+        model: config.ollama.model,
+        environment: config.isProduction ? 'production' : 'development'
+      },
+      input: { feedback, pinnedCars },
     });
 
-    const response = await ollamaService.callOllama(messages, trace, 'refine_search_cars');
-    const result = ollamaService.parseJsonResponse(response);
+    /**
+     * 1. Search Intent
+     */
+    const intentPromptTemplate = promptService.loadTemplate('search_intent.md');
+    const context = `User feedback: ${feedback}${pinnedCars.length > 0 ? `\nPinned cars: ${JSON.stringify(pinnedCars)}` : ''}`;
 
-    // Validate structure
-    const carsArray = result.cars || result.auto;
-    if (!carsArray || !Array.isArray(carsArray)) {
-      throw new Error('Invalid JSON structure - expected cars array');
-    }
+    const searchIntentMessages: OllamaMessage[] = [
+      {
+        role: "system",
+        content: intentPromptTemplate.replace(/\${language}/g, language)
+      },
+      {
+        role: "system",
+        content: jsonGuard
+      },
+      {
+        role: "user",
+        content: context
+      }
+    ];
+
+    const searchIntentResponse = await ollamaService.callOllama(searchIntentMessages, trace, 'refine_intent');
+    const searchIntentResult = ollamaService.parseJsonResponse(searchIntentResponse);
+
+    /**
+     * 2. Suggest Cars
+     */
+    const carsSuggestionTemplates = promptService.loadTemplate('cars_suggestions.md');
+    const carsSuggestionMessages: OllamaMessage[] = [
+      {
+        role: "system",
+        content: carsSuggestionTemplates
+      },
+      {
+        role: "system",
+        content: "User intent JSON: " + JSON.stringify(searchIntentResult)
+      },
+      {
+        role: "system",
+        content: jsonGuard
+      }
+    ];
+
+    const carsSuggestionResponse = await ollamaService.callOllama(carsSuggestionMessages, trace, 'refine_suggestions');
+    const carsSuggestionResult = ollamaService.parseJsonResponse(carsSuggestionResponse);
+
+    /**
+     * 3. Parallel Elaboration
+     */
+    const carsElaborationTemplates = promptService.loadTemplate('elaborate_suggestion.md');
+    const carResponseSchema = promptService.loadTemplate('car-response-schema.md');
+
+    // Combine suggested cars and pinned cars
+    // The user wants pinned cars to ALWAYS be elaborated
+    const allCarChoices = [
+      ...(carsSuggestionResult.choices || []),
+      ...pinnedCars
+    ];
+
+    // Remove duplicates if any (based on make and model)
+    const uniqueCarChoices = allCarChoices.filter((car, index, self) =>
+      index === self.findIndex((c) => c.make === car.make && c.model === car.model)
+    );
+
+    const carElaborationPromises = uniqueCarChoices.map(async (carChoice: any) => {
+      logger.info(`Elaborating car (refine): ${carChoice.make} ${carChoice.model}`);
+      
+      const carsElaborationMessages: OllamaMessage[] = [
+        {
+          role: "system",
+          content: carsElaborationTemplates
+        },
+        {
+          role: "system",
+          content: "Current car to elaborate: " + JSON.stringify(carChoice)
+        },
+        {
+          role: "system",
+          content: "User intent JSON: " + JSON.stringify(searchIntentResult)
+        },
+        {
+          role: "system",
+          content: "Car response schema JSON: " + carResponseSchema
+        },
+        {
+          role: "system",
+          content: tonePrompt
+        },
+        {
+          role: "system",
+          content: jsonGuard
+        },
+      ];
+
+      const response = await ollamaService.callOllama(carsElaborationMessages, trace, `elaborate_suggestion_refine_${carChoice.make}_${carChoice.model}`);
+      const elaborationResult = ollamaService.parseJsonResponse(response);
+      
+      return {
+        ...carChoice,
+        ...(elaborationResult.car || {})
+      };
+    });
+
+    const carsArray = await Promise.all(carElaborationPromises);
 
     // Fetch images for all cars in parallel
-    logger.info(`Searching images for ${carsArray.length} cars`);
+    logger.info(`Searching images for ${carsArray.length} cars (refine)`);
     const imageMap = await imageSearchService.searchMultipleCars(carsArray, trace);
 
     // Enrich cars with images
@@ -223,13 +331,15 @@ export const aiService = {
 
     trace.update({
       output: {
-        ...result,
+        ...searchIntentResult,
+        ...carsSuggestionResult,
         cars: carsWithImages
       }
     });
 
     return {
-      ...result,
+      ...searchIntentResult,
+      ...carsSuggestionResult,
       cars: carsWithImages
     };
   },

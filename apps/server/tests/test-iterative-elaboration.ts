@@ -47,7 +47,29 @@ async function testIterativeElaboration() {
       console.log('No cars were returned in the response.');
     }
     
-    console.log('\n--- End of Test ---');
+    // Test Refinement
+    if (response.cars && response.cars.length > 0) {
+      const pinnedCars = [response.cars[0]];
+      const feedback = "I like the first one, but show me some alternatives from Honda too.";
+      
+      logger.info('\nStarting refinement test with pinned car...', { feedback });
+      const refinedResponse = await aiService.refineCarsWithImages(feedback, language, sessionId, pinnedCars);
+      
+      console.log('\n--- Refined Test Result ---');
+      console.log('Analysis:', refinedResponse.analysis);
+      console.log('Cars found:', refinedResponse.cars?.length);
+      
+      if (refinedResponse.cars) {
+        refinedResponse.cars.forEach((car, index) => {
+          console.log(`\nRefined Car ${index + 1}: ${car.make} ${car.model} (${car.year})`);
+          console.log(`Pinned status: ${pinnedCars.some(p => p.make === car.make && p.model === car.model) ? 'PINNED' : 'NEW'}`);
+          console.log(`Price: ${car.price}`);
+          console.log(`Images: ${car.images?.length || 0}`);
+        });
+      }
+    }
+    
+    console.log('\n--- End of All Tests ---');
   } catch (error) {
     logger.error('Test failed:', error);
     process.exit(1);

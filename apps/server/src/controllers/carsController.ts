@@ -117,43 +117,7 @@ export const carsController = {
     }
 
     const fullContext = contextParts.join('\n');
-    const refinePromptTemplate = promptService.loadTemplate('refine-cars.md');
-    const searchRules = promptService.loadTemplate('search-rules.md');
-    const responseSchema = promptService.loadTemplate('car-response-schema.md');
-    const jsonGuard = promptService.loadTemplate('json-guard.md');
-
-    const pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars.map((c: Car) => `${c.make} ${c.model} ${c.year}`)) : 'None';
-
-    const messages = [
-      {
-        role: "system",
-        content: refinePromptTemplate
-          .replace('${requirements}', fullContext)
-          .replace('${pinnedCars}', pinnedCarsJson)
-      },
-      {
-        role: "system",
-        content: promptService.loadTemplate('tone.md').replace('${userLanguage}', language)
-      },
-      {
-        role: "system",
-        content: searchRules
-      },
-      {
-        role: "system",
-        content: responseSchema
-      },
-      {
-        role: "system",
-        content: jsonGuard
-      },
-      {
-        role: "user",
-        content: "Refine suggestions this feedback/critique: " + feedback
-      }
-    ];
-
-    const response = await aiService.refineCarsWithImages(messages, sessionId, feedback);
+    const response = await aiService.refineCarsWithImages(feedback, language, sessionId, pinnedCars);
     const result = response;
 
     conversation.updatedAt = new Date();
@@ -163,8 +127,7 @@ export const carsController = {
       data: {
         feedback,
         pinnedCars,
-        result,
-        messages
+        result
       }
     });
 
