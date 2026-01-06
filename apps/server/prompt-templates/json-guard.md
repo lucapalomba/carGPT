@@ -1,6 +1,7 @@
 IMPORTANT JSON RULES:
 - Respond EXCLUSIVELY with valid JSON.
 - Do not add explanations, comments, or text outside the JSON object.
+- If provided a JSON schema, respond EXCLUSIVELY with valid JSON that matches the schema.
 - All internal double quotes must be escaped.
 - Do not use single quotes.
 - Do not include Markdown code fences.

@@ -59,14 +59,17 @@ export const ollamaService = {
         })
       });
 
-      const durationMs = performance.now() - start;
-
       if (!response.ok) {
         throw new OllamaError(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data: any = await response.json();
-      logger.debug('Ollama API response received');
+      const durationMs = performance.now() - start;
+      logger.info('Ollama API response received', { 
+        operationName, 
+        durationMs: durationMs.toFixed(0),
+        tokens: data.eval_count 
+      });
 
       langfuse.generation({
         input: messages,
@@ -95,7 +98,8 @@ export const ollamaService = {
       
       logger.error('Ollama connection failed', { 
         error: errorMessage,
-        url: config.ollama.url
+        url: config.ollama.url,
+        operationName
       });
 
       langfuse.generation({
@@ -115,7 +119,6 @@ export const ollamaService = {
    * Attempts to parse a JSON response from the LLM, cleaning it of common issues.
    * 
    * @param {string} text - The raw text response from the LLM
-   * @param {string} text - The raw text response from the LLM
    * @returns {any} The parsed JSON object
    * @throws {Error} If parsing fails after cleaning attempts
    */
@@ -134,12 +137,6 @@ export const ollamaService = {
       cleaned = cleaned.substring(firstOpen, lastClose + 1);
     }
 
-    // Fix common JSON issues from LLMs
-    // NOTE: We do NOT globally replace single quotes with double quotes as it corrupts content like "driver's seat"
-    
-    // Remove trailing commas before closing braces/brackets (common LLM error)
-    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
-
     // Remove control characters that might break JSON.parse
     // eslint-disable-next-line no-control-regex
     cleaned = cleaned.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
@@ -148,12 +145,12 @@ export const ollamaService = {
     try {
       return JSON.parse(cleaned);
     } catch (firstError: unknown) {
-      // If still failing, logging the error and re-throwing
       const firstErrorMessage = firstError instanceof Error ? firstError.message : String(firstError);
-      logger.warn('JSON parse failed', { error: firstErrorMessage, textSnippet: cleaned.substring(0, 200) + '...' });
+      logger.warn('JSON parse failed', { 
+        error: firstErrorMessage, 
+        textSnippet: cleaned.length > 200 ? cleaned.substring(0, 200) + '...' : cleaned 
+      });
       
-      // We could add more aggressive recovery here if needed, but avoiding destruction is the priority now.
-      // Re-throwing the original error so the caller knows parsing failed.
       throw new Error(`Failed to parse JSON: ${firstErrorMessage}`);
     }
   },

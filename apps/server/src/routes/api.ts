@@ -14,6 +14,7 @@ router.post('/refine-search', carsController.refineSearch);
 router.post('/compare-cars', carsController.compareCars);
 router.post('/get-alternatives', carsController.getAlternatives);
 router.post('/ask-about-car', carsController.askAboutCar);
+router.post('/reset-conversation', carsController.resetConversation);
 
 /**
  * Management & Debug (Development only)
@@ -26,6 +27,5 @@ if (!config.isProduction) {
  * System Health
  */
 router.get('/health', healthController.checkHealth);
-router.post('/reset-conversation', healthController.resetConversation);
 
 export default router;
