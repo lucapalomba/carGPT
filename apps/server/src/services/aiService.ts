@@ -12,6 +12,7 @@ export interface Car {
   make: string;
   model: string;
   year: number | string;
+  pinned?: boolean;
   [key: string]: unknown;
 }
 
@@ -188,6 +189,7 @@ export const aiService = {
     feedback: string,
     language: string,
     sessionId: string,
+    fullContext: string,
     pinnedCars: Car[] = []
   ): Promise<SearchResponse> {
     logger.info('Refining cars with images using Ollama', {
@@ -213,7 +215,7 @@ export const aiService = {
      * 1. Search Intent
      */
     const intentPromptTemplate = promptService.loadTemplate('search_intent.md');
-    const context = `User feedback: ${feedback}${pinnedCars.length > 0 ? `\nPinned cars: ${JSON.stringify(pinnedCars)}` : ''}`;
+    const context = `Conversation History:\n${fullContext}\n\nLatest Feedback: ${feedback}`;
 
     const searchIntentMessages: OllamaMessage[] = [
       {
@@ -238,7 +240,7 @@ export const aiService = {
      */
     const carsSuggestionTemplates = promptService.loadTemplate('cars_suggestions.md');
     const pinnedCarsContext = pinnedCars.length > 0 
-      ? `\nIMPORTANT: You MUST include these pinned cars in your "choices" array: ${JSON.stringify(pinnedCars.map(c => ({ make: c.make, model: c.model, year: c.year, precise_model: c.precise_model })))}. Re-evaluate their "percentage", "selection_reasoning", and "precise_model" based on the new intent.`
+      ? `\nIMPORTANT: You MUST include these pinned cars in your "pinned_cars" array: ${JSON.stringify(pinnedCars.map(c => ({ make: c.make, model: c.model, year: c.year, precise_model: c.precise_model })))}. Re-evaluate their "percentage", "selection_reasoning", and "precise_model" based on the new intent.`
       : '';
 
     const carsSuggestionMessages: OllamaMessage[] = [
@@ -248,8 +250,20 @@ export const aiService = {
       },
       {
         role: "system",
-        content: "User intent JSON: " + JSON.stringify(searchIntentResult) + pinnedCarsContext
+        content: "User intent JSON: " + JSON.stringify(searchIntentResult)
       },
+      ...(pinnedCars.length > 0 ? [{
+        role: "system" as const,
+        content: `IMPORTANT: The user has previously pinned the following cars. You MUST include these EXACT cars in your "pinned_cars" array in the response.
+
+              For each of these cars, you must:
+              1. Re-evaluate his "percentage" based on the new intent.
+              2. Provide a new "selection_reasoning" explaining why it is still relevant (or how it fits the new feedback).
+              3. Ensure the "configuration" and "precise_model" are accurate.
+
+              Pinned Cars to include:
+              ${pinnedCars.map(c => `- ${c.make} ${c.model} (${c.year})`).join('\n')}`
+      }] : []),
       {
         role: "system",
         content: jsonGuard
@@ -269,8 +283,34 @@ export const aiService = {
     const carsElaborationTemplates = promptService.loadTemplate('elaborate_suggestion.md');
     const carResponseSchema = promptService.loadTemplate('car-response-schema.md');
 
-    // The suggestion step is now responsible for providing the full list (new suggestions + pinned cars)
-    const uniqueCarChoices = carsSuggestionResult.choices || [];
+    // The suggestion step is now responsible for providing the full list (pinned cars + new suggestions)
+    const resultChoices = [
+      ...(carsSuggestionResult.pinned_cars || []),
+      ...(carsSuggestionResult.choices || []),
+    ];
+    
+    // Flag cars that were pinned by the user
+    // We use a set of strings (make-model) for efficient comparison
+    const pinnedKeySet = new Set(pinnedCars.map(c => `${(c.make || '').toLowerCase()}-${(c.model || '').toLowerCase()}`));
+
+    const uniqueCarChoices = resultChoices
+      .map((car: any) => {
+        const make = (car.make || '').toLowerCase();
+        const model = (car.model || '').toLowerCase();
+        return {
+          ...car,
+          pinned: pinnedKeySet.has(`${make}-${model}`)
+        };
+      })
+      .filter((car, index, self) =>
+        index === self.findIndex((c) => {
+          const cMake = (c.make || '').toLowerCase();
+          const cModel = (c.model || '').toLowerCase();
+          const carMake = (car.make || '').toLowerCase();
+          const carModel = (car.model || '').toLowerCase();
+          return cMake === carMake && cModel === carModel;
+        })
+      );
 
     const carElaborationPromises = uniqueCarChoices.map(async (carChoice: any) => {
       logger.info(`Elaborating car (refine): ${carChoice.make} ${carChoice.model}`);

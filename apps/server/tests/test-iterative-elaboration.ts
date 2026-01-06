@@ -53,7 +53,8 @@ async function testIterativeElaboration() {
       const feedback = "I like the first one, but show me some alternatives from Honda too.";
       
       logger.info('\nStarting refinement test with pinned car...', { feedback });
-      const refinedResponse = await aiService.refineCarsWithImages(feedback, language, sessionId, pinnedCars);
+      const fullContext = `Original Request: "${requirements}"`;
+      const refinedResponse = await aiService.refineCarsWithImages(feedback, language, sessionId, fullContext, pinnedCars);
       
       console.log('\n--- Refined Test Result ---');
       console.log('Analysis:', refinedResponse.analysis);

@@ -117,7 +117,7 @@ export const carsController = {
     }
 
     const fullContext = contextParts.join('\n');
-    const response = await aiService.refineCarsWithImages(feedback, language, sessionId, pinnedCars);
+    const response = await aiService.refineCarsWithImages(feedback, language, sessionId, fullContext, pinnedCars);
     const result = response;
 
     conversation.updatedAt = new Date();
