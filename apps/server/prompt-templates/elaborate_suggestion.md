@@ -1,4 +1,4 @@
-For every car in the choices array of Cars suggestions JSON, return a JSON object with the shape of the car response schema
+For every car in the "choices" array of "Cars suggestions JSON", return an array "cars" made of JSON object with the shape of the "Car response schema JSON"
 
 USE THESE INSTRUCTIONS:
 
@@ -8,5 +8,20 @@ USE THESE INSTRUCTIONS:
           translatedLabel: "Volume of the trunk",
           value: "350 cubic meters"
         }.
-- Translate all the values in the Car Response Schema JSON in the "user_preferred_language" preserving the original schema names
-- Don't translate specific technical terms as Airbags, ABS, etc. 
+- Translate all the values in the Car Response Schema JSON in the "user_preferred_language" preserving the original schema names 
+
+MANDATORY AUTOMOTIVE GLOSSARY (DO NOT DEVIATE):
+- ABS → Sistema antibloccaggio dei freni
+- Airbag → Airbag
+- ESP → Controllo elettronico della stabilità
+- ADAS → Sistemi avanzati di assistenza alla guida
+
+- If a term is present in the glossary, the translation MUST match exactly.
+- If a technical term is unknown, keep the original term and do not translate it.
+
+- For technical automotive terms not in the glossary:
+  - Translate by meaning used in the automotive industry.
+  - If no widely accepted translation exists, keep the original term.
+  - NEVER create descriptive paraphrases.
+
+- If you refer to a JSON property, translate it in the user_preferred_language

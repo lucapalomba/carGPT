@@ -1,8 +1,5 @@
-Return ONLY valid JSON, with no extra text:
-{
-  "analysis": "Brief analysis of the user's needs OR explanation of the adaptation (2–3 sentences) in user_preferred_language",
-  "cars": [
-    {
+
+  "car": {
       "make": "Brand name",
       "model": "Model name",
       "precise_model": "The precise_model in the Cars suggestions JSON",
@@ -23,5 +20,3 @@ Return ONLY valid JSON, with no extra text:
       "percentage": "The percentage in the Cars suggestion JSON",
       "selection_reasoning": "The selection_reasoning in the Cars suggestions JSON"
     }
-  ]
-}

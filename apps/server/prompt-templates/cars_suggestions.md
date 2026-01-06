@@ -11,7 +11,8 @@ FOR CHOICES:
 return a JSON ONLY in this format, dont' add any other properties:
 
 {
-"choices": [{ 
+  "analysis": "Brief analysis of the user's needs OR explanation of the adaptation (2–3 sentences) in user_preferred_language",
+  "choices": [{ 
     "make": "Toyota (is the brand name)",
     "model": "Corolla HB (is the model name)",
     "year": 2019 (is the year of that specific model),
