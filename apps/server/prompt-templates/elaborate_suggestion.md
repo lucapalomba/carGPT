@@ -10,6 +10,7 @@ USE THESE INSTRUCTIONS:
           translatedLabel: "Volume of the trunk",
           value: "350 cubic meters (not JSON Schema)"
         }.
+- MANDATORY: You must generate ALL and ONLY the properties listed in "interesting_properties" of the User Intent JSON. Do not add or omit any properties.
 - Translate all the values in the Car Response Schema JSON in the "user_preferred_language" preserving the original schema names 
 
 MANDATORY AUTOMOTIVE GLOSSARY (DO NOT DEVIATE):

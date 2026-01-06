@@ -237,6 +237,10 @@ export const aiService = {
      * 2. Suggest Cars
      */
     const carsSuggestionTemplates = promptService.loadTemplate('cars_suggestions.md');
+    const pinnedCarsContext = pinnedCars.length > 0 
+      ? `\nIMPORTANT: You MUST include these pinned cars in your "choices" array: ${JSON.stringify(pinnedCars.map(c => ({ make: c.make, model: c.model, year: c.year, precise_model: c.precise_model })))}. Re-evaluate their "percentage", "selection_reasoning", and "precise_model" based on the new intent.`
+      : '';
+
     const carsSuggestionMessages: OllamaMessage[] = [
       {
         role: "system",
@@ -244,11 +248,15 @@ export const aiService = {
       },
       {
         role: "system",
-        content: "User intent JSON: " + JSON.stringify(searchIntentResult)
+        content: "User intent JSON: " + JSON.stringify(searchIntentResult) + pinnedCarsContext
       },
       {
         role: "system",
         content: jsonGuard
+      },
+      {
+        role: "user",
+        content: context
       }
     ];
 
@@ -261,17 +269,8 @@ export const aiService = {
     const carsElaborationTemplates = promptService.loadTemplate('elaborate_suggestion.md');
     const carResponseSchema = promptService.loadTemplate('car-response-schema.md');
 
-    // Combine suggested cars and pinned cars
-    // The user wants pinned cars to ALWAYS be elaborated
-    const allCarChoices = [
-      ...(carsSuggestionResult.choices || []),
-      ...pinnedCars
-    ];
-
-    // Remove duplicates if any (based on make and model)
-    const uniqueCarChoices = allCarChoices.filter((car, index, self) =>
-      index === self.findIndex((c) => c.make === car.make && c.model === car.model)
-    );
+    // The suggestion step is now responsible for providing the full list (new suggestions + pinned cars)
+    const uniqueCarChoices = carsSuggestionResult.choices || [];
 
     const carElaborationPromises = uniqueCarChoices.map(async (carChoice: any) => {
       logger.info(`Elaborating car (refine): ${carChoice.make} ${carChoice.model}`);

@@ -7,6 +7,7 @@ FOR CHOICES:
 - Suggest 3 NEW or USED car available in the User country (country).
 - Each car should correspond to the primary_focus
 - Each car should satisfy all the constraints as much as possible
+- Don't suggest the same car model more than once
 
 return a JSON ONLY in this format, dont' add any other properties:
 
