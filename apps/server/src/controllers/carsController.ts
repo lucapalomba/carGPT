@@ -88,47 +88,27 @@ export const carsController = {
       throw new ValidationError('Please provide some feedback to refine the search');
     }
 
-    const conversation: Conversation | undefined = conversationService.get(sessionId);
+    const conversation = conversationService.get(sessionId);
     if (!conversation) {
+      logger.warn('Refinement attempted without active conversation', { sessionId });
       throw new ValidationError('No active conversation found. Start a new search first.');
     }
 
-    let originalRequirements = conversation.requirements || '';
-    if (!originalRequirements && conversation.history) {
-      const findAction = conversation.history.find((h: ConversationHistoryItem) => h.type === 'find-cars');
-      if (findAction) {
-        originalRequirements = findAction.data.requirements;
-      }
-    }
+    const fullContext = extractConversationContext(conversation);
+    
+    logger.info('Refining car search', { 
+      sessionId, 
+      feedback: feedback.substring(0, 50),
+      pinnedCount: (pinnedCars || []).length 
+    });
 
-    if (!originalRequirements) {
-      originalRequirements = "User is looking for a car.";
-    }
-
-    const contextParts = [];
-    if (originalRequirements) contextParts.push(`Original Request: "${originalRequirements}"`);
-
-    if (conversation.history) {
-      conversation.history.forEach((h: ConversationHistoryItem, index: number) => {
-        if (h.type === 'refine-search' && h.data.feedback) {
-          contextParts.push(`Refinement Step ${index + 1}: "${h.data.feedback}"`);
-        }
-      });
-    }
-
-    const fullContext = contextParts.join('\n');
-    const response = await aiService.refineCarsWithImages(feedback, language, sessionId, fullContext, pinnedCars);
-    const result = response;
+    const result = await aiService.refineCarsWithImages(feedback, language, sessionId, fullContext, pinnedCars);
 
     conversation.updatedAt = new Date();
     conversation.history.push({
       type: 'refine-search',
       timestamp: new Date(),
-      data: {
-        feedback,
-        pinnedCars,
-        result
-      }
+      data: { feedback, pinnedCars, result }
     });
 
     res.json({
@@ -385,3 +365,32 @@ export const carsController = {
     });
   })
 };
+
+/**
+ * Helper to extract original request and refinement feedback from conversation history
+ */
+function extractConversationContext(conversation: Conversation): string {
+  let originalRequirements = conversation.requirements || '';
+  if (!originalRequirements && conversation.history) {
+    const findAction = conversation.history.find((h: ConversationHistoryItem) => h.type === 'find-cars');
+    if (findAction) {
+      originalRequirements = findAction.data.requirements;
+    }
+  }
+
+  if (!originalRequirements) {
+    originalRequirements = "User is looking for a car.";
+  }
+
+  const contextParts = [`Original Request: "${originalRequirements}"`];
+
+  if (conversation.history) {
+    conversation.history.forEach((h: ConversationHistoryItem, index: number) => {
+      if (h.type === 'refine-search' && h.data.feedback) {
+        contextParts.push(`Refinement Step ${index + 1}: "${h.data.feedback}"`);
+      }
+    });
+  }
+
+  return contextParts.join('\n');
+}
