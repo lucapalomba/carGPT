@@ -1,4 +1,6 @@
-For every car in the "choices" array of "Cars suggestions JSON", return an array "cars" made of JSON object with the shape of the "Car response schema JSON"
+For the car in "Current car to elaborate", return a JSON object with the shape of the "Car response schema JSON". 
+
+The returned JSON must have a "car" property containing the elaborated car.
 
 USE THESE INSTRUCTIONS:
 

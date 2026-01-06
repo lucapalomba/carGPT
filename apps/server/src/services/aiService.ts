@@ -109,47 +109,55 @@ export const aiService = {
     const carsSuggestionResult = ollamaService.parseJsonResponse(carsSuggestionResponse);
 
     /**
-     * Now glue the suggestion with the car presentation schema.
+     * Now glue the suggestion with the car presentation schema iteratively.
      */
 
     const carsElaborationTemplates = promptService.loadTemplate('elaborate_suggestion.md');
     const carResponseSchema = promptService.loadTemplate('car-response-schema.md');
 
-    const carsElaborationMessages: OllamaMessage[] = [
-      {
-        role: "system",
-        content: carsElaborationTemplates
-      },
-      {
-        role: "system",
-        content: "Cars suggestions JSON: " + JSON.stringify(carsSuggestionResult)
-      },
-      {
-        role: "system",
-        content: "User intent JSON: " + JSON.stringify(searchIntentResult)
-      },
-      {
-        role: "system",
-        content: "Car response schema JSON: " + carResponseSchema
-      },
-      {
-        role: "system",
-        content: tonePrompt
-      },
-      {
-        role: "system",
-        content: jsonGuard
-      },
-    ];
+    // Elaborate all cars in parallel
+    const carElaborationPromises = (carsSuggestionResult.choices || []).map(async (carChoice: any) => {
+      logger.info(`Elaborating car: ${carChoice.make} ${carChoice.model}`);
+      
+      const carsElaborationMessages: OllamaMessage[] = [
+        {
+          role: "system",
+          content: carsElaborationTemplates
+        },
+        {
+          role: "system",
+          content: "Current car to elaborate: " + JSON.stringify(carChoice)
+        },
+        {
+          role: "system",
+          content: "User intent JSON: " + JSON.stringify(searchIntentResult)
+        },
+        {
+          role: "system",
+          content: "Car response schema JSON: " + carResponseSchema
+        },
+        {
+          role: "system",
+          content: tonePrompt
+        },
+        {
+          role: "system",
+          content: jsonGuard
+        },
+      ];
 
-    const response = await ollamaService.callOllama(carsElaborationMessages, trace, 'elaborate_suggestion');
-    const result = ollamaService.parseJsonResponse(response);
+      const response = await ollamaService.callOllama(carsElaborationMessages, trace, `elaborate_suggestion_${carChoice.make}_${carChoice.model}`);
+      const elaborationResult = ollamaService.parseJsonResponse(response);
+      
+      // Merge: carChoice (original properties) enriched with elaborationResult.car
+      // Elaboration preserves existing properties but can enrich/overwrite (like precise_model)
+      return {
+        ...carChoice,
+        ...(elaborationResult.car || {})
+      };
+    });
 
-    // Validate structure
-    const carsArray = result.cars;
-    if (!carsArray || !Array.isArray(carsArray)) {
-      throw new Error('Invalid JSON structure - expected cars array');
-    }
+    const carsArray = await Promise.all(carElaborationPromises);
 
     // Fetch images for all cars in parallel
     logger.info(`Searching images for ${carsArray.length} cars`);
@@ -167,7 +175,6 @@ export const aiService = {
     }));
 
     return {
-      ...result,
       ...searchIntentResult,
       ...carsSuggestionResult,
       cars: carsWithImages
