@@ -62,7 +62,7 @@ export const aiService = {
 
       const carsWithImages = await this.enrichCarsWithImages(translatedResult.cars, trace);
 
-      const result = { suggestions, ...translatedResult, cars: carsWithImages };
+      const result = { searchIntent, suggestions, ...translatedResult, cars: carsWithImages };
       trace.update({ output: result });
       return result;
     } catch (error) {
@@ -129,7 +129,7 @@ export const aiService = {
 
       const carsWithImages = await this.enrichCarsWithImages(translatedResult.cars, trace);
 
-      const result = { suggestions, ...translatedResult, cars: carsWithImages };
+      const result = { searchIntent, suggestions, ...translatedResult, cars: carsWithImages };
       trace.update({ output: result });
       return result;
     } catch (error) {
@@ -264,16 +264,6 @@ export const aiService = {
 
       const response = await ollamaService.callOllama(messages, trace, 'translate_results');
       const translatedResult = ollamaService.parseJsonResponse(response);
-      
-      // Ensure cars array is preserved even if LLM misses it or returns invalid JSON
-      if (!translatedResult || !translatedResult.cars || !Array.isArray(translatedResult.cars)) {
-        logger.warn('Translation missing cars array or invalid, falling back to original results');
-        if (translatedResult && typeof translatedResult === 'object') {
-          translatedResult.cars = results.cars || [];
-          return translatedResult;
-        }
-        return results;
-      }
       
       span.end({ output: translatedResult });
       return translatedResult;

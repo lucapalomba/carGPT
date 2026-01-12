@@ -121,9 +121,7 @@ export const carsController = {
 
     res.json({
       success: true,
-      analysis: result.analysis,
-      user_market: result.user_market,
-      cars: result.cars
+      ...result
     });
   }),
 
