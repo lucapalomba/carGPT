@@ -27,12 +27,6 @@ export const carsController = {
 
     const conversation = conversationService.getOrInitialize(sessionId);
 
-    const findCarPromptTemplate = promptService.loadTemplate('find-cars.md');
-    const searchRules = promptService.loadTemplate('search-rules.md');
-    const responseSchema = promptService.loadTemplate('car-response-schema.md');
-    const jsonGuard = promptService.loadTemplate('json-guard.md');
-    const tonePrompt = promptService.loadTemplate('tone.md').replace('${userLanguage}', language);
-    
     logger.info('Car search request received', { 
       requirements, 
       sessionId,
@@ -43,11 +37,6 @@ export const carsController = {
     const result = await aiService.findCarsWithImages(
       requirements,
       language,
-      findCarPromptTemplate,
-      searchRules,
-      responseSchema,
-      jsonGuard,
-      tonePrompt,
       sessionId
     );
 
@@ -83,10 +72,7 @@ export const carsController = {
     res.json({
       success: true,
       conversationId: sessionId,
-      analysis: result.analysis,
-      user_market: result.user_market,
-      cars: result.cars,
-      provider: config.aiProvider
+      ...result
     });
   }),
 
@@ -102,91 +88,40 @@ export const carsController = {
       throw new ValidationError('Please provide some feedback to refine the search');
     }
 
-    const conversation: Conversation | undefined = conversationService.get(sessionId);
+    const conversation = conversationService.get(sessionId);
     if (!conversation) {
+      logger.warn('Refinement attempted without active conversation', { sessionId });
       throw new ValidationError('No active conversation found. Start a new search first.');
     }
 
-    let originalRequirements = conversation.requirements || '';
-    if (!originalRequirements && conversation.history) {
-      const findAction = conversation.history.find((h: ConversationHistoryItem) => h.type === 'find-cars');
-      if (findAction) {
-        originalRequirements = findAction.data.requirements;
-      }
-    }
+    const fullContext = extractConversationContext(conversation);
+    const validatedPinnedCars = Array.isArray(pinnedCars) ? pinnedCars : [];
+    
+    logger.info('Refining car search', { 
+      sessionId, 
+      feedback,
+      pinnedCarsCount: validatedPinnedCars.length
+    });
 
-    if (!originalRequirements) {
-      originalRequirements = "User is looking for a car.";
-    }
-
-    const contextParts = [];
-    if (originalRequirements) contextParts.push(`Original Request: "${originalRequirements}"`);
-
-    if (conversation.history) {
-      conversation.history.forEach((h: ConversationHistoryItem, index: number) => {
-        if (h.type === 'refine-search' && h.data.feedback) {
-          contextParts.push(`Refinement Step ${index + 1}: "${h.data.feedback}"`);
-        }
-      });
-    }
-
-    const fullContext = contextParts.join('\n');
-    const refinePromptTemplate = promptService.loadTemplate('refine-cars.md');
-    const searchRules = promptService.loadTemplate('search-rules.md');
-    const responseSchema = promptService.loadTemplate('car-response-schema.md');
-    const jsonGuard = promptService.loadTemplate('json-guard.md');
-
-    const pinnedCarsJson = (pinnedCars && pinnedCars.length > 0) ? JSON.stringify(pinnedCars.map((c: Car) => `${c.make} ${c.model} ${c.year}`)) : 'None';
-
-    const messages = [
-      {
-        role: "system",
-        content: refinePromptTemplate
-          .replace('${requirements}', fullContext)
-          .replace('${pinnedCars}', pinnedCarsJson)
-      },
-      {
-        role: "system",
-        content: promptService.loadTemplate('tone.md').replace('${userLanguage}', language)
-      },
-      {
-        role: "system",
-        content: searchRules
-      },
-      {
-        role: "system",
-        content: responseSchema
-      },
-      {
-        role: "system",
-        content: jsonGuard
-      },
-      {
-        role: "user",
-        content: "Refine suggestions this feedback/critique: " + feedback
-      }
-    ];
-
-    const response = await aiService.refineCarsWithImages(messages, sessionId, feedback);
-    const result = response;
+    // Use unified AI service
+    const result = await aiService.refineCarsWithImages(
+      feedback,
+      language,
+      sessionId,
+      fullContext,
+      validatedPinnedCars
+    );
 
     conversation.updatedAt = new Date();
     conversation.history.push({
       type: 'refine-search',
       timestamp: new Date(),
-      data: {
-        feedback,
-        pinnedCars,
-        result,
-        messages
-      }
+      data: { feedback, pinnedCars, result }
     });
 
     res.json({
       success: true,
-      analysis: result.analysis,
-      user_market: result.user_market,
-      cars: result.cars
+      ...result
     });
   }),
 
@@ -419,5 +354,49 @@ export const carsController = {
       success: true,
       comparison: result
     });
+  }),
+
+  /**
+   * Resets the user's conversation session
+   */
+  resetConversation: asyncHandler(async (req: Request, res: Response) => {
+    const sessionId = req.sessionID;
+    conversationService.delete(sessionId);
+    
+    logger.info('Conversation reset', { sessionId });
+    
+    res.json({
+      success: true,
+      message: 'Conversation reset'
+    });
   })
 };
+
+/**
+ * Helper to extract original request and refinement feedback from conversation history
+ */
+function extractConversationContext(conversation: Conversation): string {
+  let originalRequirements = conversation.requirements || '';
+  if (!originalRequirements && conversation.history) {
+    const findAction = conversation.history.find((h: ConversationHistoryItem) => h.type === 'find-cars');
+    if (findAction) {
+      originalRequirements = findAction.data.requirements;
+    }
+  }
+
+  if (!originalRequirements) {
+    originalRequirements = "User is looking for a car.";
+  }
+
+  const contextParts = [`Original Request: "${originalRequirements}"`];
+
+  if (conversation.history) {
+    conversation.history.forEach((h: ConversationHistoryItem, index: number) => {
+      if (h.type === 'refine-search' && h.data.feedback) {
+        contextParts.push(`Refinement Step ${index + 1}: "${h.data.feedback}"`);
+      }
+    });
+  }
+
+  return contextParts.join('\n');
+}

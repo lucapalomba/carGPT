@@ -51,14 +51,6 @@ export const imageSearchService = {
       return [];
     }
 
-    let span;
-    if (trace) {
-      span = trace.span({
-        name: "google_image_search",
-        input: { make, model, year, count }
-      });
-    }
-
     try {
       const query = year 
         ? `${year} ${make} ${model}`
@@ -85,7 +77,6 @@ export const imageSearchService = {
       const data = await res.json() as GoogleSearchResponse;
       
       if (!data.items || !Array.isArray(data.items)) {
-        if (span) span.end({ output: { count: 0 } });
         return [];
       }
 
@@ -105,7 +96,6 @@ export const imageSearchService = {
         count: images.length 
       });
 
-      if (span) span.end({ output: { count: images.length } });
       return images;
 
     } catch (error: unknown) {
@@ -117,13 +107,6 @@ export const imageSearchService = {
         year
       });
       
-      if (span) {
-        span.end({ 
-          level: "ERROR",
-          statusMessage: errorMessage
-        });
-      }
-
       return [];
     }
   },

@@ -551,15 +551,25 @@
                         "description": "Car model",
                         "example": "Octavia Wagon"
                     },
+                    "year": {
+                        "type": "integer",
+                        "description": "Production year",
+                        "example": 2023
+                    },
+                    "body_type": {
+                        "type": "string",
+                        "description": "Body type (Hatchback, Sedan, SUV, Station Wagon, etc.)",
+                        "example": "Station Wagon"
+                    },
+                    "configuration": {
+                        "type": "string",
+                        "description": "Trim level or engine designation",
+                        "example": "2.0 TDI Style"
+                    },
                     "precise_model": {
                         "type": "string",
                         "description": "Precise brand, model, year, and equipment level",
                         "example": "Skoda Octavia Wagon 2.0 TDI 2023 Style"
-                    },
-                    "year": {
-                        "type": "string",
-                        "description": "Recommended year",
-                        "example": "2023"
                     },
                     "price": {
                         "type": "string",
@@ -634,6 +644,18 @@
                         "description": "Match percentage (0-100)",
                         "example": "95"
                     },
+                    "constraints_satisfaction": {
+                        "type": "object",
+                        "description": "Satisfaction percentages for each constraint",
+                        "additionalProperties": {
+                            "type": "integer"
+                        },
+                        "example": {
+                            "budget": 90,
+                            "trunk_space": 85,
+                            "fuel_efficiency": 80
+                        }
+                    },
                     "reasoning": {
                         "type": "string",
                         "description": "Detailed reasoning behind the selection",
@@ -687,6 +709,63 @@
                         "type": "string",
                         "description": "AI provider used",
                         "example": "ollama"
+                    },
+                    "searchIntent": {
+                        "$ref": "#/components/schemas/SearchIntent"
+                    },
+                    "suggestions": {
+                        "type": "object",
+                        "description": "Raw car suggestions before elaboration",
+                        "properties": {
+                            "analysis": {
+                                "type": "string"
+                            },
+                            "choices": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "pinned_cars": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "SearchIntent": {
+                "type": "object",
+                "description": "Parsed user search intent",
+                "properties": {
+                    "user_country": {
+                        "type": "string",
+                        "description": "ISO-3166-1 alpha-3 country code",
+                        "example": "ITA"
+                    },
+                    "primary_focus": {
+                        "type": "string",
+                        "description": "Main focus of user request (3 adjectives max)",
+                        "example": "spacious, reliable, economical"
+                    },
+                    "constraints": {
+                        "type": "object",
+                        "description": "Search constraints",
+                        "additionalProperties": true,
+                        "example": {
+                            "budget": "20000 - 30000",
+                            "must_have": ["large trunk", "low consumption"]
+                        }
+                    },
+                    "interesting_properties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Properties to include in car details",
+                        "example": ["trunk_volume", "fuel_consumption", "ncap_rating"]
                     }
                 }
             },

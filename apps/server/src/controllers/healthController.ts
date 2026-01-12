@@ -22,20 +22,5 @@ export const healthController = {
       googleSearchConfigured: !!(config.googleSearch.apiKey && config.googleSearch.cx),
       active_conversations: conversationService.count()
     });
-  }),
-
-  /**
-   * Resets the user's conversation session
-   */
-  resetConversation: asyncHandler(async (req: Request, res: Response) => {
-    const sessionId = req.sessionID;
-    conversationService.delete(sessionId);
-    
-    logger.info('Conversation reset', { sessionId });
-    
-    res.json({
-      success: true,
-      message: 'Conversation reset'
-    });
   })
 };
