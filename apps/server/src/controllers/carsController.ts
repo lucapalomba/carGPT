@@ -95,14 +95,22 @@ export const carsController = {
     }
 
     const fullContext = extractConversationContext(conversation);
+    const validatedPinnedCars = Array.isArray(pinnedCars) ? pinnedCars : [];
     
     logger.info('Refining car search', { 
       sessionId, 
-      feedback: feedback.substring(0, 50),
-      pinnedCount: (pinnedCars || []).length 
+      feedback,
+      pinnedCarsCount: validatedPinnedCars.length
     });
 
-    const result = await aiService.refineCarsWithImages(feedback, language, sessionId, fullContext, pinnedCars);
+    // Use unified AI service
+    const result = await aiService.refineCarsWithImages(
+      feedback,
+      language,
+      sessionId,
+      fullContext,
+      validatedPinnedCars
+    );
 
     conversation.updatedAt = new Date();
     conversation.history.push({

@@ -55,9 +55,14 @@ export const aiService = {
       
       const tonePrompt = promptService.loadTemplate('tone.md').replace('${userLanguage}', language);
       const elaboratedCars = await this.elaborateCars(suggestions.choices || [], searchIntent, tonePrompt, trace);
-      const carsWithImages = await this.enrichCarsWithImages(elaboratedCars, trace);
+      
+      // Construct intermediate result for translation
+      const intermediateResult = { analysis: suggestions.analysis, cars: elaboratedCars };
+      const translatedResult = await this.translateResults(intermediateResult, language, trace);
 
-      const result = { ...searchIntent, ...suggestions, cars: carsWithImages };
+      const carsWithImages = await this.enrichCarsWithImages(translatedResult.cars, trace);
+
+      const result = { suggestions, ...translatedResult, cars: carsWithImages };
       trace.update({ output: result });
       return result;
     } catch (error) {
@@ -117,9 +122,14 @@ export const aiService = {
 
       const tonePrompt = promptService.loadTemplate('tone.md').replace('${userLanguage}', language);
       const elaboratedCars = await this.elaborateCars(uniqueCarChoices, searchIntent, tonePrompt, trace);
-      const carsWithImages = await this.enrichCarsWithImages(elaboratedCars, trace);
+      
+      // Construct intermediate result for translation
+      const intermediateResult = { analysis: suggestions.analysis, cars: elaboratedCars };
+      const translatedResult = await this.translateResults(intermediateResult, language, trace);
 
-      const result = { ...searchIntent, ...suggestions, cars: carsWithImages };
+      const carsWithImages = await this.enrichCarsWithImages(translatedResult.cars, trace);
+
+      const result = { suggestions, ...translatedResult, cars: carsWithImages };
       trace.update({ output: result });
       return result;
     } catch (error) {
@@ -191,7 +201,6 @@ export const aiService = {
       const jsonGuard = promptService.loadTemplate('json-guard.md');
 
       const elaboratedCars = await Promise.all(carChoices.map(async (carChoice: any) => {
-        const carSpan = trace.span({ name: `elaborate_car_${carChoice.make}_${carChoice.model}` });
         try {
           const messages: OllamaMessage[] = [
             { role: "system", content: carsElaborationTemplates },
@@ -205,10 +214,8 @@ export const aiService = {
           const response = await ollamaService.callOllama(messages, trace, `elaborate_${carChoice.make}`);
           const result = ollamaService.parseJsonResponse(response);
           const merged = { ...carChoice, ...(result.car || {}) };
-          carSpan.end({ output: merged });
           return merged;
         } catch (error) {
-          carSpan.end({ level: "ERROR", statusMessage: String(error) });
           return carChoice; // Fallback to original choice if elaboration fails
         }
       }));
@@ -222,18 +229,81 @@ export const aiService = {
   },
 
   /**
+   * Translates the search response to the target language
+   */
+  async translateResults(
+    results: any,
+    targetLanguage: string,
+    trace: any
+  ): Promise<any> {
+    const span = trace.span({ 
+      name: "translate_results",
+      metadata: { targetLanguage }
+    });
+    
+    logger.info(`Translating results to ${targetLanguage}`);
+
+    try {
+      const translateTemplate = promptService.loadTemplate('translate-response.md');
+      const jsonGuard = promptService.loadTemplate('json-guard.md');
+
+      const messages: OllamaMessage[] = [
+        {
+          role: "system",
+          content: translateTemplate.replace('${targetLanguage}', targetLanguage)
+        },
+        {
+          role: "system",
+          content: jsonGuard
+        },
+        {
+          role: "user",
+          content: "INPUT JSON: " + JSON.stringify(results)
+        }
+      ];
+
+      const response = await ollamaService.callOllama(messages, trace, 'translate_results');
+      const translatedResult = ollamaService.parseJsonResponse(response);
+      
+      // Ensure cars array is preserved even if LLM misses it or returns invalid JSON
+      if (!translatedResult || !translatedResult.cars || !Array.isArray(translatedResult.cars)) {
+        logger.warn('Translation missing cars array or invalid, falling back to original results');
+        if (translatedResult && typeof translatedResult === 'object') {
+          translatedResult.cars = results.cars || [];
+          return translatedResult;
+        }
+        return results;
+      }
+      
+      span.end({ output: translatedResult });
+      return translatedResult;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Translation failed, returning original results', { error: errorMessage });
+      
+      span.end({ level: "ERROR", statusMessage: errorMessage });
+      return results; // Return original results if translation fails
+    }
+  },
+
+  /**
    * Internal helper to enrich cars with images
    */
-  async enrichCarsWithImages(cars: Car[], trace: any): Promise<Car[]> {
-    const span = trace.span({ name: "enrich_with_images", input: { count: cars.length } });
+  async enrichCarsWithImages(cars: Car[] = [], trace: any): Promise<Car[]> {
+    const carList = Array.isArray(cars) ? cars : [];
+    const span = trace.span({ name: "enrich_with_images", input: { count: carList.length } });
     try {
-      logger.info(`Searching images for ${cars.length} cars`);
+      if (carList.length === 0) {
+        span.end({ output: { count: 0 } });
+        return [];
+      }
+      logger.info(`Searching images for ${carList.length} cars`);
       const imageMap = await imageSearchService.searchMultipleCars(
-        cars.map(c => ({ make: c.make, model: c.model, year: c.year?.toString() })), 
+        carList.map(c => ({ make: c.make, model: c.model, year: c.year?.toString() })), 
         trace
       );
 
-      const carsWithImages = await Promise.all(cars.map(async (car: Car) => {
+      const carsWithImages = await Promise.all(carList.map(async (car: Car) => {
         const key = `${car.make}-${car.model}`;
         const rawImages = imageMap[key] || [];
         const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages, trace);
