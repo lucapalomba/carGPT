@@ -5,7 +5,7 @@ GENERAL SELECTION RULES:
 
 FOR CHOICES (New Suggestions):
 - Suggest at max 3 NEW Cars available in the User country (country).
-- Each car should correspond to the primary_focus and should satisfy all the constraints as much as possible.
+- Each car should correspond to the primary_focus and should satisfy all the User intent JSON "constraints" as much as possible.
 - Don't suggest the same car model more than once.
 - Use the User feedback (if any) to refine your selection.
 
@@ -24,12 +24,8 @@ Return this JSON format:
     "body_type": "Hatchback",
     "configuration": "1.8 HB Active",
     "precise_model": "Toyota Corolla 1.8 HB Active 2019",
-    "selection_reasoning": "",
     "constraints_satisfaction": {
-      "space_for_family": 70,
-      "comfortable_seating": 85,
-      "practicality": 95,
-      "preference_for_Italian_brands": 60
+      "red_color": 70,
     },
     "percentage": "100"
   }],
@@ -40,12 +36,8 @@ Return this JSON format:
     "body_type": "SUV",
     "configuration": "e:HEV Executive",
     "precise_model": "Honda CR-V e:HEV Executive 2022",
-    "selection_reasoning": "",
     "constraints_satisfaction": {
-      "space_for_family": 90,
-      "comfortable_seating": 80,
-      "practicality": 85,
-      "preference_for_Italian_brands": 0
+      "red_color": 90,
     },
     "percentage": "95"
   }]
@@ -57,9 +49,8 @@ SEMANTIC FIELD RULES:
 - body_type = body type values (e.g. Hatchback, Sedan, Station Wagon, SUV)
 - engine, fuel type, displacement MUST NOT appear in make or model
 - configuration = trim level or engine designation ONLY (e.g. 1.0, 1.8 HB Active, e:HEV Executive)
-- year: production year of the selected configuration
-- precise_model: precise model identifier used to identify uniquely a model for Example: Toyota Corolla 1.8 HB Active 2019 is different from Toyota Corolla 2.0 HB Active 2019 and different from Toyota Corolla 1.8 HB GR SPORT 2019
-- selection_reasoning: Brief explanation of the reasoning behind the selection (2–3 sentences)
-- constraints_satisfaction: A json object with reporting percentages how much this car respond to the User's primary_focus and constraints in the property constraints (not interesting_properties!) of User intent JSON
-- percentage: Percentage from 0 to 100 indicating how well this car matches the initial request
+- year = production year of the selected configuration
+- precise_model = precise model identifier used to identify uniquely a model for Example: Toyota Corolla 1.8 HB Active 2019 is different from Toyota Corolla 2.0 HB Active 2019 and different from Toyota Corolla 1.8 HB GR SPORT 2019
+- constraints_satisfaction = A json object reporting satisfaction percentages for every point of User intent JSON "constraints"
+- percentage = Percentage from 0 to 100 indicating how well this car matches the initial request
 
