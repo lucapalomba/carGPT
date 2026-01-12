@@ -52,36 +52,50 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 {
   "success": true,
   "conversationId": "session-id-here",
+  "searchIntent": {
+    "user_country": "USA",
+    "primary_focus": "spacious, practical, economical",
+    "constraints": {
+      "budget": "20000 - 25000",
+      "must_have": ["large trunk", "low consumption"]
+    },
+    "interesting_properties": ["trunk_volume", "fuel_consumption", "ncap_rating"]
+  },
+  "suggestions": {
+    "analysis": "User needs a family car with large trunk...",
+    "choices": [...]
+  },
   "analysis": "Analysis of user requirements...",
-  "user_market": "United States",
   "cars": [
     {
       "make": "Skoda",
       "model": "Octavia Wagon",
+      "year": 2023,
+      "body_type": "Station Wagon",
+      "configuration": "2.0 TDI Style",
       "precise_model": "Skoda Octavia Wagon 2.0 TDI 2023 Style",
-      "year": "2023",
       "price": "25,000-30,000€",
       "type": "Station Wagon",
       "market_availability": "Available in the US market",
+      "constraints_satisfaction": {
+        "budget": 85,
+        "large_trunk": 95,
+        "low_consumption": 80
+      },
       "properties": {
-        "trunk_size": {
+        "trunk_volume": {
           "translatedLabel": "Trunk Size",
           "value": "640 liters"
         },
         "fuel_consumption": {
           "translatedLabel": "Fuel Consumption",
           "value": "5.2 l/100km"
-        },
-        "reliability": {
-          "translatedLabel": "Reliability",
-          "value": "High"
         }
       },
       "strengths": ["Huge trunk", "Reliable", "Spacious"],
       "weaknesses": ["Conservative design", "Average resale value"],
       "reason": "Perfect for families thanks to the space...",
       "percentage": "95",
-      "reasoning": "This car matches your need for space and efficiency perfectly.",
       "images": [
         {
           "url": "https://example.com/car.jpg",
@@ -91,8 +105,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
       ]
     }
     // ... 2 more cars
-  ],
-  "provider": "ollama"
+  ]
 }
 ```
 
@@ -142,36 +155,50 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 ```json
 {
   "success": true,
+  "searchIntent": {
+    "user_country": "USA",
+    "primary_focus": "affordable, compact, efficient",
+    "constraints": {
+      "budget": "15000 - 20000",
+      "must_have": ["low price"]
+    },
+    "interesting_properties": ["trunk_volume", "fuel_consumption"]
+  },
+  "suggestions": {
+    "analysis": "User refined search to focus on budget...",
+    "choices": [...],
+    "pinned_cars": [...]
+  },
   "analysis": "Based on your feedback...",
-  "user_market": "United States",
   "cars": [
     {
       "make": "Skoda",
       "model": "Fabia",
+      "year": 2023,
+      "body_type": "Compact",
+      "configuration": "1.0 TSI Selection",
       "precise_model": "Skoda Fabia 1.0 TSI 2023 Selection",
-      "year": "2023",
       "price": "18,000-22,000€",
       "type": "Compact",
       "market_availability": "Available in the US market",
+      "constraints_satisfaction": {
+        "budget": 95,
+        "low_price": 90
+      },
       "properties": {
-        "trunk_size": {
+        "trunk_volume": {
           "translatedLabel": "Trunk Size",
           "value": "380 liters"
         },
         "fuel_consumption": {
           "translatedLabel": "Fuel Consumption",
           "value": "4.5 l/100km"
-        },
-        "reliability": {
-          "translatedLabel": "Reliability",
-          "value": "High"
         }
       },
       "strengths": ["Affordable", "Compact", "Efficient"],
       "weaknesses": ["Smaller trunk", "Less power"],
       "reason": "A more affordable option fitting your budget...",
       "percentage": "90",
-      "reasoning": "This car is a great budget-friendly alternative with excellent efficiency.",
       "images": [
         {
           "url": "https://example.com/fabia.jpg",
@@ -180,7 +207,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
         }
       ]
     }
-    // ... 2 more cars (pinned ones included)
+    // ... more cars (pinned ones included)
   ]
 }
 ```
