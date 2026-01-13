@@ -96,6 +96,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
       "weaknesses": ["Conservative design", "Average resale value"],
       "reason": "Perfect for families thanks to the space...",
       "percentage": "95",
+      "pinned": false,
       "images": [
         {
           "url": "https://example.com/car.jpg",
