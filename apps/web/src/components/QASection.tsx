@@ -52,8 +52,8 @@ function QASection({ cars }: QASectionProps) {
   };
 
   return (
-    <Flex direction="column" h="500px" bg="white" p={8} borderRadius="xl" shadow="lg" borderWidth="1px" borderColor="gray.100">
-      <Heading as="h3" size="md" color="gray.900" mb={6} display="flex" alignItems="center" gap={2}>
+    <Flex direction="column" h="500px" bg="bg.panel" p={8} borderRadius="xl" shadow="lg" borderWidth="1px" borderColor="border.subtle">
+      <Heading as="h3" size="md" color="fg" mb={6} display="flex" alignItems="center" gap={2}>
         <span>💬</span> Have questions about these cars?
       </Heading>
 
@@ -65,6 +65,7 @@ function QASection({ cars }: QASectionProps) {
                 onChange={(e) => setSelectedCarIdx(e.target.value)}
                 placeholder="Select a car..."
                 borderRadius="lg"
+                color="fg"
             >
                 {cars.map((car, i) => (
                 <option key={i} value={i}>{car.make} {car.model}</option>
@@ -80,14 +81,15 @@ function QASection({ cars }: QASectionProps) {
             onKeyPress={(e) => e.key === 'Enter' && handleAsk()}
             size="md"
             borderRadius="lg"
+            color="fg"
           />
           <Button
             onClick={handleAsk}
             disabled={isLoading}
             flex={1}
-            colorPalette="indigo"
+            colorPalette="brand"
             fontWeight="bold"
-            _disabled={{ bg: 'indigo.400' }}
+            _disabled={{ bg: 'brand.muted' }}
             size="md"
             borderRadius="lg"
           >
@@ -101,14 +103,14 @@ function QASection({ cars }: QASectionProps) {
         flex={1}
         overflowY="auto"
         p={4}
-        bg="gray.50"
+        bg="bg.canvas"
         borderRadius="lg"
         borderWidth="1px"
-        borderColor="gray.100"
+        borderColor="border.subtle"
       >
         {history.length === 0 && (
           <Center h="full">
-            <Text color="gray.400" fontStyle="italic">
+            <Text color="fg.subtle" fontStyle="italic">
               Questions and answers will appear here
             </Text>
           </Center>
@@ -126,10 +128,10 @@ function QASection({ cars }: QASectionProps) {
                 borderRadius="2xl" 
                 borderTopRightRadius={msg.type === 'question' ? 0 : '2xl'}
                 borderTopLeftRadius={msg.type === 'question' ? '2xl' : 0}
-                bg={msg.type === 'question' ? 'indigo.600' : msg.isError ? 'red.50' : 'white'}
-                color={msg.type === 'question' ? 'white' : msg.isError ? 'red.700' : 'gray.700'}
+                bg={msg.type === 'question' ? 'brand.solid' : msg.isError ? 'red.50' : 'bg.panel'}
+                color={msg.type === 'question' ? 'brand.contrast' : msg.isError ? 'red.700' : 'fg'}
                 borderWidth={msg.type !== 'question' ? '1px' : 0}
-                borderColor={msg.isError ? 'red.100' : 'gray.100'}
+                borderColor={msg.isError ? 'red.100' : 'border.subtle'}
                 boxShadow={msg.type !== 'question' ? 'sm' : 'none'}
               >
                 {msg.type === 'question' && (
@@ -141,9 +143,9 @@ function QASection({ cars }: QASectionProps) {
           ))}
           {isLoading && (
             <Flex align="start">
-              <Box bg="white" p={4} borderRadius="2xl" borderTopLeftRadius={0} shadow="sm" borderWidth="1px" borderColor="gray.100" display="flex" alignItems="center" gap={3}>
-                <Spinner size="sm" color="gray.400" />
-                <Text fontSize="xs" color="gray.400" fontStyle="italic">Thinking...</Text>
+              <Box bg="bg.panel" p={4} borderRadius="2xl" borderTopLeftRadius={0} shadow="sm" borderWidth="1px" borderColor="border.subtle" display="flex" alignItems="center" gap={3}>
+                <Spinner size="sm" color="fg.subtle" />
+                <Text fontSize="xs" color="fg.subtle" fontStyle="italic">Thinking...</Text>
               </Box>
             </Flex>
           )}

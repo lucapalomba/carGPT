@@ -98,7 +98,7 @@ function App() {
   };
 
   return (
-    <Box minH="100vh" bg="gray.50" py={12} px={{ base: 4, sm: 6, lg: 8 }}>
+    <Box minH="100vh" bg="bg.muted" py={12} px={{ base: 4, sm: 6, lg: 8 }}>
       <Toaster position="top-right" />
       <Box maxW="7xl" mx="auto">
         {view === 'form' ? (

@@ -48,8 +48,8 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
     <Dialog.Root open={true} onOpenChange={(e) => !e.open && onClose()} size="xl" scrollBehavior="inside">
       <Dialog.Backdrop />
       <Dialog.Positioner>
-        <Dialog.Content borderRadius="2xl" maxH="90vh" maxW="4xl">
-            <Dialog.Header borderBottomWidth="1px" borderColor="gray.100" fontSize="2xl" fontWeight="bold">
+        <Dialog.Content borderRadius="2xl" maxH="90vh" maxW="4xl" bg="bg.panel">
+            <Dialog.Header borderBottomWidth="1px" borderColor="border.subtle" fontSize="2xl" fontWeight="bold" color="fg">
             📊 Detailed Comparison
             </Dialog.Header>
             <Dialog.CloseTrigger fontSize="lg" />
@@ -61,6 +61,7 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
                         placeholder="First car..."
                         value={car1Name}
                         onChange={(e) => setCar1Name(e.target.value)}
+                        color="fg"
                     >
                     {cars.map((car, i) => (
                         <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
@@ -69,13 +70,14 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
                     <NativeSelect.Indicator />
                 </NativeSelect.Root>
 
-                <Text fontSize="xl" fontWeight="bold" color="gray.400">VS</Text>
+                <Text fontSize="xl" fontWeight="bold" color="fg.subtle">VS</Text>
                 
                 <NativeSelect.Root flex={1} size="lg">
                     <NativeSelect.Field
                         placeholder="Second car..."
                         value={car2Name}
                         onChange={(e) => setCar2Name(e.target.value)}
+                        color="fg"
                     >
                     {cars.map((car, i) => (
                         <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
@@ -89,9 +91,9 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
                 loading={isLoading}
                 px={8}
                 py={4}
-                colorPalette="indigo"
+                colorPalette="brand"
                 fontWeight="bold"
-                _disabled={{ bg: 'indigo.400' }}
+                _disabled={{ bg: 'brand.muted' }}
                 size="lg"
                 >
                 Compare
@@ -100,26 +102,26 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
 
             {result && (
                 <Stack gap={8} align="stretch" animation="fade-in 0.5s">
-                <Box p={4} bg="indigo.50" borderLeftWidth="4px" borderLeftColor="indigo.500" color="indigo.900" fontStyle="italic">
+                <Box p={4} bg="brand.subtle" borderLeftWidth="4px" borderLeftColor="brand.focus" color="brand.emphasized" fontStyle="italic">
                     {result.comparison}
                 </Box>
 
                 <Stack gap={6} align="stretch">
                     {result.categories.map((cat, i) => (
-                    <Box key={i} borderWidth="1px" borderColor="gray.100" borderRadius="xl" overflow="hidden">
-                        <Box bg="gray.50" p={4} borderBottomWidth="1px" borderBottomColor="gray.100">
-                        <Heading as="h4" size="sm" color="gray.700">{cat.name}</Heading>
+                    <Box key={i} borderWidth="1px" borderColor="border.subtle" borderRadius="xl" overflow="hidden">
+                        <Box bg="bg.subtle" p={4} borderBottomWidth="1px" borderBottomColor="border.subtle">
+                        <Heading as="h4" size="sm" color="fg">{cat.name}</Heading>
                         </Box>
                         <SimpleGrid columns={2}>
-                        <Box p={4} borderRightWidth="1px" borderRightColor="gray.100" bg={cat.winner === 'car1' ? 'green.50' : 'transparent'}>
-                            <Text fontSize="xs" fontWeight="bold" color="gray.400" mb={1}>{car1Name}</Text>
-                            <Text color="gray.700">{cat.car1}</Text>
-                            {cat.winner === 'car1' && <Text fontSize="xs" fontWeight="bold" color="green.600" mt={2}>🏆 Winner</Text>}
+                        <Box p={4} borderRightWidth="1px" borderRightColor="border.subtle" bg={cat.winner === 'car1' ? 'green.50' : 'transparent'}>
+                            <Text fontSize="xs" fontWeight="bold" color="fg.subtle" mb={1}>{car1Name}</Text>
+                            <Text color="fg">{cat.car1}</Text>
+                            {cat.winner === 'car1' && <Text fontSize="xs" fontWeight="bold" color="fg.success" mt={2}>🏆 Winner</Text>}
                         </Box>
                         <Box p={4} bg={cat.winner === 'car2' ? 'green.50' : 'transparent'}>
-                            <Text fontSize="xs" fontWeight="bold" color="gray.400" mb={1}>{car2Name}</Text>
-                            <Text color="gray.700">{cat.car2}</Text>
-                            {cat.winner === 'car2' && <Text fontSize="xs" fontWeight="bold" color="green.600" mt={2}>🏆 Winner</Text>}
+                            <Text fontSize="xs" fontWeight="bold" color="fg.subtle" mb={1}>{car2Name}</Text>
+                            <Text color="fg">{cat.car2}</Text>
+                            {cat.winner === 'car2' && <Text fontSize="xs" fontWeight="bold" color="fg.success" mt={2}>🏆 Winner</Text>}
                         </Box>
                         </SimpleGrid>
                     </Box>

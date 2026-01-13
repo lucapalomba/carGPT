@@ -39,8 +39,8 @@ function Alternatives({ cars, onClose }: AlternativesProps) {
     <Dialog.Root open={true} onOpenChange={(e) => !e.open && onClose()} size="xl" scrollBehavior="inside">
       <Dialog.Backdrop />
       <Dialog.Positioner>
-        <Dialog.Content borderRadius="2xl" maxH="90vh">
-            <Dialog.Header borderBottomWidth="1px" borderColor="gray.100" fontSize="2xl" fontWeight="bold">
+        <Dialog.Content borderRadius="2xl" maxH="90vh" bg="bg.panel">
+            <Dialog.Header borderBottomWidth="1px" borderColor="border.subtle" fontSize="2xl" fontWeight="bold" color="fg">
             🔄 Similar Alternatives
             </Dialog.Header>
             <Dialog.CloseTrigger fontSize="lg" />
@@ -52,6 +52,7 @@ function Alternatives({ cars, onClose }: AlternativesProps) {
                         placeholder="Select a car you like..."
                         value={selectedCar}
                         onChange={(e) => setSelectedCar(e.target.value)}
+                        color="fg"
                     >
                     {cars.map((car, i) => (
                         <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
@@ -64,6 +65,7 @@ function Alternatives({ cars, onClose }: AlternativesProps) {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 size="lg"
+                color="fg"
                 />
                 <Button
                 onClick={handleSearch}
@@ -71,9 +73,9 @@ function Alternatives({ cars, onClose }: AlternativesProps) {
                 loading={isLoading}
                 w="full"
                 py={4}
-                colorPalette="indigo"
+                colorPalette="brand"
                 fontWeight="bold"
-                _disabled={{ bg: 'indigo.400' }}
+                _disabled={{ bg: 'brand.muted' }}
                 size="lg"
                 >
                 Find Alternatives
@@ -82,11 +84,11 @@ function Alternatives({ cars, onClose }: AlternativesProps) {
 
             <Stack gap={4} align="stretch">
                 {alternatives.map((alt, i) => (
-                <Box key={i} p={6} borderWidth="1px" borderColor="gray.100" borderRadius="xl" bg="gray.50" _hover={{ bg: 'white', shadow: 'md' }} transition="all 0.2s">
-                    <Heading as="h4" size="md" color="indigo.700" mb={2}>{i + 1}. {alt.make} {alt.model}</Heading>
+                <Box key={i} p={6} borderWidth="1px" borderColor="border.subtle" borderRadius="xl" bg="bg.canvas" _hover={{ bg: 'bg.panel', shadow: 'md' }} transition="all 0.2s">
+                    <Heading as="h4" size="md" color="brand.emphasized" mb={2}>{i + 1}. {alt.make} {alt.model}</Heading>
                     <Stack align="stretch" gap={2} fontSize="sm">
-                    <Text><Text as="strong" color="gray.700">Why consider it:</Text> {alt.reason}</Text>
-                    <Text><Text as="strong" color="gray.700">Advantages:</Text> {alt.advantages}</Text>
+                    <Text color="fg"><Text as="strong" color="fg">Why consider it:</Text> {alt.reason}</Text>
+                    <Text color="fg"><Text as="strong" color="fg">Advantages:</Text> {alt.advantages}</Text>
                     </Stack>
                 </Box>
                 ))}
