@@ -43,38 +43,40 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
         <>
           <IconButton
             aria-label="Previous image"
-            icon={<Text fontSize="lg">←</Text>}
             onClick={prevSlide}
             position="absolute"
             left={2}
             top="50%"
             transform="translateY(-50%)"
-            bg="blackAlpha.300"
+            bg="black/30"
             color="white"
             size="sm"
             rounded="full"
             opacity={0}
-            _hover={{ bg: 'blackAlpha.500' }}
+            _hover={{ bg: 'black/50' }}
             _groupHover={{ opacity: 1 }}
             transition="opacity 0.2s"
-          />
+          >
+            <Text fontSize="lg">←</Text>
+          </IconButton>
           <IconButton
             aria-label="Next image"
-            icon={<Text fontSize="lg">→</Text>}
             onClick={nextSlide}
             position="absolute"
             right={2}
             top="50%"
             transform="translateY(-50%)"
-            bg="blackAlpha.300"
+            bg="black/30"
             color="white"
             size="sm"
             rounded="full"
             opacity={0}
-            _hover={{ bg: 'blackAlpha.500' }}
+            _hover={{ bg: 'black/50' }}
             _groupHover={{ opacity: 1 }}
             transition="opacity 0.2s"
-          />
+          >
+            <Text fontSize="lg">→</Text>
+          </IconButton>
           <Flex position="absolute" bottom={2} left="50%" transform="translateX(-50%)" gap={1}>
             {images.map((_, idx) => (
               <Box
@@ -82,7 +84,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
                 w="1.5"
                 h="1.5"
                 rounded="full"
-                bg={idx === currentIndex ? 'white' : 'whiteAlpha.500'}
+                bg={idx === currentIndex ? 'white' : 'white/50'}
               />
             ))}
           </Flex>

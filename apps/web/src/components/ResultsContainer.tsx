@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, VStack, Flex, Heading, Text, Button, FormLabel, Input, SimpleGrid } from '@chakra-ui/react';
+import { Box, Stack, Flex, Heading, Text, Button, Field, Input, SimpleGrid } from '@chakra-ui/react';
 import type { Car } from '../App';
 import ComparisonTable from './ComparisonTable';
 import QASection from './QASection';
@@ -44,7 +44,7 @@ function ResultsContainer({
   };
 
   return (
-    <VStack ref={resultsRef} spacing={12} align="stretch">
+    <Stack ref={resultsRef} gap={12} align="stretch">
       <Flex justify="space-between" align="center" bg="white" p={6} borderRadius="xl" shadow="sm">
         <Heading size="lg" color="gray.900">🎯 Your ideal cars</Heading>
         <Button
@@ -59,7 +59,7 @@ function ResultsContainer({
       </Flex>
 
       <Box bg="white" p={8} borderRadius="xl" shadow="lg" borderWidth="1px" borderColor="indigo.100">
-        <VStack spacing={6} align="stretch">
+        <Stack gap={6} align="stretch">
           {analysisHistory.map((text, index) => (
             <Box key={index} pb={6} borderBottomWidth="1px" borderBottomColor="gray.100" _last={{ borderBottomWidth: 0, pb: 0 }}>
               <Heading as="h4" size="sm" color="indigo.600" mb={2}>
@@ -68,37 +68,37 @@ function ResultsContainer({
               <Text color="gray.700" lineHeight="relaxed">{text}</Text>
             </Box>
           ))}
-        </VStack>
+        </Stack>
 
         <Box mt={8} pt={8} borderTopWidth="1px" borderTopColor="gray.100">
-          <FormLabel fontSize="sm" fontWeight="bold" color="gray.700" mb={2}>💬 Refine these results:</FormLabel>
-          <Flex gap={4}>
-            <Input
-              flex={1}
-              p={4} // p={3} in tailwind is 0.75rem, Chakra p={4} is 1rem, usually inputs need height or p adjustment. Default Input size="md" is good.
-              variant="outline"
-              borderColor="gray.300"
-              focusBorderColor="indigo.500"
-              placeholder="e.g. 'Too expensive', 'I prefer German cars'..."
-              value={refineInput}
-              onChange={(e) => setRefineInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleRefine()}
-            />
-            <Button
-              onClick={handleRefine}
-              isDisabled={isSearching}
-              px={8}
-              py={4} // Match input height roughly
-              bg="indigo.600"
-              color="white"
-              fontWeight="bold"
-              _hover={{ bg: 'indigo.700' }}
-              _disabled={{ bg: 'indigo.400', cursor: 'not-allowed' }}
-              rounded="lg"
-            >
-              Update
-            </Button>
-          </Flex>
+          <Field.Root>
+            <Field.Label fontSize="sm" fontWeight="bold" color="gray.700" mb={2}>💬 Refine these results:</Field.Label>
+            <Flex gap={4}>
+                <Input
+                flex={1}
+                p={4}
+                variant="outline"
+                borderColor="gray.300"
+                placeholder="e.g. 'Too expensive', 'I prefer German cars'..."
+                value={refineInput}
+                onChange={(e) => setRefineInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleRefine()}
+                css={{ "--focus-color": "colors.indigo.500", _focus: { ring: "2px", ringColor: "indigo.500" } }}
+                />
+                <Button
+                onClick={handleRefine}
+                disabled={isSearching}
+                px={8}
+                py={4}
+                colorPalette="indigo"
+                fontWeight="bold"
+                _disabled={{ bg: 'indigo.400', cursor: 'not-allowed' }}
+                rounded="lg"
+                >
+                Update
+                </Button>
+            </Flex>
+          </Field.Root>
           <Text mt={2} fontSize="xs" color="gray.500">💡 Tip: Pin cars you like (📌) to keep them during updates.</Text>
         </Box>
       </Box>
@@ -109,7 +109,7 @@ function ResultsContainer({
         onTogglePin={onTogglePin} 
       />
 
-      <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={8}>
+      <SimpleGrid columns={{ base: 1, lg: 3 }} gap={8}>
         <Box gridColumn={{ lg: "span 1" }} bg="white" p={8} borderRadius="xl" shadow="lg" borderWidth="1px" borderColor="indigo.50" display="flex" flexDirection="column" justifyContent="space-between">
            <Box>
              <Heading as="h3" size="md" color="gray.900" mb={6} display="flex" alignItems="center" gap={2}>
@@ -118,7 +118,7 @@ function ResultsContainer({
              <Text color="gray.600" fontSize="sm" mb={8}>What would you like to do now?</Text>
            </Box>
            
-           <VStack spacing={4}>
+           <Stack gap={4}>
              <Box 
                 as="button"
                 onClick={() => setShowCompare(true)}
@@ -151,7 +151,7 @@ function ResultsContainer({
                 <Text fontWeight="bold" color="indigo.600" mb={1}>🔄 Show alternatives</Text>
                 <Text fontSize="xs" color="gray.500">Find similar models based on your favorite</Text>
              </Box>
-           </VStack>
+           </Stack>
         </Box>
 
         <Box gridColumn={{ lg: "span 2" }}>
@@ -172,7 +172,7 @@ function ResultsContainer({
           onClose={() => setShowAlternatives(false)} 
         />
       )}
-    </VStack>
+    </Stack>
   );
 }
 

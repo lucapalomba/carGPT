@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, VStack, Flex, Heading, Text, Button, Select, Input, Spinner, Center } from '@chakra-ui/react';
+import { Box, Stack, Flex, Heading, Text, Button, NativeSelect, Input, Spinner, Center } from '@chakra-ui/react';
 import type { Car } from '../App';
 import { api } from '../utils/api';
 
@@ -57,20 +57,21 @@ function QASection({ cars }: QASectionProps) {
         <span>💬</span> Have questions about these cars?
       </Heading>
 
-      <VStack spacing={4} mb={6} align="stretch">
+      <Stack gap={4} mb={6} align="stretch">
         <Flex gap={3} direction={{ base: 'column', sm: 'row' }}>
-          <Select
-            flex={2}
-            value={selectedCarIdx}
-            onChange={(e) => setSelectedCarIdx(e.target.value)}
-            placeholder="Select a car..."
-            size="md"
-            borderRadius="lg"
-          >
-            {cars.map((car, i) => (
-              <option key={i} value={i}>{car.make} {car.model}</option>
-            ))}
-          </Select>
+          <NativeSelect.Root flex={2} size="md">
+            <NativeSelect.Field
+                value={selectedCarIdx}
+                onChange={(e) => setSelectedCarIdx(e.target.value)}
+                placeholder="Select a car..."
+                borderRadius="lg"
+            >
+                {cars.map((car, i) => (
+                <option key={i} value={i}>{car.make} {car.model}</option>
+                ))}
+            </NativeSelect.Field>
+            <NativeSelect.Indicator />
+          </NativeSelect.Root>
           <Input
             flex={5}
             placeholder="e.g. What's the annual maintenance cost?"
@@ -82,12 +83,10 @@ function QASection({ cars }: QASectionProps) {
           />
           <Button
             onClick={handleAsk}
-            isDisabled={isLoading}
+            disabled={isLoading}
             flex={1}
-            bg="indigo.600"
-            color="white"
+            colorPalette="indigo"
             fontWeight="bold"
-            _hover={{ bg: 'indigo.700' }}
             _disabled={{ bg: 'indigo.400' }}
             size="md"
             borderRadius="lg"
@@ -95,7 +94,7 @@ function QASection({ cars }: QASectionProps) {
             Ask
           </Button>
         </Flex>
-      </VStack>
+      </Stack>
 
       <Box 
         ref={historyRef}
@@ -114,7 +113,7 @@ function QASection({ cars }: QASectionProps) {
             </Text>
           </Center>
         )}
-        <VStack spacing={4} align="stretch">
+        <Stack gap={4} align="stretch">
           {history.map((msg, i) => (
             <Flex 
               key={i} 
@@ -148,7 +147,7 @@ function QASection({ cars }: QASectionProps) {
               </Box>
             </Flex>
           )}
-        </VStack>
+        </Stack>
       </Box>
     </Flex>
   );

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, VStack, Heading, Text, Textarea, Button, Image, FormLabel } from '@chakra-ui/react';
+import { Box, Stack, Heading, Text, Textarea, Button, Image, Field } from '@chakra-ui/react';
 
 interface InitialFormProps {
   onSearch: (requirements: string) => void;
@@ -34,28 +34,30 @@ function InitialForm({ onSearch, isSearching }: InitialFormProps) {
         <Text color="gray.600">Describe what you're looking for in a car and we'll suggest the perfect models for you</Text>
       </Box>
 
-      <VStack as="form" spacing={6} onSubmit={handleSubmit} align="stretch">
-        <Box>
-          <FormLabel htmlFor="requirements" fontSize="sm" fontWeight="medium" color="gray.700" mb={1}>
+      <Stack as="form" gap={6} onSubmit={handleSubmit} align="stretch">
+        <Field.Root>
+          <Field.Label htmlFor="requirements" fontSize="sm" fontWeight="medium" color="gray.700" mb={1}>
             Describe your requirements
-          </FormLabel>
+          </Field.Label>
           <Textarea
             id="requirements"
             rows={6}
             p={4}
             borderColor="gray.300"
             borderRadius="lg"
-            focusBorderColor="indigo.500"
-            _focus={{ ring: 2, ringColor: "indigo.500" }}
             placeholder="Example: Looking for a family car with space for 5 people..."
             value={requirements}
             onChange={(e) => setRequirements(e.target.value)}
             required
+            css={{
+                "--focus-color": "colors.indigo.500",
+                _focus: { ring: "2px", ringColor: "indigo.500" }
+            }}
           />
           <Text mt={2} fontSize="sm" color="gray.500">The more specific you are, the better the suggestions! 💡</Text>
-        </Box>
+        </Field.Root>
 
-        <VStack spacing={4} align="stretch">
+        <Stack gap={4} align="stretch">
           <Text fontWeight="semibold" color="gray.700">Example prompts:</Text>
           {EXAMPLES.map((example, idx) => (
             <Button
@@ -63,7 +65,6 @@ function InitialForm({ onSearch, isSearching }: InitialFormProps) {
               onClick={() => setRequirements(example)}
               variant="outline"
               bg="gray.50"
-              _hover={{ bg: 'gray.100' }}
               borderColor="gray.200"
               textAlign="left"
               h="auto"
@@ -76,26 +77,22 @@ function InitialForm({ onSearch, isSearching }: InitialFormProps) {
               {example}
             </Button>
           ))}
-        </VStack>
+        </Stack>
 
         <Button
           type="submit"
-          isDisabled={isSearching}
-          isLoading={isSearching}
-          loadingText="Analyzing your requirements..."
+          disabled={isSearching}
+          loading={isSearching}
           w="full"
           py={7} // increased height for emphasis
-          bg="blue.600"
-          _hover={{ bg: 'blue.700' }}
-          _disabled={{ bg: 'blue.400' }}
-          color="white"
+          colorPalette="blue"
           fontWeight="bold"
           shadow="md"
           rounded="lg"
         >
-          Find my perfect cars
+          {isSearching ? "Analyzing your requirements..." : "Find my perfect cars"}
         </Button>
-      </VStack>
+      </Stack>
     </Box>
   );
 }

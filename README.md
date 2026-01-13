@@ -12,7 +12,7 @@
 [![Google Search API](https://img.shields.io/badge/Google%20Search-API-red)](https://programmablesearchengine.google.com/)
 [![React](https://img.shields.io/badge/React-19.0-blue)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6.x-646CFF)](https://vitejs.dev)
-[![Chakra UI](https://img.shields.io/badge/Chakra%20UI-v2-319795)](https://v2.chakra-ui.com)
+[![Chakra UI](https://img.shields.io/badge/Chakra%20UI-v3-319795)](https://www.chakra-ui.com)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 [Features](#features) • [Demo](#demo) • [Installation](#installation) • [Usage](#usage) • [API Docs](docs/API.md) • [Contributing](#contributing)
@@ -86,7 +86,7 @@ This project was born as an exercise to explore how modern AI tools can create d
 
 ### ⚛️ Modern Tech Stack
 -   **Frontend**: React 19 + TypeScript + Vite
--   **Styling**: Chakra UI v2 for a premium, accessible, and composable UI
+-   **Styling**: Chakra UI v3 for a premium, accessible, and composable UI
 -   **Backend**: Node.js + Express
 -   **Monorepo**: Clean workspace management with NPM Workspaces
 
