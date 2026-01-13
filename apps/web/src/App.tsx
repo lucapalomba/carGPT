@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Box } from '@chakra-ui/react';
 import { Toaster } from 'react-hot-toast';
 import InitialForm from './components/InitialForm';
 import ResultsContainer from './components/ResultsContainer';
@@ -97,9 +98,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <Box minH="100vh" bg="bg.muted" py={12} px={{ base: 4, sm: 6, lg: 8 }}>
       <Toaster position="top-right" />
-      <div className="max-w-7xl mx-auto">
+      <Box maxW="7xl" mx="auto">
         {view === 'form' ? (
           <InitialForm onSearch={handleSearch} isSearching={isSearching} />
         ) : (
@@ -113,8 +114,8 @@ function App() {
             isSearching={isSearching}
           />
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 

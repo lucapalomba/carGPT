@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Box, Stack, Flex, Heading, Text, Button, NativeSelect, Dialog, SimpleGrid } from '@chakra-ui/react';
 import type { Car } from '../App';
 import { api } from '../utils/api';
 
@@ -36,7 +37,7 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
 
     setIsLoading(true);
     setResult(null);
-    const data = await api.post('/api/compare-cars', { car1: car1Name, car2: car2Name });
+    const data = await api.post<{ comparison: ComparisonResult }>('/api/compare-cars', { car1: car1Name, car2: car2Name });
     if (data) {
       setResult(data.comparison);
     }
@@ -44,82 +45,101 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="text-2xl font-bold text-gray-900">📊 Detailed Comparison</h3>
-          <button onClick={onClose} className="text-3xl text-gray-400 hover:text-gray-600">&times;</button>
-        </div>
+    <Dialog.Root open={true} onOpenChange={(e) => !e.open && onClose()} size="xl" scrollBehavior="inside">
+      <Dialog.Backdrop />
+      <Dialog.Positioner>
+        <Dialog.Content borderRadius="2xl" maxH="90vh" maxW="4xl" bg="bg.panel">
+            <Dialog.Header borderBottomWidth="1px" borderColor="border.subtle" fontSize="2xl" fontWeight="bold" color="fg">
+            📊 Detailed Comparison
+            </Dialog.Header>
+            <Dialog.CloseTrigger fontSize="lg" />
+            
+            <Dialog.Body p={8}>
+            <Flex direction={{ base: 'column', sm: 'row' }} align="center" gap={4} justify="center" mb={8}>
+                <NativeSelect.Root flex={1} size="lg">
+                    <NativeSelect.Field
+                        placeholder="First car..."
+                        value={car1Name}
+                        onChange={(e) => setCar1Name(e.target.value)}
+                        color="fg"
+                    >
+                    {cars.map((car, i) => (
+                        <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
+                    ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                </NativeSelect.Root>
 
-        <div className="p-8 overflow-y-auto space-y-8">
-          <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
-            <select
-              className="flex-1 w-full p-3 border border-gray-300 rounded-lg"
-              value={car1Name}
-              onChange={(e) => setCar1Name(e.target.value)}
-            >
-              <option value="">First car...</option>
-              {cars.map((car, i) => (
-                <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
-              ))}
-            </select>
-            <span className="text-xl font-bold text-gray-400">VS</span>
-            <select
-              className="flex-1 w-full p-3 border border-gray-300 rounded-lg"
-              value={car2Name}
-              onChange={(e) => setCar2Name(e.target.value)}
-            >
-              <option value="">Second car...</option>
-              {cars.map((car, i) => (
-                <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
-              ))}
-            </select>
-            <button
-              onClick={handleCompare}
-              disabled={isLoading}
-              className="px-8 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400"
-            >
-              {isLoading ? 'Comparing...' : 'Compare'}
-            </button>
-          </div>
+                <Text fontSize="xl" fontWeight="bold" color="fg.subtle">VS</Text>
+                
+                <NativeSelect.Root flex={1} size="lg">
+                    <NativeSelect.Field
+                        placeholder="Second car..."
+                        value={car2Name}
+                        onChange={(e) => setCar2Name(e.target.value)}
+                        color="fg"
+                    >
+                    {cars.map((car, i) => (
+                        <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
+                    ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                </NativeSelect.Root>
+                <Button
+                onClick={handleCompare}
+                disabled={isLoading}
+                loading={isLoading}
+                px={8}
+                py={4}
+                colorPalette="brand"
+                fontWeight="bold"
+                _disabled={{ bg: 'brand.muted' }}
+                size="lg"
+                >
+                Compare
+                </Button>
+            </Flex>
 
-          {result && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="p-4 bg-indigo-50 border-l-4 border-indigo-500 text-indigo-900 italic">
-                {result.comparison}
-              </div>
+            {result && (
+                <Stack gap={8} align="stretch" animation="fade-in 0.5s">
+                <Box p={4} bg="brand.subtle" borderLeftWidth="4px" borderLeftColor="brand.focus" color="brand.emphasized" fontStyle="italic">
+                    {result.comparison}
+                </Box>
 
-              <div className="space-y-6">
-                {result.categories.map((cat, i) => (
-                  <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
-                    <h4 className="bg-gray-50 p-4 font-bold text-gray-700 border-b border-gray-100">{cat.name}</h4>
-                    <div className="grid grid-cols-2">
-                      <div className={`p-4 border-r border-gray-100 ${cat.winner === 'car1' ? 'bg-green-50' : ''}`}>
-                        <div className="text-xs font-bold text-gray-400 mb-1">{car1Name}</div>
-                        <div className="text-gray-700">{cat.car1}</div>
-                        {cat.winner === 'car1' && <span className="text-xs font-bold text-green-600 mt-2 block">🏆 Winner</span>}
-                      </div>
-                      <div className={`p-4 ${cat.winner === 'car2' ? 'bg-green-50' : ''}`}>
-                        <div className="text-xs font-bold text-gray-400 mb-1">{car2Name}</div>
-                        <div className="text-gray-700">{cat.car2}</div>
-                        {cat.winner === 'car2' && <span className="text-xs font-bold text-green-600 mt-2 block">🏆 Winner</span>}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                <Stack gap={6} align="stretch">
+                    {result.categories.map((cat, i) => (
+                    <Box key={i} borderWidth="1px" borderColor="border.subtle" borderRadius="xl" overflow="hidden">
+                        <Box bg="bg.subtle" p={4} borderBottomWidth="1px" borderBottomColor="border.subtle">
+                        <Heading as="h4" size="sm" color="fg">{cat.name}</Heading>
+                        </Box>
+                        <SimpleGrid columns={2}>
+                        <Box p={4} borderRightWidth="1px" borderRightColor="border.subtle" bg={cat.winner === 'car1' ? 'green.50' : 'transparent'}>
+                            <Text fontSize="xs" fontWeight="bold" color="fg.subtle" mb={1}>{car1Name}</Text>
+                            <Text color="fg">{cat.car1}</Text>
+                            {cat.winner === 'car1' && <Text fontSize="xs" fontWeight="bold" color="fg.success" mt={2}>🏆 Winner</Text>}
+                        </Box>
+                        <Box p={4} bg={cat.winner === 'car2' ? 'green.50' : 'transparent'}>
+                            <Text fontSize="xs" fontWeight="bold" color="fg.subtle" mb={1}>{car2Name}</Text>
+                            <Text color="fg">{cat.car2}</Text>
+                            {cat.winner === 'car2' && <Text fontSize="xs" fontWeight="bold" color="fg.success" mt={2}>🏆 Winner</Text>}
+                        </Box>
+                        </SimpleGrid>
+                    </Box>
+                    ))}
+                </Stack>
 
-              <div className="p-6 bg-gray-900 text-white rounded-xl">
-                <h4 className="text-lg font-bold mb-2 flex items-center gap-2">
-                  <span>🏆</span> Conclusion
-                </h4>
-                <p className="text-gray-300 leading-relaxed">{result.conclusion}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+                <Box p={6} bg="gray.900" color="white" borderRadius="xl">
+                    <Heading as="h4" size="md" mb={2} display="flex" alignItems="center" gap={2}>
+                    <span>🏆</span> Conclusion
+                    </Heading>
+                    <Text color="gray.300" lineHeight="relaxed">{result.conclusion}</Text>
+                </Box>
+                </Stack>
+            )}
+            </Dialog.Body>
+        </Dialog.Content>
+      </Dialog.Positioner>
+    </Dialog.Root>
   );
 }
 

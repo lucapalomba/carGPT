@@ -1,3 +1,4 @@
+import { Box, Table, Text, Flex, Button, Stack } from '@chakra-ui/react';
 import type { Car } from '../App';
 import ImageCarousel from './ImageCarousel';
 
@@ -13,100 +14,101 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
   ));
 
   return (
-    <div className="overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-200">
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="bg-gray-50">
-            <th className="p-6 border-b border-gray-200 bg-gray-50 sticky left-0 z-10 w-48 font-bold text-gray-700">Feature</th>
+    <Box overflowX="auto" bg="bg.panel" borderRadius="xl" shadow="lg" borderWidth="1px" borderColor="border">
+      <Table.Root size="sm" variant="outline" showColumnBorder={false}>
+        <Table.Header>
+          <Table.Row bg="bg.subtle">
+            <Table.ColumnHeader p={6} borderBottomWidth="1px" borderColor="border" bg="bg.subtle" position="sticky" left={0} zIndex={10} w="48" color="fg">Feature</Table.ColumnHeader>
             {cars.map((car, i) => (
-              <th key={i} className="p-6 border-b border-gray-200 min-w-[300px]">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-500">Car {i + 1}</span>
-                  <button
+              <Table.ColumnHeader key={i} p={6} borderBottomWidth="1px" borderColor="border" minW="300px">
+                <Flex justify="space-between" align="start" mb={4}>
+                  <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" letterSpacing="wider" color="brand.focus">Car {i + 1}</Text>
+                  <Button
                     onClick={() => onTogglePin(i)}
-                    className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${
-                      pinnedIndices.has(i) 
-                      ? 'bg-indigo-600 text-white' 
-                      : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
-                    }`}
+                    size="xs"
+                    px={3}
+                    py={1}
+                    rounded="full"
+                    colorPalette="brand"
+                    variant={pinnedIndices.has(i) ? 'solid' : 'surface'}
+                    _hover={{ bg: pinnedIndices.has(i) ? 'brand.emphasized' : 'brand.muted' }}
                   >
                     {pinnedIndices.has(i) ? '📌 Pinned' : '📌 Pin'}
-                  </button>
-                </div>
-                <div className="text-xl font-bold text-gray-900">{car.make} {car.model}</div>
-                <div className="text-gray-500">{car.year}</div>
+                  </Button>
+                </Flex>
+                <Text fontSize="xl" fontWeight="bold" color="fg">{car.make} {car.model}</Text>
+                <Text color="fg.muted" fontWeight="normal">{car.year}</Text>
                 <ImageCarousel images={car.images || []} />
-              </th>
+              </Table.ColumnHeader>
             ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
-          <tr className="bg-indigo-50/30">
-            <td className="p-6 font-bold text-gray-700 bg-indigo-50 sticky left-0">Why choose it</td>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          <Table.Row bg="brand.subtle" _hover={{ bg: 'brand.muted' }}>
+            <Table.Cell p={6} fontWeight="bold" color="fg" bg="brand.subtle" position="sticky" left={0} zIndex={5}>Why choose it</Table.Cell>
             {cars.map((car, i) => (
-              <td key={i} className="p-6 text-sm italic text-gray-600 leading-relaxed">
+              <Table.Cell key={i} p={6} fontSize="sm" fontStyle="italic" color="fg.muted" lineHeight="relaxed">
                 {car.reason}
-              </td>
+              </Table.Cell>
             ))}
-          </tr>
-          <tr>
-            <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">Type</td>
-            {cars.map((car, i) => <td key={i} className="p-6 text-gray-700">{car.type}</td>)}
-          </tr>
-          <tr>
-            <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">Price</td>
-            {cars.map((car, i) => <td key={i} className="p-6 text-indigo-600 font-bold">{car.price}</td>)}
-          </tr>
+          </Table.Row>
+          <Table.Row>
+            <Table.Cell p={6} fontWeight="bold" color="fg" bg="bg.subtle" position="sticky" left={0} zIndex={5}>Type</Table.Cell>
+            {cars.map((car, i) => <Table.Cell key={i} p={6} color="fg">{car.type}</Table.Cell>)}
+          </Table.Row>
+          <Table.Row>
+            <Table.Cell p={6} fontWeight="bold" color="fg" bg="bg.subtle" position="sticky" left={0} zIndex={5}>Price</Table.Cell>
+            {cars.map((car, i) => <Table.Cell key={i} p={6} color="brand.emphasized" fontWeight="bold">{car.price}</Table.Cell>)}
+          </Table.Row>
 
-          <tr>
-            <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">Strengths</td>
+          <Table.Row>
+            <Table.Cell p={6} fontWeight="bold" color="fg" bg="bg.subtle" position="sticky" left={0} zIndex={5}>Strengths</Table.Cell>
             {cars.map((car, i) => (
-              <td key={i} className="p-6">
-                <ul className="space-y-1">
+              <Table.Cell key={i} p={6}>
+                <Stack gap={1}>
                   {car && car.strengths && car.strengths.map((s, idx) => (
-                    <li key={idx} className="text-sm text-green-700 flex items-start gap-2">
-                        <span className="mt-1">✅</span>
-                        <span>{s}</span>
-                    </li>
+                    <Flex key={idx} fontSize="sm" color="fg.success" align="start" gap={2}>
+                        <Text as="span" mt={0.5}>✅</Text>
+                        <Text as="span">{s}</Text>
+                    </Flex>
                   ))}
-                </ul>
-              </td>
+                </Stack>
+              </Table.Cell>
             ))}
-          </tr>
-          <tr>
-            <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">Weaknesses</td>
+          </Table.Row>
+          <Table.Row>
+            <Table.Cell p={6} fontWeight="bold" color="fg" bg="bg.subtle" position="sticky" left={0} zIndex={5}>Weaknesses</Table.Cell>
             {cars.map((car, i) => (
-              <td key={i} className="p-6">
-                <ul className="space-y-1">
+              <Table.Cell key={i} p={6}>
+                <Stack gap={1}>
                   {car && car.weaknesses && car.weaknesses.map((w, idx) => (
-                    <li key={idx} className="text-sm text-red-700 flex items-start gap-2">
-                        <span className="mt-1">❌</span>
-                        <span>{w}</span>
-                    </li>
+                    <Flex key={idx} fontSize="sm" color="fg.error" align="start" gap={2}>
+                        <Text as="span" mt={0.5}>❌</Text>
+                        <Text as="span">{w}</Text>
+                    </Flex>
                   ))}
-                </ul>
-              </td>
+                </Stack>
+              </Table.Cell>
             ))}
-          </tr>
+          </Table.Row>
 
           {allPropertyIds.map(id => {
-            // Find the first car that has this property to get the translated label
             const label = cars.find(c => c.properties?.[id])?.properties?.[id]?.translatedLabel || id;
             
             return (
-              <tr key={id}>
-                <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">{label}</td>
+              <Table.Row key={id}>
+                <Table.Cell p={6} fontWeight="bold" color="fg" bg="bg.subtle" position="sticky" left={0} zIndex={5}>{label}</Table.Cell>
                 {cars.map((car, i) => (
-                  <td key={i} className="p-6 text-gray-700">
+                  <Table.Cell key={i} p={6} color="fg">
                     {car.properties?.[id]?.value || '-'}
-                  </td>
+                  </Table.Cell>
                 ))}
-              </tr>
+              </Table.Row>
             );
           })}
-        </tbody>
-      </table>
-    </div>
+        </Table.Body>
+      </Table.Root>
+    </Box>
   );
 }
 

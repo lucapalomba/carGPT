@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Box, Image, IconButton, Text, Flex } from '@chakra-ui/react';
 
 interface ImageCarouselProps {
   images: Array<{
@@ -12,9 +13,9 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
 
   if (!images || images.length === 0) {
     return (
-      <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+      <Flex w="full" h="48" bg="gray.100" borderRadius="lg" alignItems="center" justifyContent="center" color="gray.400">
         No images available
-      </div>
+      </Flex>
     );
   }
 
@@ -27,41 +28,69 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
   };
 
   return (
-    <div className="relative group w-full h-48 mt-4 overflow-hidden rounded-lg bg-gray-100">
-      <img
+    <Box position="relative" role="group" w="full" h="48" mt={4} overflow="hidden" borderRadius="lg" bg="gray.100">
+      <Image
         src={images[currentIndex].url}
         alt={images[currentIndex].title}
         loading="lazy"
-        className="w-full h-full object-cover transition-opacity duration-500"
+        w="full"
+        h="full"
+        objectFit="cover"
+        transition="opacity 0.5s"
       />
       
       {images.length > 1 && (
         <>
-          <button
+          <IconButton
+            aria-label="Previous image"
             onClick={prevSlide}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            position="absolute"
+            left={2}
+            top="50%"
+            transform="translateY(-50%)"
+            bg="black/30"
+            color="white"
+            size="sm"
+            rounded="full"
+            opacity={0}
+            _hover={{ bg: 'black/50' }}
+            _groupHover={{ opacity: 1 }}
+            transition="opacity 0.2s"
           >
-            ←
-          </button>
-          <button
+            <Text fontSize="lg">←</Text>
+          </IconButton>
+          <IconButton
+            aria-label="Next image"
             onClick={nextSlide}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            position="absolute"
+            right={2}
+            top="50%"
+            transform="translateY(-50%)"
+            bg="black/30"
+            color="white"
+            size="sm"
+            rounded="full"
+            opacity={0}
+            _hover={{ bg: 'black/50' }}
+            _groupHover={{ opacity: 1 }}
+            transition="opacity 0.2s"
           >
-            →
-          </button>
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            <Text fontSize="lg">→</Text>
+          </IconButton>
+          <Flex position="absolute" bottom={2} left="50%" transform="translateX(-50%)" gap={1}>
             {images.map((_, idx) => (
-              <div
+              <Box
                 key={idx}
-                className={`w-1.5 h-1.5 rounded-full ${
-                  idx === currentIndex ? 'bg-white' : 'bg-white/50'
-                }`}
+                w="1.5"
+                h="1.5"
+                rounded="full"
+                bg={idx === currentIndex ? 'white' : 'white/50'}
               />
             ))}
-          </div>
+          </Flex>
         </>
       )}
-    </div>
+    </Box>
   );
 };
 

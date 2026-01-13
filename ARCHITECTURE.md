@@ -13,7 +13,7 @@ CarGPT has transitioned to a powerful **Monorepo** architecture to separate conc
 ```text
 /
 ├── apps/
-│   ├── web/                # React Frontend (Vite + TS + Tailwind v4)
+│   ├── web/                # React Frontend (Vite + TS + Chakra UI)
 │   │   ├── src/
 │   │   │   ├── components/  # Reusable UI components
 │   │   │   ├── App.tsx      # Main application logic
@@ -62,7 +62,7 @@ CarGPT uses **Langfuse** for end-to-end tracing of AI operations:
 
 The frontend is a modern **Single Page Application (SPA)**:
 - **React 19**: Modern UI library with Functional Components and Hooks.
-- **Tailwind CSS v4**: Utility-first CSS framework for rapid UI styling with zero runtime overhead.
+- **Chakra UI v2**: Simple, modular and accessible component library that gives you the building blocks you need to build your React applications.
 - **Vite**: Ultra-fast build tool and dev server.
 - **TypeScript**: Ensuring type safety across components and API interactions.
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Box, Stack, Heading, Text, Textarea, Button, Image, Field } from '@chakra-ui/react';
 
 interface InitialFormProps {
   onSearch: (requirements: string) => void;
@@ -24,62 +25,77 @@ function InitialForm({ onSearch, isSearching }: InitialFormProps) {
   };
 
   return (
-    <div className="bg-white p-8 rounded-2xl shadow-xl max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <div className="flex justify-center mb-4">
-          <img src="/cargpt_logo.png" alt="CarGPT Logo" className="h-full object-contain" />
-        </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">CarGPT</h1>
-        <p className="text-gray-600">Describe what you're looking for in a car and we'll suggest the perfect models for you</p>
-      </div>
+    <Box bg="bg.panel" p={8} borderRadius="2xl" shadow="xl" maxW="2xl" mx="auto">
+      <Box textAlign="center" mb={8}>
+        <Box display="flex" justifyContent="center" mb={4}>
+          <Image src="/cargpt_logo.png" alt="CarGPT Logo" maxH="150px" objectFit="contain" />
+        </Box>
+        <Heading as="h1" size="xl" color="fg" mb={2}>CarGPT</Heading>
+        <Text color="fg.muted">Describe what you're looking for in a car and we'll suggest the perfect models for you</Text>
+      </Box>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="requirements" className="block text-sm font-medium text-gray-700 mb-1">
+      <Stack as="form" gap={6} onSubmit={handleSubmit} align="stretch">
+        <Field.Root>
+          <Field.Label htmlFor="requirements" fontSize="sm" fontWeight="medium" color="fg" mb={1}>
             Describe your requirements
-          </label>
-          <textarea
+          </Field.Label>
+          <Textarea
             id="requirements"
             rows={6}
-            className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            p={4}
+            borderColor="border.emphasized"
+            borderRadius="lg"
             placeholder="Example: Looking for a family car with space for 5 people..."
             value={requirements}
             onChange={(e) => setRequirements(e.target.value)}
+            color="fg"
             required
+            css={{
+                "--focus-color": "colors.brand.focus",
+                _focus: { ring: "2px", ringColor: "brand.focus" }
+            }}
           />
-          <p className="mt-2 text-sm text-gray-500">The more specific you are, the better the suggestions! 💡</p>
-        </div>
+          <Text mt={2} fontSize="sm" color="fg.muted">The more specific you are, the better the suggestions! 💡</Text>
+        </Field.Root>
 
-        <div className="space-y-4">
-          <p className="font-semibold text-gray-700">Example prompts:</p>
+        <Stack gap={4} align="stretch">
+          <Text fontWeight="semibold" color="fg">Example prompts:</Text>
           {EXAMPLES.map((example, idx) => (
-            <button
+            <Button
               key={idx}
-              type="button"
-              className="w-full text-left p-4 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
               onClick={() => setRequirements(example)}
+              variant="outline"
+              bg="bg.subtle"
+              borderColor="border"
+              textAlign="left"
+              h="auto"
+              whiteSpace="pre-wrap"
+              p={4}
+              fontSize="sm"
+              fontWeight="normal"
+              justifyContent="flex-start"
+              color="fg"
             >
               {example}
-            </button>
+            </Button>
           ))}
-        </div>
+        </Stack>
 
-        <button
+        <Button
           type="submit"
           disabled={isSearching}
-          className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold rounded-lg shadow-md transition-colors flex justify-center items-center gap-3"
+          loading={isSearching}
+          w="full"
+          py={7}
+          colorPalette="brand"
+          fontWeight="bold"
+          shadow="md"
+          rounded="lg"
         >
-          {isSearching ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Analyzing your requirements...</span>
-            </>
-          ) : (
-            'Find my perfect cars'
-          )}
-        </button>
-      </form>
-    </div>
+          {isSearching ? "Analyzing your requirements..." : "Find my perfect cars"}
+        </Button>
+      </Stack>
+    </Box>
   );
 }
 

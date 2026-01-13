@@ -78,7 +78,7 @@ This project uses a **Monorepo** architecture with NPM Workspaces:
 ```text
 CarGPT/
 ├── apps/
-│   ├── web/           # React Frontend (Vite + TS + Tailwind v4)
+│   ├── web/           # React Frontend (Vite + TS + Chakra UI)
 │   └── server/        # Express Backend (Node.js + TS)
 ├── docs/              # Project documentation
 ├── scripts/           # Utility scripts (e.g., commit validation)

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Box, Stack, Flex, Heading, Text, Button, NativeSelect, Input, Spinner, Center } from '@chakra-ui/react';
 import type { Car } from '../App';
 import { api } from '../utils/api';
 
@@ -40,7 +41,7 @@ function QASection({ cars }: QASectionProps) {
     setQuestion('');
     setIsLoading(true);
 
-    const data = await api.post('/api/ask-about-car', { car: carName, question: userQuestion });
+    const data = await api.post<{ answer: string }>('/api/ask-about-car', { car: carName, question: userQuestion });
     if (data) {
       setHistory(prev => [...prev, { type: 'answer', text: data.answer }]);
     } else {
@@ -51,85 +52,106 @@ function QASection({ cars }: QASectionProps) {
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 flex flex-col h-[500px]">
-      <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+    <Flex direction="column" h="500px" bg="bg.panel" p={8} borderRadius="xl" shadow="lg" borderWidth="1px" borderColor="border.subtle">
+      <Heading as="h3" size="md" color="fg" mb={6} display="flex" alignItems="center" gap={2}>
         <span>💬</span> Have questions about these cars?
-      </h3>
+      </Heading>
 
-      <div className="space-y-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <select
-            className="flex-[2] p-3 border border-gray-300 rounded-lg text-sm"
-            value={selectedCarIdx}
-            onChange={(e) => setSelectedCarIdx(e.target.value)}
-          >
-            <option value="">Select a car...</option>
-            {cars.map((car, i) => (
-              <option key={i} value={i}>{car.make} {car.model}</option>
-            ))}
-          </select>
-          <input
-            type="text"
-            className="flex-[5] p-3 border border-gray-300 rounded-lg text-sm"
+      <Stack gap={4} mb={6} align="stretch">
+        <Flex gap={3} direction={{ base: 'column', sm: 'row' }}>
+          <NativeSelect.Root flex={2} size="md">
+            <NativeSelect.Field
+                value={selectedCarIdx}
+                onChange={(e) => setSelectedCarIdx(e.target.value)}
+                placeholder="Select a car..."
+                borderRadius="lg"
+                color="fg"
+            >
+                {cars.map((car, i) => (
+                <option key={i} value={i}>{car.make} {car.model}</option>
+                ))}
+            </NativeSelect.Field>
+            <NativeSelect.Indicator />
+          </NativeSelect.Root>
+          <Input
+            flex={5}
             placeholder="e.g. What's the annual maintenance cost?"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleAsk()}
+            size="md"
+            borderRadius="lg"
+            color="fg"
           />
-          <button
+          <Button
             onClick={handleAsk}
             disabled={isLoading}
-            className="flex-1 px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors"
+            flex={1}
+            colorPalette="brand"
+            fontWeight="bold"
+            _disabled={{ bg: 'brand.muted' }}
+            size="md"
+            borderRadius="lg"
           >
             Ask
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Flex>
+      </Stack>
 
-      <div 
+      <Box 
         ref={historyRef}
-        className="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-100"
+        flex={1}
+        overflowY="auto"
+        p={4}
+        bg="bg.canvas"
+        borderRadius="lg"
+        borderWidth="1px"
+        borderColor="border.subtle"
       >
         {history.length === 0 && (
-          <div className="text-center text-gray-400 mt-20 italic">
-            Questions and answers will appear here
-          </div>
+          <Center h="full">
+            <Text color="fg.subtle" fontStyle="italic">
+              Questions and answers will appear here
+            </Text>
+          </Center>
         )}
-        {history.map((msg, i) => (
-          <div 
-            key={i} 
-            className={`flex flex-col ${msg.type === 'question' ? 'items-end' : 'items-start'}`}
-          >
-            <div 
-              className={`max-w-[85%] p-4 rounded-2xl text-sm ${
-                msg.type === 'question' 
-                ? 'bg-indigo-600 text-white rounded-tr-none' 
-                : msg.isError 
-                  ? 'bg-red-50 text-red-700 border border-red-100 rounded-tl-none'
-                  : 'bg-white text-gray-700 shadow-sm border border-gray-100 rounded-tl-none'
-              }`}
+        <Stack gap={4} align="stretch">
+          {history.map((msg, i) => (
+            <Flex 
+              key={i} 
+              direction="column" 
+              alignItems={msg.type === 'question' ? 'flex-end' : 'flex-start'}
             >
-              {msg.type === 'question' && (
-                <div className="text-[10px] font-bold uppercase opacity-70 mb-1">{msg.carName}</div>
-              )}
-              <div className="whitespace-pre-wrap">{msg.text}</div>
-            </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex items-start">
-            <div className="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 flex items-center gap-3">
-              <div className="flex gap-1">
-                <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce"></div>
-                <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                <div className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-              </div>
-              <span className="text-xs text-gray-400 italic">Thinking...</span>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+              <Box 
+                maxW="85%" 
+                p={4} 
+                borderRadius="2xl" 
+                borderTopRightRadius={msg.type === 'question' ? 0 : '2xl'}
+                borderTopLeftRadius={msg.type === 'question' ? '2xl' : 0}
+                bg={msg.type === 'question' ? 'brand.solid' : msg.isError ? 'red.50' : 'bg.panel'}
+                color={msg.type === 'question' ? 'brand.contrast' : msg.isError ? 'red.700' : 'fg'}
+                borderWidth={msg.type !== 'question' ? '1px' : 0}
+                borderColor={msg.isError ? 'red.100' : 'border.subtle'}
+                boxShadow={msg.type !== 'question' ? 'sm' : 'none'}
+              >
+                {msg.type === 'question' && (
+                  <Text fontSize="10px" fontWeight="bold" textTransform="uppercase" opacity={0.7} mb={1}>{msg.carName}</Text>
+                )}
+                <Text whiteSpace="pre-wrap" fontSize="sm">{msg.text}</Text>
+              </Box>
+            </Flex>
+          ))}
+          {isLoading && (
+            <Flex align="start">
+              <Box bg="bg.panel" p={4} borderRadius="2xl" borderTopLeftRadius={0} shadow="sm" borderWidth="1px" borderColor="border.subtle" display="flex" alignItems="center" gap={3}>
+                <Spinner size="sm" color="fg.subtle" />
+                <Text fontSize="xs" color="fg.subtle" fontStyle="italic">Thinking...</Text>
+              </Box>
+            </Flex>
+          )}
+        </Stack>
+      </Box>
+    </Flex>
   );
 }
 
