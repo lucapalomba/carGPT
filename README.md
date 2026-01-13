@@ -228,6 +228,8 @@ Looking for a robust SUV for outdoor adventures:
 
 CarGPT follows a modern **Monorepo** architecture using **NPM Workspaces**.
 
+### AI Orchestration Flow
+
 ```mermaid
 flowchart TD
     User([User Request]) --> Router{Endpoint?}
