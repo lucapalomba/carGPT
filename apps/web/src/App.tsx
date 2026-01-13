@@ -13,6 +13,7 @@ export interface Car {
   strengths: string[];
   weaknesses: string[];
   reason: string;
+  pinned?: boolean;
   properties?: Record<string, {
     translatedLabel: string;
     value: string;
@@ -61,11 +62,13 @@ function App() {
       setCurrentCars(data.cars);
       setAnalysisHistory(prev => [...prev, data.analysis]);
       
-      // Pinned cars should still be pinned. They are now at 0, 1, ...
+      // Calculate new pinned indices based on the 'pinned' property from the server
       const newPinned = new Set<number>();
-      for (let i = 0; i < pinnedCars.length; i++) {
-        newPinned.add(i);
-      }
+      data.cars.forEach((car, index) => {
+        if (car.pinned) {
+          newPinned.add(index);
+        }
+      });
       setPinnedIndices(newPinned);
     }
 
