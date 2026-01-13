@@ -16,7 +16,7 @@ FOR PINNED_CARS (Existing Choices):
 
 Return this JSON format:
 {
-  "analysis": "Brief analysis of the user's needs AND explanation of the adaptation (2–3 sentences)",
+  "analysis": "Brief analysis of the user's needs AND explanation of the adaptation (2–3 sentences). If you don't suggest any model, explain why.",
   "choices": [{
     "make": "Toyota",
     "model": "Corolla",

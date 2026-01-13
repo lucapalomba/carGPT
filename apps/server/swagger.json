@@ -661,6 +661,11 @@
                         "description": "Detailed reasoning behind the selection",
                         "example": "This car matches your need for space and efficiency perfectly."
                     },
+                    "pinned": {
+                        "type": "boolean",
+                        "description": "Whether this car is pinned by the user",
+                        "example": false
+                    },
                     "images": {
                         "type": "array",
                         "items": {
