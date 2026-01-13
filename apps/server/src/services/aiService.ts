@@ -211,7 +211,7 @@ export const aiService = {
             { role: "system", content: jsonGuard }
           ];
 
-          const response = await ollamaService.callOllama(messages, trace, `elaborate_${carChoice.make}`);
+          const response = await ollamaService.callOllama(messages, trace, `elaborate_${carChoice.make}_${carChoice.model}`);
           const result = ollamaService.parseJsonResponse(response);
           const merged = { ...carChoice, ...(result.car || {}) };
           return merged;
@@ -301,7 +301,7 @@ export const aiService = {
         }
       ];
 
-      const response = await ollamaService.callOllama(messages, trace, `translate_car_${index}`);
+      const response = await ollamaService.callOllama(messages, trace, `translate_car_${car.make}_${car.model}`);
       const translatedCar = ollamaService.parseJsonResponse(response);
       
       // Validate the translated car maintains critical fields
