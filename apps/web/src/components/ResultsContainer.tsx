@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Box, VStack, Flex, Heading, Text, Button, FormLabel, Input, SimpleGrid } from '@chakra-ui/react';
 import type { Car } from '../App';
 import ComparisonTable from './ComparisonTable';
 import QASection from './QASection';
@@ -43,51 +44,64 @@ function ResultsContainer({
   };
 
   return (
-    <div ref={resultsRef} className="space-y-12">
-      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm">
-        <h2 className="text-3xl font-bold text-gray-900">🎯 Your ideal cars</h2>
-        <button
+    <VStack ref={resultsRef} spacing={12} align="stretch">
+      <Flex justify="space-between" align="center" bg="white" p={6} borderRadius="xl" shadow="sm">
+        <Heading size="lg" color="gray.900">🎯 Your ideal cars</Heading>
+        <Button
           onClick={onNewSearch}
-          className="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors"
+          bg="gray.200"
+          _hover={{ bg: 'gray.300' }}
+          fontWeight="semibold"
+          rounded="lg"
         >
           New Search
-        </button>
-      </div>
+        </Button>
+      </Flex>
 
-      <div className="bg-white p-8 rounded-xl shadow-lg border border-indigo-100">
-        <div className="space-y-6">
+      <Box bg="white" p={8} borderRadius="xl" shadow="lg" borderWidth="1px" borderColor="indigo.100">
+        <VStack spacing={6} align="stretch">
           {analysisHistory.map((text, index) => (
-            <div key={index} className="pb-6 border-b border-gray-100 last:border-0">
-              <h4 className="text-indigo-600 font-bold mb-2">
+            <Box key={index} pb={6} borderBottomWidth="1px" borderBottomColor="gray.100" _last={{ borderBottomWidth: 0, pb: 0 }}>
+              <Heading as="h4" size="sm" color="indigo.600" mb={2}>
                 {index === 0 ? '📋 Initial Analysis' : `🔄 Refinement #${index}`}
-              </h4>
-              <p className="text-gray-700 leading-relaxed">{text}</p>
-            </div>
+              </Heading>
+              <Text color="gray.700" lineHeight="relaxed">{text}</Text>
+            </Box>
           ))}
-        </div>
+        </VStack>
 
-        <div className="mt-8 pt-8 border-t border-gray-100">
-          <label className="block text-sm font-bold text-gray-700 mb-2">💬 Refine these results:</label>
-          <div className="flex gap-4">
-            <input
-              type="text"
-              className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+        <Box mt={8} pt={8} borderTopWidth="1px" borderTopColor="gray.100">
+          <FormLabel fontSize="sm" fontWeight="bold" color="gray.700" mb={2}>💬 Refine these results:</FormLabel>
+          <Flex gap={4}>
+            <Input
+              flex={1}
+              p={4} // p={3} in tailwind is 0.75rem, Chakra p={4} is 1rem, usually inputs need height or p adjustment. Default Input size="md" is good.
+              variant="outline"
+              borderColor="gray.300"
+              focusBorderColor="indigo.500"
               placeholder="e.g. 'Too expensive', 'I prefer German cars'..."
               value={refineInput}
               onChange={(e) => setRefineInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleRefine()}
             />
-            <button
+            <Button
               onClick={handleRefine}
-              disabled={isSearching}
-              className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:bg-indigo-400 transition-colors"
+              isDisabled={isSearching}
+              px={8}
+              py={4} // Match input height roughly
+              bg="indigo.600"
+              color="white"
+              fontWeight="bold"
+              _hover={{ bg: 'indigo.700' }}
+              _disabled={{ bg: 'indigo.400', cursor: 'not-allowed' }}
+              rounded="lg"
             >
               Update
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-gray-500">💡 Tip: Pin cars you like (📌) to keep them during updates.</p>
-        </div>
-      </div>
+            </Button>
+          </Flex>
+          <Text mt={2} fontSize="xs" color="gray.500">💡 Tip: Pin cars you like (📌) to keep them during updates.</Text>
+        </Box>
+      </Box>
 
       <ComparisonTable 
         cars={cars} 
@@ -95,37 +109,55 @@ function ResultsContainer({
         onTogglePin={onTogglePin} 
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 bg-white p-8 rounded-xl shadow-lg border border-indigo-50 flex flex-col justify-between">
-           <div>
-             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+      <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={8}>
+        <Box gridColumn={{ lg: "span 1" }} bg="white" p={8} borderRadius="xl" shadow="lg" borderWidth="1px" borderColor="indigo.50" display="flex" flexDirection="column" justifyContent="space-between">
+           <Box>
+             <Heading as="h3" size="md" color="gray.900" mb={6} display="flex" alignItems="center" gap={2}>
                <span>🔍</span> Actions
-             </h3>
-             <p className="text-gray-600 text-sm mb-8">What would you like to do now?</p>
-           </div>
+             </Heading>
+             <Text color="gray.600" fontSize="sm" mb={8}>What would you like to do now?</Text>
+           </Box>
            
-           <div className="space-y-4">
-             <button 
+           <VStack spacing={4}>
+             <Box 
+                as="button"
                 onClick={() => setShowCompare(true)}
-                className="w-full p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-left transition-all group"
+                w="full"
+                p={4}
+                bg="gray.50"
+                _hover={{ bg: 'gray.100', transform: 'translateX(2px)' }}
+                borderWidth="1px"
+                borderColor="gray.200"
+                borderRadius="xl"
+                textAlign="left"
+                transition="all 0.2s"
              >
-                <div className="font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">📊 Detailed comparison</div>
-                <div className="text-xs text-gray-500">Compare two cars side-by-side in depth</div>
-             </button>
-             <button 
+                <Text fontWeight="bold" color="indigo.600" mb={1}>📊 Detailed comparison</Text>
+                <Text fontSize="xs" color="gray.500">Compare two cars side-by-side in depth</Text>
+             </Box>
+             <Box 
+                as="button"
                 onClick={() => setShowAlternatives(true)}
-                className="w-full p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-left transition-all group"
+                w="full"
+                p={4}
+                bg="gray.50"
+                _hover={{ bg: 'gray.100', transform: 'translateX(2px)' }}
+                borderWidth="1px"
+                borderColor="gray.200"
+                borderRadius="xl"
+                textAlign="left"
+                transition="all 0.2s"
              >
-                <div className="font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">🔄 Show alternatives</div>
-                <div className="text-xs text-gray-500">Find similar models based on your favorite</div>
-             </button>
-           </div>
-        </div>
+                <Text fontWeight="bold" color="indigo.600" mb={1}>🔄 Show alternatives</Text>
+                <Text fontSize="xs" color="gray.500">Find similar models based on your favorite</Text>
+             </Box>
+           </VStack>
+        </Box>
 
-        <div className="lg:col-span-2">
+        <Box gridColumn={{ lg: "span 2" }}>
            <QASection cars={cars} />
-        </div>
-      </div>
+        </Box>
+      </SimpleGrid>
 
       {showCompare && (
         <DetailedComparison 
@@ -140,7 +172,7 @@ function ResultsContainer({
           onClose={() => setShowAlternatives(false)} 
         />
       )}
-    </div>
+    </VStack>
   );
 }
 

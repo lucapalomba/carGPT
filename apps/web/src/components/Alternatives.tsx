@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Box, VStack, Heading, Text, Button, Select, Input, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody } from '@chakra-ui/react';
 import type { Car } from '../App';
 import { api } from '../utils/api';
 
@@ -27,7 +28,7 @@ function Alternatives({ cars, onClose }: AlternativesProps) {
     }
 
     setIsLoading(true);
-    const data = await api.post('/api/get-alternatives', { car: selectedCar, reason });
+    const data = await api.post<{ alternatives: AlternativeCar[] }>('/api/get-alternatives', { car: selectedCar, reason });
     if (data) {
       setAlternatives(data.alternatives);
     }
@@ -35,55 +36,64 @@ function Alternatives({ cars, onClose }: AlternativesProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="text-2xl font-bold text-gray-900">🔄 Similar Alternatives</h3>
-          <button onClick={onClose} className="text-3xl text-gray-400 hover:text-gray-600">&times;</button>
-        </div>
-
-        <div className="p-8 overflow-y-auto space-y-6">
-          <div className="space-y-4">
-            <select
-              className="w-full p-3 border border-gray-300 rounded-lg"
+    <Modal isOpen={true} onClose={onClose} size="xl" scrollBehavior="inside">
+      <ModalOverlay />
+      <ModalContent borderRadius="2xl" maxH="90vh">
+        <ModalHeader borderBottomWidth="1px" borderColor="gray.100" fontSize="2xl" fontWeight="bold">
+          🔄 Similar Alternatives
+        </ModalHeader>
+        <ModalCloseButton fontSize="lg" />
+        
+        <ModalBody p={8} overflowY="auto">
+          <VStack spacing={4} align="stretch" mb={6}>
+            <Select
+              placeholder="Select a car you like..."
               value={selectedCar}
               onChange={(e) => setSelectedCar(e.target.value)}
+              size="lg"
             >
-              <option value="">Select a car you like...</option>
               {cars.map((car, i) => (
                 <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
               ))}
-            </select>
-            <input
-              type="text"
-              className="w-full p-3 border border-gray-300 rounded-lg"
+            </Select>
+            <Input
               placeholder="Why are you looking for alternatives? (optional)"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
+              size="lg"
             />
-            <button
+            <Button
               onClick={handleSearch}
-              disabled={isLoading}
-              className="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400"
+              isDisabled={isLoading}
+              isLoading={isLoading}
+              loadingText="Searching..."
+              w="full"
+              py={4}
+              bg="indigo.600"
+              color="white"
+              fontWeight="bold"
+              _hover={{ bg: 'indigo.700' }}
+              _disabled={{ bg: 'indigo.400' }}
+              size="lg"
             >
-              {isLoading ? 'Searching...' : 'Find Alternatives'}
-            </button>
-          </div>
+              Find Alternatives
+            </Button>
+          </VStack>
 
-          <div className="space-y-4">
+          <VStack spacing={4} align="stretch">
             {alternatives.map((alt, i) => (
-              <div key={i} className="p-6 border border-gray-100 rounded-xl bg-gray-50/50 hover:bg-white hover:shadow-md transition-all">
-                <h4 className="text-lg font-bold text-indigo-700 mb-2">{i + 1}. {alt.make} {alt.model}</h4>
-                <div className="space-y-2 text-sm">
-                  <p><strong className="text-gray-700">Why consider it:</strong> {alt.reason}</p>
-                  <p><strong className="text-gray-700">Advantages:</strong> {alt.advantages}</p>
-                </div>
-              </div>
+              <Box key={i} p={6} borderWidth="1px" borderColor="gray.100" borderRadius="xl" bg="gray.50" _hover={{ bg: 'white', shadow: 'md' }} transition="all 0.2s">
+                <Heading as="h4" size="md" color="indigo.700" mb={2}>{i + 1}. {alt.make} {alt.model}</Heading>
+                <VStack align="stretch" spacing={2} fontSize="sm">
+                  <Text><Text as="strong" color="gray.700">Why consider it:</Text> {alt.reason}</Text>
+                  <Text><Text as="strong" color="gray.700">Advantages:</Text> {alt.advantages}</Text>
+                </VStack>
+              </Box>
             ))}
-          </div>
-        </div>
-      </div>
-    </div>
+          </VStack>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
   );
 }
 

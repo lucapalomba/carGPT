@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Box, VStack, Flex, Heading, Text, Button, Select, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, SimpleGrid } from '@chakra-ui/react';
 import type { Car } from '../App';
 import { api } from '../utils/api';
 
@@ -36,7 +37,7 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
 
     setIsLoading(true);
     setResult(null);
-    const data = await api.post('/api/compare-cars', { car1: car1Name, car2: car2Name });
+    const data = await api.post<{ comparison: ComparisonResult }>('/api/compare-cars', { car1: car1Name, car2: car2Name });
     if (data) {
       setResult(data.comparison);
     }
@@ -44,82 +45,96 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="text-2xl font-bold text-gray-900">📊 Detailed Comparison</h3>
-          <button onClick={onClose} className="text-3xl text-gray-400 hover:text-gray-600">&times;</button>
-        </div>
-
-        <div className="p-8 overflow-y-auto space-y-8">
-          <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
-            <select
-              className="flex-1 w-full p-3 border border-gray-300 rounded-lg"
+    <Modal isOpen={true} onClose={onClose} size="4xl" scrollBehavior="inside">
+      <ModalOverlay />
+      <ModalContent borderRadius="2xl" maxH="90vh">
+        <ModalHeader borderBottomWidth="1px" borderColor="gray.100" fontSize="2xl" fontWeight="bold">
+          📊 Detailed Comparison
+        </ModalHeader>
+        <ModalCloseButton fontSize="lg" />
+        
+        <ModalBody p={8} overflowY="auto">
+          <Flex direction={{ base: 'column', sm: 'row' }} align="center" gap={4} justify="center" mb={8}>
+            <Select
+              placeholder="First car..."
               value={car1Name}
               onChange={(e) => setCar1Name(e.target.value)}
+              flex={1}
+              size="lg"
             >
-              <option value="">First car...</option>
               {cars.map((car, i) => (
                 <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
               ))}
-            </select>
-            <span className="text-xl font-bold text-gray-400">VS</span>
-            <select
-              className="flex-1 w-full p-3 border border-gray-300 rounded-lg"
+            </Select>
+            <Text fontSize="xl" fontWeight="bold" color="gray.400">VS</Text>
+            <Select
+              placeholder="Second car..."
               value={car2Name}
               onChange={(e) => setCar2Name(e.target.value)}
+              flex={1}
+              size="lg"
             >
-              <option value="">Second car...</option>
               {cars.map((car, i) => (
                 <option key={i} value={`${car.make} ${car.model}`}>{car.make} {car.model}</option>
               ))}
-            </select>
-            <button
+            </Select>
+            <Button
               onClick={handleCompare}
-              disabled={isLoading}
-              className="px-8 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400"
+              isDisabled={isLoading}
+              isLoading={isLoading}
+              loadingText="Comparing..."
+              px={8}
+              py={4}
+              bg="indigo.600"
+              color="white"
+              fontWeight="bold"
+              _hover={{ bg: 'indigo.700' }}
+              _disabled={{ bg: 'indigo.400' }}
+              size="lg"
             >
-              {isLoading ? 'Comparing...' : 'Compare'}
-            </button>
-          </div>
+              Compare
+            </Button>
+          </Flex>
 
           {result && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="p-4 bg-indigo-50 border-l-4 border-indigo-500 text-indigo-900 italic">
+            <VStack spacing={8} align="stretch" animation="fade-in 0.5s">
+              <Box p={4} bg="indigo.50" borderLeftWidth="4px" borderLeftColor="indigo.500" color="indigo.900" fontStyle="italic">
                 {result.comparison}
-              </div>
+              </Box>
 
-              <div className="space-y-6">
+              <VStack spacing={6} align="stretch">
                 {result.categories.map((cat, i) => (
-                  <div key={i} className="border border-gray-100 rounded-xl overflow-hidden">
-                    <h4 className="bg-gray-50 p-4 font-bold text-gray-700 border-b border-gray-100">{cat.name}</h4>
-                    <div className="grid grid-cols-2">
-                      <div className={`p-4 border-r border-gray-100 ${cat.winner === 'car1' ? 'bg-green-50' : ''}`}>
-                        <div className="text-xs font-bold text-gray-400 mb-1">{car1Name}</div>
-                        <div className="text-gray-700">{cat.car1}</div>
-                        {cat.winner === 'car1' && <span className="text-xs font-bold text-green-600 mt-2 block">🏆 Winner</span>}
-                      </div>
-                      <div className={`p-4 ${cat.winner === 'car2' ? 'bg-green-50' : ''}`}>
-                        <div className="text-xs font-bold text-gray-400 mb-1">{car2Name}</div>
-                        <div className="text-gray-700">{cat.car2}</div>
-                        {cat.winner === 'car2' && <span className="text-xs font-bold text-green-600 mt-2 block">🏆 Winner</span>}
-                      </div>
-                    </div>
-                  </div>
+                  <Box key={i} borderWidth="1px" borderColor="gray.100" borderRadius="xl" overflow="hidden">
+                    <Box bg="gray.50" p={4} borderBottomWidth="1px" borderBottomColor="gray.100">
+                      <Heading as="h4" size="sm" color="gray.700">{cat.name}</Heading>
+                    </Box>
+                    <SimpleGrid columns={2}>
+                      <Box p={4} borderRightWidth="1px" borderRightColor="gray.100" bg={cat.winner === 'car1' ? 'green.50' : 'transparent'}>
+                        <Text fontSize="xs" fontWeight="bold" color="gray.400" mb={1}>{car1Name}</Text>
+                        <Text color="gray.700">{cat.car1}</Text>
+                        {cat.winner === 'car1' && <Text fontSize="xs" fontWeight="bold" color="green.600" mt={2}>🏆 Winner</Text>}
+                      </Box>
+                      <Box p={4} bg={cat.winner === 'car2' ? 'green.50' : 'transparent'}>
+                        <Text fontSize="xs" fontWeight="bold" color="gray.400" mb={1}>{car2Name}</Text>
+                        <Text color="gray.700">{cat.car2}</Text>
+                        {cat.winner === 'car2' && <Text fontSize="xs" fontWeight="bold" color="green.600" mt={2}>🏆 Winner</Text>}
+                      </Box>
+                    </SimpleGrid>
+                  </Box>
                 ))}
-              </div>
+              </VStack>
 
-              <div className="p-6 bg-gray-900 text-white rounded-xl">
-                <h4 className="text-lg font-bold mb-2 flex items-center gap-2">
+              <Box p={6} bg="gray.900" color="white" borderRadius="xl">
+                <Heading as="h4" size="md" mb={2} display="flex" alignItems="center" gap={2}>
                   <span>🏆</span> Conclusion
-                </h4>
-                <p className="text-gray-300 leading-relaxed">{result.conclusion}</p>
-              </div>
-            </div>
+                </Heading>
+                <Text color="gray.300" lineHeight="relaxed">{result.conclusion}</Text>
+              </Box>
+            </VStack>
           )}
-        </div>
-      </div>
-    </div>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
   );
 }
 

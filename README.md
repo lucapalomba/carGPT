@@ -12,7 +12,7 @@
 [![Google Search API](https://img.shields.io/badge/Google%20Search-API-red)](https://programmablesearchengine.google.com/)
 [![React](https://img.shields.io/badge/React-19.0-blue)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6.x-646CFF)](https://vitejs.dev)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)](https://tailwindcss.com)
+[![Chakra UI](https://img.shields.io/badge/Chakra%20UI-v2-319795)](https://v2.chakra-ui.com)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 [Features](#features) • [Demo](#demo) • [Installation](#installation) • [Usage](#usage) • [API Docs](docs/API.md) • [Contributing](#contributing)
@@ -86,7 +86,7 @@ This project was born as an exercise to explore how modern AI tools can create d
 
 ### ⚛️ Modern Tech Stack
 -   **Frontend**: React 19 + TypeScript + Vite
--   **Styling**: Tailwind CSS v4 for a premium, responsive UI
+-   **Styling**: Chakra UI v2 for a premium, accessible, and composable UI
 -   **Backend**: Node.js + Express
 -   **Monorepo**: Clean workspace management with NPM Workspaces
 
@@ -289,7 +289,7 @@ flowchart TD
     TransAnalysis & Keep1 & Drop1 --> FinalResponse([Final JSON Response])
 ```
 
-- **Frontend (`apps/web`)**: React 19, TypeScript, Tailwind CSS v4
+- **Frontend (`apps/web`)**: React 19, TypeScript, Chakra UI v2
 - **Backend (`apps/server`)**: Node.js, Express, TypeScript, MVC + Service Layer
 - **Logging**: Centralized structured logging with Winston.
 - **Observability**: **Langfuse** integration for tracing LLM chains, latency, and costs (token usage).
