@@ -234,32 +234,32 @@ flowchart TD
     
     subgraph "AI Orchestration (aiService)"
         direction TB
-        Router -->|/find-cars| Intent[Determine Intent<br/>(LLM: search_intent)]
+        Router -->|/find-cars| Intent["Determine Intent<br/>(LLM: search_intent)"]
         Router -->|/refine-search| Refine[Context & History]
         Refine --> Intent
         
-        Intent --> Suggestions[Generate Suggestions<br/>(LLM: car_suggestions)]
+        Intent --> Suggestions["Generate Suggestions<br/>(LLM: car_suggestions)"]
         
         subgraph "Elaboration Phase (Parallel)"
-            Suggestions --> Elab1[Elaborate Car 1<br/>(LLM: elaborate_car)]
-            Suggestions --> Elab2[Elaborate Car 2<br/>(LLM: elaborate_car)]
-            Suggestions --> Elab3[Elaborate Car 3<br/>(LLM: elaborate_car)]
+            Suggestions --> Elab1["Elaborate Car 1<br/>(LLM: elaborate_car)"]
+            Suggestions --> Elab2["Elaborate Car 2<br/>(LLM: elaborate_car)"]
+            Suggestions --> Elab3["Elaborate Car 3<br/>(LLM: elaborate_car)"]
         end
         
         Elab1 & Elab2 & Elab3 --> PrepareTrans[Prepare Intermediate Result]
         
         subgraph "Translation & Validation Phase"
-            PrepareTrans --> TransAnalysis[Translate Analysis<br/>(LLM: translate_analysis)]
+            PrepareTrans --> TransAnalysis["Translate Analysis<br/>(LLM: translate_analysis)"]
             PrepareTrans --> TransCars
             
             subgraph "Parallel Car Translation"
-                TransCars[Map Cars] --> TC1[Translate Car 1<br/>(LLM: translate_car)]
-                TransCars --> TC2[Translate Car 2<br/>(LLM: translate_car)]
-                TransCars --> TC3[Translate Car 3<br/>(LLM: translate_car)]
+                TransCars[Map Cars] --> TC1["Translate Car 1<br/>(LLM: translate_car)"]
+                TransCars --> TC2["Translate Car 2<br/>(LLM: translate_car)"]
+                TransCars --> TC3["Translate Car 3<br/>(LLM: translate_car)"]
                 
-                TC1 --> Val1{Validate<br/>Structure}
-                TC2 --> Val2{Validate<br/>Structure}
-                TC3 --> Val3{Validate<br/>Structure}
+                TC1 --> Val1{"Validate<br/>Structure"}
+                TC2 --> Val2{"Validate<br/>Structure"}
+                TC3 --> Val3{"Validate<br/>Structure"}
                 
                 Val1 -->|Valid| OK1[Use Translated]
                 Val1 -->|Invalid| Fallback1[Use Original]
@@ -276,8 +276,8 @@ flowchart TD
         
         subgraph "Visual Verification Phase"
             ImageSearch[Google Image Search] --> Verify[Verify Images]
-            Verify --> Vision1[Check Image 1<br/>(Vision LLM)]
-            Verify --> Vision2[Check Image 2<br/>(Vision LLM)]
+            Verify --> Vision1["Check Image 1<br/>(Vision LLM)"]
+            Verify --> Vision2["Check Image 2<br/>(Vision LLM)"]
             
             Vision1 -->|Confidence > Threshold| Keep1[Keep Image]
             Vision1 -->|Low Confidence| Drop1[Discard]
