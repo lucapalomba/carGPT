@@ -41,6 +41,14 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
+          <tr className="bg-indigo-50/30">
+            <td className="p-6 font-bold text-gray-700 bg-indigo-50 sticky left-0">Why choose it</td>
+            {cars.map((car, i) => (
+              <td key={i} className="p-6 text-sm italic text-gray-600 leading-relaxed">
+                {car.reason}
+              </td>
+            ))}
+          </tr>
           <tr>
             <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">Type</td>
             {cars.map((car, i) => <td key={i} className="p-6 text-gray-700">{car.type}</td>)}
@@ -49,21 +57,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
             <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">Price</td>
             {cars.map((car, i) => <td key={i} className="p-6 text-indigo-600 font-bold">{car.price}</td>)}
           </tr>
-          {allPropertyIds.map(id => {
-            // Find the first car that has this property to get the translated label
-            const label = cars.find(c => c.properties?.[id])?.properties?.[id]?.translatedLabel || id;
-            
-            return (
-              <tr key={id}>
-                <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">{label}</td>
-                {cars.map((car, i) => (
-                  <td key={i} className="p-6 text-gray-700">
-                    {car.properties?.[id]?.value || '-'}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+
           <tr>
             <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">Strengths</td>
             {cars.map((car, i) => (
@@ -94,14 +88,22 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
               </td>
             ))}
           </tr>
-          <tr className="bg-indigo-50/30">
-            <td className="p-6 font-bold text-gray-700 bg-indigo-50 sticky left-0">Why choose it</td>
-            {cars.map((car, i) => (
-              <td key={i} className="p-6 text-sm italic text-gray-600 leading-relaxed">
-                {car.reason}
-              </td>
-            ))}
-          </tr>
+
+          {allPropertyIds.map(id => {
+            // Find the first car that has this property to get the translated label
+            const label = cars.find(c => c.properties?.[id])?.properties?.[id]?.translatedLabel || id;
+            
+            return (
+              <tr key={id}>
+                <td className="p-6 font-bold text-gray-700 bg-gray-50 sticky left-0">{label}</td>
+                {cars.map((car, i) => (
+                  <td key={i} className="p-6 text-gray-700">
+                    {car.properties?.[id]?.value || '-'}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
