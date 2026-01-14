@@ -1,4 +1,4 @@
-import { Box, Table, Text, Flex, Button, Stack } from '@chakra-ui/react';
+import { Box, Table, Text, Flex, Button, Stack, Badge } from '@chakra-ui/react';
 import type { Car } from '../App';
 import ImageCarousel from './ImageCarousel';
 
@@ -22,7 +22,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
             {cars.map((car, i) => (
               <Table.ColumnHeader key={i} p={6} borderBottomWidth="1px" borderColor="border" minW="300px">
                 <Flex justify="space-between" align="start" mb={4}>
-                  <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" letterSpacing="wider" color="brand.focus">Car {i + 1}</Text>
+                  <Badge variant="solid"  size="lg"  colorPalette={car.percentage > 80 ? 'green' : car.percentage > 50 ? 'orange' : 'red'}>{car.percentage}</Badge>
                   <Button
                     onClick={() => onTogglePin(i)}
                     size="xs"
@@ -37,6 +37,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
                   </Button>
                 </Flex>
                 <Text fontSize="xl" fontWeight="bold" color="fg">{car.make} {car.model}</Text>
+                <Text fontSize="xs" fontWeight="light" color="fg">{car.precise_model}</Text>
                 <Text color="fg.muted" fontWeight="normal">{car.year}</Text>
                 <ImageCarousel images={car.images || []} />
               </Table.ColumnHeader>
