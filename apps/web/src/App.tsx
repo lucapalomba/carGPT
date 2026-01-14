@@ -15,6 +15,8 @@ export interface Car {
   weaknesses: string[];
   reason: string;
   pinned?: boolean;
+  precise_model?: string;
+  percentage: number;
   properties?: Record<string, {
     translatedLabel: string;
     value: string;
