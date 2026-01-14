@@ -31,6 +31,8 @@ export const ollamaService = {
      const options = {
        temperature: 0,
        num_predict: -1,
+       top_p: 0.1,
+       top_k: 5,
      };
      const messagesCount = messages.length;
 
