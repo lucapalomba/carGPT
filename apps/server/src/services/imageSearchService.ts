@@ -41,8 +41,7 @@ export const imageSearchService = {
     make: string, 
     model: string, 
     year: string = '', 
-    count: number = 1,
-    trace?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */
+    count: number = 1
   ): Promise<CarImage[]> {
     const { apiKey, cx } = config.googleSearch;
 
@@ -115,16 +114,14 @@ export const imageSearchService = {
    * Search images for multiple cars in parallel
    */
   async searchMultipleCars(
-    cars: Array<{ make: string; model: string; year?: string }>,
-    trace?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */
+    cars: Array<{ make: string; model: string; year?: string }>
   ): Promise<Record<string, CarImage[]>> {
     const promises = cars.map(async (car) => {
       const images = await this.searchCarImages(
         car.make, 
         car.model, 
         car.year?.toString() || '', 
-        config.carouselImageLength,
-        trace
+        config.carouselImageLength
       );
       
       const carKey = `${car.make}-${car.model}`;

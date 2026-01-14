@@ -216,6 +216,7 @@ export const aiService = {
           const merged = { ...carChoice, ...(result.car || {}) };
           return merged;
         } catch (error) {
+          logger.error(error);
           return carChoice; // Fallback to original choice if elaboration fails
         }
       }));
@@ -253,7 +254,7 @@ export const aiService = {
       // Translate each car individually (in parallel)
       const originalCars = Array.isArray(results.cars) ? results.cars : [];
       const translatedCars = await Promise.all(
-        originalCars.map((car, index) => this.translateSingleCar(car, targetLanguage, trace, index))
+        originalCars.map((car: any, index: number) => this.translateSingleCar(car, targetLanguage, trace, index))
       );
 
       const translatedResult = {
@@ -452,8 +453,7 @@ export const aiService = {
       }
       logger.info(`Searching images for ${carList.length} cars`);
       const imageMap = await imageSearchService.searchMultipleCars(
-        carList.map(c => ({ make: c.make, model: c.model, year: c.year?.toString() })), 
-        trace
+        carList.map(c => ({ make: c.make, model: c.model, year: c.year?.toString() }))
       );
 
       const carsWithImages = await Promise.all(carList.map(async (car: Car) => {

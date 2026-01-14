@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ollamaService } from '../services/ollamaService.js';
-import { aiService, Car } from '../services/aiService.js';
+import { aiService } from '../services/aiService.js';
 import { conversationService, Conversation, ConversationHistoryItem } from '../services/conversationService.js';
 import { promptService } from '../services/promptService.js';
 import { config } from '../config/index.js';

@@ -3,7 +3,6 @@ import { ollamaService } from '../services/ollamaService.js';
 import { conversationService } from '../services/conversationService.js';
 import { config } from '../config/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import logger from '../utils/logger.js';
 
 /**
  * Controller for system health and maintenance operations
