@@ -4,6 +4,15 @@ The returned JSON must have a "car" property containing the elaborated car.
 
 USE THESE INSTRUCTIONS:
 
+## FIELDS THAT MUST REMAIN UNCHANGED (copy exactly):
+- "make" (brand name)
+- "model" (model name)
+- "year" (number)
+- "percentage" (number)
+- "precise_model" (model variant name)
+- "configuration" (engine/trim specification)
+- "pinned" (boolean)
+
 - "interesting_properties" are the properties in the User Intent JSON but elaborated for respecting the Car Response Schema JSON (value and label) for example:
     - "trunk_volume" -> "trunk_volume": {
           translatedLabel: "Volume of the trunk",
@@ -11,4 +20,3 @@ USE THESE INSTRUCTIONS:
         }.
 - "interesting_properties" should be generated using the country of the User Intent JSON for currency, informations, prices, availability and unit of measurement.
 - MANDATORY: You must generate ALL and ONLY the properties listed in "interesting_properties" of the User Intent JSON. Do not add or omit any properties.
-- preserve pinned value from "Current car to elaborate"
