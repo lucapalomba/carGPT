@@ -11,3 +11,4 @@ USE THESE INSTRUCTIONS:
         }.
 - "interesting_properties" should be generated using the country of the User Intent JSON for currency, informations, prices, availability and unit of measurement.
 - MANDATORY: You must generate ALL and ONLY the properties listed in "interesting_properties" of the User Intent JSON. Do not add or omit any properties.
+- preserve pinned value from "Current car to elaborate"

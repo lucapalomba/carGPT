@@ -19,6 +19,8 @@ Return ONLY valid JSON (no markdown) representing the translated car object.
 - "selection_reasoning" → translate the text
 - "reasoning" → translate the text
 - "properties" array → translate the "property" and "value" text fields
+- "strengths" array → translate value text fields
+- "weaknesses" array → translate value text fields
 - Any other descriptive text fields
 
 ## TECHNICAL TERMINOLOGY RULES:

@@ -12,10 +12,11 @@
     "strengths": ["point 1", "point 2", "point 3"],
     "weaknesses": ["point 1", "point 2", "point 3"],
     "reason": "brief explanation why it's suitable (1-2 sentences)",
-    "pinned": false
+    "pinned": false | true
   }
 }
 
 SEMANTIC FIELD RULES:
 - price: price range in the user's currency when the vehicle was new
 - type: type of the vehicle (SUV, Sedan, Compact, Station Wagon, etc)
+
