@@ -58,6 +58,7 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
             <Flex direction={{ base: 'column', sm: 'row' }} align="center" gap={4} justify="center" mb={8}>
                 <NativeSelect.Root flex={1} size="lg">
                     <NativeSelect.Field
+                        data-testid="compare-select-1"
                         placeholder="First car..."
                         value={car1Name}
                         onChange={(e) => setCar1Name(e.target.value)}
@@ -74,6 +75,7 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
                 
                 <NativeSelect.Root flex={1} size="lg">
                     <NativeSelect.Field
+                        data-testid="compare-select-2"
                         placeholder="Second car..."
                         value={car2Name}
                         onChange={(e) => setCar2Name(e.target.value)}
@@ -89,6 +91,7 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
                 onClick={handleCompare}
                 disabled={isLoading}
                 loading={isLoading}
+                data-testid="compare-button"
                 px={8}
                 py={4}
                 colorPalette="brand"

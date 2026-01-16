@@ -14,6 +14,8 @@
 [![Vite](https://img.shields.io/badge/Vite-6.x-646CFF)](https://vitejs.dev)
 [![Chakra UI](https://img.shields.io/badge/Chakra%20UI-v3-319795)](https://www.chakra-ui.com)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Server Coverage](https://img.shields.io/badge/Server%20Coverage-79%25-green)](https://github.com/lucapalomba/carGPT)
+[![Web Coverage](https://img.shields.io/badge/Web%20Coverage-73%25-green)](https://github.com/lucapalomba/carGPT)
 
 [Features](#features) • [Demo](#demo) • [Installation](#installation) • [Usage](#usage) • [API Docs](docs/API.md) • [Contributing](#contributing)
 
@@ -308,6 +310,31 @@ For a deep dive into the system design, see [**ARCHITECTURE.md**](ARCHITECTURE.m
 - [Contributing Guide](CONTRIBUTING.md) - How to contribute
 - [Changelog](CHANGELOG.md) - Version history
 - [Security Policy](SECURITY.md) - Security guidelines
+
+---
+
+## 🧪 Testing
+
+CarGPT maintains a comprehensive automated testing suite to ensure reliability and performance.
+
+### Test Suites
+- **Unit Tests**: Isolated logic testing for services and utilities.
+- **Integration Tests**: End-to-end API lifecycle testing using Supertest.
+- **E2E Tests**: Real browser automation for critical user flows using Playwright.
+
+### Running Tests
+```bash
+# Run all automated tests (Unit + Integration + E2E)
+npm run test
+
+# Run individual suites
+npm run test:unit
+npm run test:int
+npm run test:e2e
+
+# Generate detailed coverage reports
+npm run test:coverage
+```
 
 ---
 

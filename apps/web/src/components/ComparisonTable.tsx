@@ -20,7 +20,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
           <Table.Row bg="bg.subtle">
             <Table.ColumnHeader p={6} borderBottomWidth="1px" borderColor="border" bg="bg.subtle" position="sticky" left={0} zIndex={10} w="48" color="fg">Feature</Table.ColumnHeader>
             {cars.map((car, i) => (
-              <Table.ColumnHeader key={i} p={6} borderBottomWidth="1px" borderColor="border" minW="300px">
+              <Table.ColumnHeader key={i} p={6} borderBottomWidth="1px" borderColor="border" minW="300px" data-testid="car-card">
                 <Flex justify="space-between" align="start" mb={4}>
                   <Badge variant="solid"  size="lg"  colorPalette={car.percentage > 80 ? 'green' : car.percentage > 50 ? 'orange' : 'red'}>{car.percentage}</Badge>
                   <Button
@@ -36,7 +36,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
                     {pinnedIndices.has(i) ? '📌 Pinned' : '📌 Pin'}
                   </Button>
                 </Flex>
-                <Text fontSize="xl" fontWeight="bold" color="fg">{car.make} {car.model}</Text>
+                <Text fontSize="xl" fontWeight="bold" color="fg" data-testid="car-name">{car.make} {car.model}</Text>
                 <Text fontSize="xs" fontWeight="light" color="fg">{car.precise_model}</Text>
                 <Text color="fg.muted" fontWeight="normal">{car.year}</Text>
                 <ImageCarousel images={car.images || []} />

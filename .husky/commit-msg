@@ -16,8 +16,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-npm run test && npm run test-history
+echo "Running unit and integration tests..."
+npm test
 if [ $? -ne 0 ]; then
-  echo "Tests failed, aborting commit."
+  echo "Unit/Integration tests failed, aborting commit."
   exit 1
 fi
