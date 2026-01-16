@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { imageSearchService } from '../imageSearchService.js';
 
+vi.mock('../config/index.js', () => ({
+  config: {
+    googleSearch: {
+      apiKey: 'test-key',
+      cx: 'test-cx'
+    },
+    carouselImageLength: 1
+  }
+}));
+
 describe('imageSearchService', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
