@@ -49,8 +49,8 @@ describe('conversationService', () => {
     
     const all = conversationService.getAll();
     expect(all.length).toBeGreaterThanOrEqual(2);
-    expect(all.some(([id]) => id === session1)).toBe(true);
-    expect(all.some(([id]) => id === session2)).toBe(true);
+    expect(all.some(([id]: [string, any]) => id === session1)).toBe(true);
+    expect(all.some(([id]: [string, any]) => id === session2)).toBe(true);
     
     conversationService.delete(session1);
     conversationService.delete(session2);

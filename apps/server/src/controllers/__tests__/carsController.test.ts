@@ -85,6 +85,53 @@ describe('carsController', () => {
         expect(aiService.refineCarsWithImages).toHaveBeenCalled();
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
     });
+
+    it('should extract context correctly with multiple history items and missing requirements', async () => {
+        req.body.feedback = 'Bigger trunk';
+        const mockConversation = { 
+            history: [
+                { type: 'find-cars', data: { requirements: 'SUV' } },
+                { type: 'other', data: {} },
+                { type: 'refine-search', data: { feedback: 'Hybrid' } }
+            ]
+        };
+        (conversationService.get as any).mockReturnValue(mockConversation);
+        (aiService.refineCarsWithImages as any).mockResolvedValue({ cars: [] });
+
+        await carsController.refineSearch(req, res, vi.fn());
+
+        expect(aiService.refineCarsWithImages).toHaveBeenCalledWith(
+            'Bigger trunk',
+            expect.any(String),
+            'session-123',
+            expect.stringContaining('Original Request: "SUV"'),
+            expect.any(Array)
+        );
+        expect(aiService.refineCarsWithImages).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.any(String),
+            expect.any(String),
+            expect.stringContaining('Refinement Step 3: "Hybrid"'),
+            expect.any(Array)
+        );
+    });
+
+    it('should use default requirements if not found in history', async () => {
+        req.body.feedback = 'Bigger trunk';
+        const mockConversation = { history: [] };
+        (conversationService.get as any).mockReturnValue(mockConversation);
+        (aiService.refineCarsWithImages as any).mockResolvedValue({ cars: [] });
+
+        await carsController.refineSearch(req, res, vi.fn());
+
+        expect(aiService.refineCarsWithImages).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.any(String),
+            expect.any(String),
+            expect.stringContaining('Original Request: "User is looking for a car."'),
+            expect.any(Array)
+        );
+    });
   });
 
   describe('askAboutCar', () => {

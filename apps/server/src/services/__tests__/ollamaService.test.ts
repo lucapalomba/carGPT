@@ -1,10 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ollamaService } from '../ollamaService.js';
 import { OllamaError } from '../../utils/AppError.js';
+import logger from '../../utils/logger.js';
 
 describe('ollamaService', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
+    vi.spyOn(logger, 'info').mockImplementation(() => logger);
+    vi.spyOn(logger, 'error').mockImplementation(() => logger);
+    vi.spyOn(logger, 'warn').mockImplementation(() => logger);
+    vi.spyOn(logger, 'debug').mockImplementation(() => logger);
   });
 
   describe('callOllama', () => {
@@ -43,6 +48,13 @@ describe('ollamaService', () => {
 
       const messages = [{ role: 'user', content: 'test' }];
       await expect(ollamaService.callOllama(messages)).rejects.toThrow('Unable to connect to Ollama');
+    });
+
+    it('should handle non-Error objects in catch block', async () => {
+        (fetch as any).mockRejectedValue('String error');
+        const messages = [{ role: 'user', content: 'test' }];
+        await expect(ollamaService.callOllama(messages)).rejects.toThrow('Unable to connect to Ollama');
+        expect(logger.error).toHaveBeenCalled();
     });
   });
 
@@ -94,6 +106,13 @@ describe('ollamaService', () => {
 
       const result = await ollamaService.verifyOllama();
       expect(result).toBe(false);
+    });
+
+    it('should handle non-Error catch objects', async () => {
+        (fetch as any).mockRejectedValue('String error');
+        const result = await ollamaService.verifyOllama();
+        expect(result).toBe(false);
+        expect(logger.error).toHaveBeenCalled();
     });
   });
 
@@ -150,6 +169,26 @@ describe('ollamaService', () => {
         (fetch as any).mockRejectedValue(new Error('Vision error'));
         const result = await ollamaService.verifyImageContainsCar('Toyota', 2020, 'http://img.jpg', {});
         expect(result).toBe(false);
+    });
+
+    it('should handle non-Error objects in catch block', async () => {
+        (fetch as any).mockRejectedValue('Vision string error');
+        const result = await ollamaService.verifyImageContainsCar('Toyota', 2020, 'http://img.jpg', {});
+        expect(result).toBe(false);
+        expect(logger.error).toHaveBeenCalled();
+    });
+
+    it('should handle empty LLM response by using default confidence scores', async () => {
+        (fetch as any).mockResolvedValue({
+            ok: true,
+            arrayBuffer: async () => new ArrayBuffer(8)
+        });
+        
+        vi.spyOn(ollamaService, 'callOllama').mockResolvedValue('{}');
+        vi.spyOn(ollamaService, 'parseJsonResponse').mockReturnValue({});
+  
+        const result = await ollamaService.verifyImageContainsCar('Toyota', 2020, 'http://img.jpg', {});
+        expect(result).toBe(false); // 0 confidence < 0.8 threshold
     });
   });
 });
