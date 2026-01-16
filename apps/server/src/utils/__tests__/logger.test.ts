@@ -1,7 +1,13 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import logger, { stream } from '../logger.js';
 
 describe('Logger', () => {
+  beforeEach(() => {
+    vi.spyOn(logger, 'info').mockImplementation(() => logger);
+    vi.spyOn(logger, 'error').mockImplementation(() => logger);
+    vi.spyOn(logger, 'debug').mockImplementation(() => logger);
+  });
+
   it('should be defined', () => {
     expect(logger).toBeDefined();
     expect(logger.info).toBeTypeOf('function');
@@ -10,9 +16,8 @@ describe('Logger', () => {
   });
 
   it('stream.write should call logger.info', () => {
-    const infoSpy = vi.spyOn(logger, 'info');
     stream.write('Test log message');
-    expect(infoSpy).toHaveBeenCalledWith('Test log message');
+    expect(logger.info).toHaveBeenCalledWith('Test log message');
   });
 
   it('consoleFormat should handle metadata and stack', () => {
