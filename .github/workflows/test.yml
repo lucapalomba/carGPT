@@ -32,13 +32,16 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Run Unit & Integration Tests
-        run: npm run test:unit && npm run test:int
+      - name: Run Unit Tests
+        run: npm run test:unit
+
+      - name: Run Integration Tests
+        run: npm run test:int
 
       - name: Run E2E Tests
         run: npm run test:e2e
         env:
-          VITE_API_URL: http://localhost:3000/api # Adjust if needed
+          VITE_API_URL: http://localhost:3000/api
 
       - name: Check Coverage
         run: npm run test:coverage
