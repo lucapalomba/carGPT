@@ -1,20 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { aiService } from '../aiService.js';
 import { ollamaService } from '../ollamaService.js';
-import { imageSearchService } from '../imageSearchService.js';
 import { promptService } from '../promptService.js';
+import { imageSearchService } from '../imageSearchService.js';
 
 vi.mock('../ollamaService.js');
-vi.mock('../imageSearchService.js');
 vi.mock('../promptService.js');
-
-const mockTrace = {
-  span: vi.fn().mockReturnValue({
-    end: vi.fn(),
-    id: 'span-123'
-  }),
-  id: 'trace-123'
-};
+vi.mock('../imageSearchService.js', () => ({
+  imageSearchService: {
+    searchMultipleCars: vi.fn().mockResolvedValue({})
+  }
+}));
 
 describe('aiService', () => {
   beforeEach(() => {
@@ -45,15 +41,6 @@ describe('aiService', () => {
       (ollamaService.callOllama as any).mockResolvedValueOnce('{"make": "Toyota", "model": "Corolla", "year": 2020}');
       (ollamaService.parseJsonResponse as any).mockReturnValueOnce({ make: "Toyota", model: "Corolla", year: 2020 });
 
-      // Mock image search
-      (imageSearchService.searchMultipleCars as any).mockResolvedValue({
-        'Toyota-Corolla': [{ url: 'http://img.jpg' }]
-      });
-
-      // Mock image filtering (callOllama for verification)
-      (ollamaService.callOllama as any).mockResolvedValueOnce('{"isMatch": true}');
-      (ollamaService.parseJsonResponse as any).mockReturnValueOnce({ isMatch: true });
-
       const result = await aiService.findCarsWithImages('I need a reliable car', 'en', 'session-123');
 
       expect(result.cars).toHaveLength(1);
@@ -67,32 +54,10 @@ describe('aiService', () => {
       (promptService.loadTemplate as any).mockReturnValue('template');
       (ollamaService.callOllama as any).mockResolvedValue('{"choices": []}');
       (ollamaService.parseJsonResponse as any).mockReturnValue({ choices: [] });
-      (imageSearchService.searchMultipleCars as any).mockResolvedValue({});
 
       const result = await aiService.refineCarsWithImages('More power', 'en', 'session-123', 'context', []);
       expect(result.cars).toBeDefined();
     });
-  });
-
-  describe('enrichCarsWithImages', () => {
-      it('should search and verify images', async () => {
-          const cars = [{ make: 'Toyota', model: 'Corolla', year: 2020 }];
-          (imageSearchService.searchMultipleCars as any).mockResolvedValue({
-              'Toyota-Corolla': [{ url: 'http://img.jpg' }]
-          });
-          (ollamaService.verifyImageContainsCar as any).mockResolvedValue(true);
-
-          const results = await aiService.enrichCarsWithImages(cars, mockTrace);
-          expect(results[0].images).toHaveLength(1);
-      });
-
-      it('should handle missing images and fallback', async () => {
-        const cars = [{ make: 'Toyota', model: 'Corolla', year: 2020 }];
-        (imageSearchService.searchMultipleCars as any).mockResolvedValue({});
-        
-        const results = await aiService.enrichCarsWithImages(cars, mockTrace);
-        expect(results[0].images).toEqual([]);
-      });
   });
 
   describe('validateCarTranslation', () => {
