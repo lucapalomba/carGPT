@@ -14,7 +14,8 @@
 [![Vite](https://img.shields.io/badge/Vite-6.x-646CFF)](https://vitejs.dev)
 [![Chakra UI](https://img.shields.io/badge/Chakra%20UI-v3-319795)](https://www.chakra-ui.com)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Coverage Status](https://img.shields.io/badge/Coverage-72%25-green)](https://github.com/lucapalomba/CarGPT)
+[![Server Coverage](https://img.shields.io/badge/Server%20Coverage-82%25-green)](https://github.com/lucapalomba/carGPT)
+[![Web Coverage](https://img.shields.io/badge/Web%20Coverage-73%25-green)](https://github.com/lucapalomba/carGPT)
 
 [Features](#features) • [Demo](#demo) • [Installation](#installation) • [Usage](#usage) • [API Docs](docs/API.md) • [Contributing](#contributing)
 
