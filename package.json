@@ -33,7 +33,11 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
-    "test-history": "node test/test_history.js",
+    "test:unit": "npm run test -w server && npm run test -w web",
+    "test:int": "npm run test -w server",
+    "test:e2e": "npm run test:e2e -w web",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "test-history": "node apps/server/tests/test-history.js",
     "prepare": "husky install"
   },
   "devDependencies": {

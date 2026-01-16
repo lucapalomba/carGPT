@@ -42,6 +42,17 @@ Enhancement suggestions are welcome! Please provide:
 - **Commit Messages**: Validated by AI for Conventional Commits format, **English grammar**, and **typos**.
 - Keep PRs focused - one feature/fix per PR
 
+### Testing
+
+All new features and bug fixes should include tests. We maintain a comprehensive test suite:
+
+- **Unit Tests**: For individual functions and services. Run with `npm run test:unit`.
+- **Integration Tests**: For API endpoints. Run with `npm run test:int`.
+- **E2E Tests**: For user flows. Run with `npm run test:e2e`.
+- **Coverage**: We aim for at least 60% code coverage. Run `npm run test:coverage` to check.
+
+Before submitting a PR, ensure all tests pass and coverage is maintained.
+
 ## Development Setup
 
 ```bash
@@ -92,8 +103,9 @@ CarGPT/
 - [ ] Improve JSON parsing reliability from Ollama responses
 - [ ] Add loading states and better error messages
 - [ ] Support for more Ollama models (configuration)
-- [ ] Unit tests for API endpoints
-- [ ] Integration tests
+- [x] Unit tests for API endpoints
+- [x] Integration tests
+- [ ] Visual regression testing for UI components
 
 ### Medium Priority
 - [ ] Price filters (budget ranges)
@@ -111,25 +123,6 @@ CarGPT/
 - [ ] Progressive Web App (PWA)
 - [ ] Voice input for requirements
 
-## Testing
-
-Currently, testing is manual. To test your changes:
-
-1. **Start Ollama**: `ollama serve`
-2. **Start development**: `npm run dev`
-3. **Test basic flow**:
-   - Submit requirements
-   - Verify 3 cars are suggested
-   - Check comparison table displays correctly
-   - Test detailed comparison modal
-   - Test Q&A feature
-   - Test alternatives feature
-4. **Test edge cases**:
-   - Very short requirements
-   - Very long requirements
-   - Special characters in input
-   - Rapid successive requests
-   - Browser refresh during loading
 
 ## Questions?
 

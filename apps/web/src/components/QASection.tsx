@@ -61,6 +61,7 @@ function QASection({ cars }: QASectionProps) {
         <Flex gap={3} direction={{ base: 'column', sm: 'row' }}>
           <NativeSelect.Root flex={2} size="md">
             <NativeSelect.Field
+                data-testid="qa-car-select"
                 value={selectedCarIdx}
                 onChange={(e) => setSelectedCarIdx(e.target.value)}
                 placeholder="Select a car..."
