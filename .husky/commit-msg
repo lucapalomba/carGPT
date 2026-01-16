@@ -29,3 +29,11 @@ if [ $? -ne 0 ]; then
   echo "E2E tests failed, aborting commit."
   exit 1
 fi
+
+echo "Running Coverage tests..."
+npm run test:coverage
+if [ $? -ne 0 ]; then
+  echo "Coverage Failed, aborting commit."
+  exit 1
+fi
+
