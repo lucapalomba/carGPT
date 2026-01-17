@@ -175,7 +175,6 @@ You can fine-tune the AI's behavior by modifying the `.env` file:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OLLAMA_VISION_MODEL` | Specific model for image analysis (e.g., `llava`) | `llava` |
 | `VISION_MODEL_CONFIDENCE_THRESHOLD` | Min confidence (0-1) to accept a car match | `0.8` |
 | `VISION_TEXT_CONFIDENCE_THRESHOLD` | Max confidence (0-1) allowed for text/overlays | `0.2` |
 | `VISION_TEXT_CONFIDENCE_THRESHOLD` | Max confidence (0-1) allowed for text/overlays | `0.2` |
