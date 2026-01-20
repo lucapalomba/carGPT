@@ -61,25 +61,6 @@ This project was born as an exercise to explore how modern AI tools can create d
 - Get **3 personalized suggestions** with detailed analysis
 - See why each car is recommended for **your** specific case
 
-### 📊 Interactive Comparison Table
-- Compare all suggestions side-by-side
-- See specs, pros/cons, pricing at a glance
-- Make informed decisions quickly
-
-### ⚖️ Detailed Head-to-Head Comparison
-- Deep dive into any two cars
-- Category-by-category comparison
-- Clear winner indication for each aspect
-
-### 💬 Interactive Q&A
-- Ask specific questions about any suggested car
-- Get detailed, contextual answers
-- Learn everything you need to know
-
-### 🔄 Smart Alternatives
-- Find similar alternatives to any suggestion
-- Discover options you might have missed
-- Explore different price points and features
 
 ### 🏘️ AI-Powered Image Verification (VLM)
 - Uses **Ollama Vision** (e.g., LLaVA, BakLLaVA) to analyze car images

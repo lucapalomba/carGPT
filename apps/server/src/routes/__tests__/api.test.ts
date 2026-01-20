@@ -8,9 +8,6 @@ vi.mock('../../controllers/carsController.js', () => ({
   carsController: {
     findCars: (req: any, res: any) => res.json({ success: true, sessionId: 'test-session', cars: [] }),
     refineSearch: (req: any, res: any) => res.json({ success: true, sessionId: 'test-session', cars: [] }),
-    compareCars: (req: any, res: any) => res.json({ success: true, comparison: {} }),
-    getAlternatives: (req: any, res: any) => res.json({ success: true, alternatives: [] }),
-    askAboutCar: (req: any, res: any) => res.json({ success: true, answer: 'test answer' }),
     resetConversation: (req: any, res: any) => res.json({ success: true }),
   },
 }));
@@ -58,29 +55,7 @@ describe('API Integration Tests', () => {
     expect(response.body.success).toBe(true);
   });
 
-  it('POST /api/compare-cars should return success', async () => {
-    const response = await request(app)
-      .post('/api/compare-cars')
-      .send({ carIds: ['1', '2'], sessionId: 'test' });
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-  });
 
-  it('POST /api/get-alternatives should return success', async () => {
-    const response = await request(app)
-      .post('/api/get-alternatives')
-      .send({ carId: '1', sessionId: 'test' });
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-  });
-
-  it('POST /api/ask-about-car should return success', async () => {
-    const response = await request(app)
-      .post('/api/ask-about-car')
-      .send({ question: 'is it safe?', carId: '1', sessionId: 'test' });
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-  });
 
   it('POST /api/reset-conversation should return success', async () => {
     const response = await request(app)

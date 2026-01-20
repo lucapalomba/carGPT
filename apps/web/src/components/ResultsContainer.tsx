@@ -1,10 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Stack, Flex, Heading, Text, Button, Field, Input, SimpleGrid } from '@chakra-ui/react';
+import { Box, Stack, Flex, Heading, Text, Button, Field, Input } from '@chakra-ui/react';
 import type { Car } from '../App';
 import ComparisonTable from './ComparisonTable';
-import QASection from './QASection';
-import DetailedComparison from './DetailedComparison';
-import Alternatives from './Alternatives';
+
 
 interface ResultsContainerProps {
   cars: Car[];
@@ -26,8 +24,7 @@ function ResultsContainer({
   isSearching
 }: ResultsContainerProps) {
   const [refineInput, setRefineInput] = useState('');
-  const [showCompare, setShowCompare] = useState(false);
-  const [showAlternatives, setShowAlternatives] = useState(false);
+
   const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -110,70 +107,6 @@ function ResultsContainer({
         pinnedIndices={pinnedIndices} 
         onTogglePin={onTogglePin} 
       />
-
-      <SimpleGrid columns={{ base: 1, lg: 3 }} gap={8}>
-        <Box gridColumn={{ lg: "span 1" }} bg="bg.panel" p={8} borderRadius="xl" shadow="lg" borderWidth="1px" borderColor="brand.subtle" display="flex" flexDirection="column" justifyContent="space-between">
-           <Box>
-             <Heading as="h3" size="md" color="fg" mb={6} display="flex" alignItems="center" gap={2}>
-               <span>🔍</span> Actions
-             </Heading>
-             <Text color="fg.muted" fontSize="sm" mb={8}>What would you like to do now?</Text>
-           </Box>
-           
-           <Stack gap={4}>
-             <Box 
-                as="button"
-                onClick={() => setShowCompare(true)}
-                w="full"
-                p={4}
-                bg="bg.subtle"
-                _hover={{ bg: 'bg.muted', transform: 'translateX(2px)' }}
-                borderWidth="1px"
-                borderColor="border"
-                borderRadius="xl"
-                textAlign="left"
-                transition="all 0.2s"
-             >
-                <Text fontWeight="bold" color="brand.emphasized" mb={1}>📊 Detailed comparison</Text>
-                <Text fontSize="xs" color="fg.muted">Compare two cars side-by-side in depth</Text>
-             </Box>
-             <Box 
-                as="button"
-                onClick={() => setShowAlternatives(true)}
-                w="full"
-                p={4}
-                bg="bg.subtle"
-                _hover={{ bg: 'bg.muted', transform: 'translateX(2px)' }}
-                borderWidth="1px"
-                borderColor="border"
-                borderRadius="xl"
-                textAlign="left"
-                transition="all 0.2s"
-             >
-                <Text fontWeight="bold" color="brand.emphasized" mb={1}>🔄 Show alternatives</Text>
-                <Text fontSize="xs" color="fg.muted">Find similar models based on your favorite</Text>
-             </Box>
-           </Stack>
-        </Box>
-
-        <Box gridColumn={{ lg: "span 2" }}>
-           <QASection cars={cars} />
-        </Box>
-      </SimpleGrid>
-
-      {showCompare && (
-        <DetailedComparison 
-          cars={cars} 
-          onClose={() => setShowCompare(false)} 
-        />
-      )}
-
-      {showAlternatives && (
-        <Alternatives 
-          cars={cars} 
-          onClose={() => setShowAlternatives(false)} 
-        />
-      )}
     </Stack>
   );
 }
