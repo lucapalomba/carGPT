@@ -576,6 +576,11 @@
                         "description": "Price range when new",
                         "example": "25,000-30,000€"
                     },
+                    "price_when_new": {
+                        "type": "string",
+                        "description": "Base price when new",
+                        "example": "28,000€"
+                    },
                     "type": {
                         "type": "string",
                         "description": "Car type/category",

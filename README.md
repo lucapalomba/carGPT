@@ -235,7 +235,7 @@ CarGPT follows a modern **Monorepo** architecture using **NPM Workspaces**.
 flowchart TD
     User([User Request]) --> Router{Endpoint?}
     
-    subgraph "AI Orchestration (aiService)"
+    subgraph "AI Orchestration (aiService & sub-services)"
         direction TB
         Router -->|/find-cars| Intent["Determine Intent<br/>(LLM: search_intent)"]
         Router -->|/refine-search| Refine[Context & History]
@@ -291,7 +291,7 @@ flowchart TD
 ```
 
 - **Frontend (`apps/web`)**: React 19, TypeScript, Chakra UI v2
-- **Backend (`apps/server`)**: Node.js, Express, TypeScript, MVC + Service Layer
+- **Backend (`apps/server`)**: Node.js, Express, TypeScript, MVC + Service Layer. AI logic is split into specialized micro-services (`intent`, `suggestion`, `elaboration`, `translation`, `enrichment`).
 - **Logging**: Centralized structured logging with Winston.
 - **Observability**: **Langfuse** integration for tracing LLM chains, latency, and costs (token usage).
 - **Monorepo**: Centralized management via root `package.json`
