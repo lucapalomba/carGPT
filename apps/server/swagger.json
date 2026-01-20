@@ -586,7 +586,7 @@
                         "description": "Availability in the user's market",
                         "example": "Available in the US market"
                     },
-                    "properties": {
+                    "vehicle_properties": {
                         "type": "object",
                         "description": "Dynamic properties of the car",
                         "additionalProperties": {
@@ -648,12 +648,12 @@
                         "type": "object",
                         "description": "Satisfaction percentages for each constraint",
                         "additionalProperties": {
-                            "type": "integer"
+                            "type": "string"
                         },
                         "example": {
-                            "budget": 90,
-                            "trunk_space": 85,
-                            "fuel_efficiency": 80
+                            "budget": "90, fits well within budget",
+                            "trunk_space": "85, large trunk but slightly less than requested",
+                            "fuel_efficiency": "80, average consumption"
                         }
                     },
                     "reasoning": {

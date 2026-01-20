@@ -78,11 +78,11 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
       "type": "Station Wagon",
       "market_availability": "Available in the US market",
       "constraints_satisfaction": {
-        "budget": 85,
-        "large_trunk": 95,
-        "low_consumption": 80
+        "budget": "85, within range",
+        "large_trunk": "95, exceeds requirements",
+        "low_consumption": "80, acceptable"
       },
-      "properties": {
+      "vehicle_properties": {
         "trunk_volume": {
           "translatedLabel": "Trunk Size",
           "value": "640 liters"
@@ -143,9 +143,16 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
       "market_availability": "Available in the US market",
       "strengths": ["Huge trunk", "Reliable", "Spacious"],
       "weaknesses": ["Conservative design", "Average resale value"],
-      "trunkSize": "640 liters",
-      "fuelConsumption": "5.2 l/100km",
-      "reliability": "High",
+      "vehicle_properties": {
+        "trunk_volume": {
+          "translatedLabel": "Trunk Size",
+          "value": "640 liters"
+        },
+        "fuel_consumption": {
+          "translatedLabel": "Fuel Consumption",
+          "value": "5.2 l/100km"
+        }
+      },
       "reason": "Perfect for families thanks to the space..."
     }
   ]
@@ -183,10 +190,10 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
       "type": "Compact",
       "market_availability": "Available in the US market",
       "constraints_satisfaction": {
-        "budget": 95,
-        "low_price": 90
+        "budget": "95, excellent price",
+        "low_price": "90, very affordable"
       },
-      "properties": {
+      "vehicle_properties": {
         "trunk_volume": {
           "translatedLabel": "Trunk Size",
           "value": "380 liters"

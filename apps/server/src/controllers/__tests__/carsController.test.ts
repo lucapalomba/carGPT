@@ -37,7 +37,16 @@ describe('carsController', () => {
 
     it('should call aiService and update conversation', async () => {
       req.body = { requirements: 'I need a family car with good safety features' };
-      const mockResult = { cars: [{ make: 'Volvo', model: 'XC90', year: 2022 }], userLanguage: 'en' };
+      const mockResult = { 
+        cars: [{ 
+          make: 'Volvo', 
+          model: 'XC90', 
+          year: 2022,
+          vehicle_properties: {},
+          constraints_satisfaction: { budget: "100, ok" }
+        }], 
+        userLanguage: 'en' 
+      };
       vi.mocked(aiService.findCarsWithImages).mockResolvedValue(mockResult as any);
       
       const mockConversation = { history: [], userLanguage: '' };

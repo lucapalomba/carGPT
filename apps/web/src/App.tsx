@@ -17,7 +17,7 @@ export interface Car {
   pinned?: boolean;
   precise_model?: string;
   percentage: number;
-  properties?: Record<string, {
+  vehicle_properties?: Record<string, {
     translatedLabel: string;
     value: string;
   }>;

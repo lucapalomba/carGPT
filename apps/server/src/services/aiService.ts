@@ -52,9 +52,7 @@ export const aiService = {
       
       const searchIntent = await this.determineSearchIntent(requirements, language, trace);
       const suggestions = await this.getCarSuggestions(searchIntent, requirements, '', trace);
-      
-      const tonePrompt = promptService.loadTemplate('tone.md').replace('${userLanguage}', language);
-      const elaboratedCars = await this.elaborateCars(suggestions.choices || [], searchIntent, tonePrompt, trace);
+      const elaboratedCars = await this.elaborateCars(suggestions.choices || [], searchIntent, trace);
       
       // Construct intermediate result for translation
       const intermediateResult = { analysis: suggestions.analysis, cars: elaboratedCars };
@@ -115,8 +113,7 @@ export const aiService = {
           )
         );
 
-      const tonePrompt = promptService.loadTemplate('tone.md').replace('${userLanguage}', language);
-      const elaboratedCars = await this.elaborateCars(uniqueCarChoices, searchIntent, tonePrompt, trace);
+      const elaboratedCars = await this.elaborateCars(uniqueCarChoices, searchIntent, trace);
       
       // Construct intermediate result for translation
       const intermediateResult = { analysis: suggestions.analysis, cars: elaboratedCars };
@@ -188,11 +185,10 @@ export const aiService = {
   /**
    * Internal helper to elaborate car details
    */
-  async elaborateCars(carChoices: any[], searchIntent: any, tonePrompt: string, trace: any): Promise<Car[]> {
+  async elaborateCars(carChoices: any[], searchIntent: any, trace: any): Promise<Car[]> {
     const span = trace.span({ name: "elaborate_cars_parallel", input: { count: carChoices.length } });
     try {
       const carsElaborationTemplates = promptService.loadTemplate('elaborate_suggestion.md');
-      const carResponseSchema = promptService.loadTemplate('car-response-schema.md');
       const jsonGuard = promptService.loadTemplate('json-guard.md');
 
       const elaboratedCars = await Promise.all(carChoices.map(async (carChoice: any) => {
@@ -201,8 +197,6 @@ export const aiService = {
             { role: "system", content: carsElaborationTemplates },
             { role: "system", content: "Current car to elaborate: " + JSON.stringify(carChoice) },
             { role: "system", content: "User intent JSON: " + JSON.stringify(searchIntent) },
-            { role: "system", content: "Car response schema JSON: " + carResponseSchema },
-            { role: "system", content: tonePrompt },
             { role: "system", content: jsonGuard }
           ];
 

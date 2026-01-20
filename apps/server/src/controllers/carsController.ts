@@ -148,10 +148,6 @@ export const carsController = {
       },
       {
         role: "system",
-        content: promptService.loadTemplate('tone.md').replace('${userLanguage}', language)
-      },
-      {
-        role: "system",
         content: `The answer should be relative to ${car} and only use the information available about this car. If the information is not available, respond with "I don't know".`
       },
       {
@@ -231,10 +227,6 @@ export const carsController = {
           .replace('${reason}', reason || 'find similar alternatives')
       },
       {
-        role: "system",
-        content: promptService.loadTemplate('tone.md').replace('${userLanguage}', language)
-      },
-      {
         role: "user",
         content: `Suggest 3 alternatives to ${car}`
       }
@@ -303,10 +295,6 @@ export const carsController = {
         content: comparePromptTemplate
           .replace('${car1}', car1)
           .replace('${car2}', car2)
-      },
-      {
-        role: "system",
-        content: promptService.loadTemplate('tone.md').replace('${userLanguage}', language)
       },
       {
         role: "user",

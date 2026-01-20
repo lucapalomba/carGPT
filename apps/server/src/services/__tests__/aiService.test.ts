@@ -32,7 +32,17 @@ describe('aiService', () => {
 
       // Mock elaboration
       (ollamaService.callOllama as any).mockResolvedValueOnce('{"car": {"percentage": 90}}');
-      (ollamaService.parseJsonResponse as any).mockReturnValueOnce({ car: { percentage: 90 } });
+      (ollamaService.parseJsonResponse as any).mockReturnValueOnce({ 
+        car: { 
+          percentage: 90,
+          vehicle_properties: {
+             trunk: { translatedLabel: "Trunk", value: "Large" }
+          },
+          constraints_satisfaction: {
+             budget: "100, ok"
+          }
+        } 
+      });
 
       // Mock translation
       (ollamaService.callOllama as any).mockResolvedValueOnce('{"analysis": "translated analysis"}');
@@ -100,7 +110,7 @@ describe('aiService', () => {
         (ollamaService.callOllama as any).mockRejectedValue(new Error('Elaboration error'));
         
         const cars = [{ make: 'Toyota', model: 'Camry' }];
-        const result = await aiService.elaborateCars(cars, {}, 'tone', mockTrace);
+        const result = await aiService.elaborateCars(cars, {}, mockTrace);
         
         expect(result[0]).toEqual(cars[0]);
     });
