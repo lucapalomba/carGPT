@@ -7,6 +7,7 @@ import { suggestionService } from './ai/suggestionService.js';
 import { elaborationService } from './ai/elaborationService.js';
 import { translationService } from './ai/translationService.js';
 import { enrichmentService } from './ai/enrichmentService.js';
+import { uiService } from './ai/uiService.js';
 import { Car, SearchResponse } from './ai/types.js';
 
 // Export Shared Types for consumers
@@ -40,7 +41,14 @@ export const aiService = {
       logger.info('Starting car search process', { sessionId, requirements: requirements.substring(0, 50) });
       
       const searchIntent = await intentService.determineSearchIntent(requirements, language, trace);
-      const suggestions = await suggestionService.getCarSuggestions(searchIntent, requirements, '', trace);
+      
+      // Parallelize suggestion generation and UI suggestions if possible, 
+      // but UI suggestions depend on searchIntent
+      const [suggestions, uiSuggestions] = await Promise.all([
+        suggestionService.getCarSuggestions(searchIntent, requirements, '', trace),
+        uiService.getUiSuggestions(searchIntent, trace)
+      ]);
+
       const elaboratedCars = await elaborationService.elaborateCars(suggestions.choices || [], searchIntent, trace);
       
       // Construct intermediate result for translation
@@ -49,7 +57,7 @@ export const aiService = {
 
       const carsWithImages = await enrichmentService.enrichCarsWithImages(translatedResult.cars, trace);
 
-      const result = { searchIntent, suggestions, ...translatedResult, cars: carsWithImages };
+      const result = { searchIntent, suggestions, ui_suggestions: uiSuggestions, ...translatedResult, cars: carsWithImages };
       trace.update({ output: result });
       return result;
     } catch (error) {
