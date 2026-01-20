@@ -44,7 +44,7 @@ This can be the response:
   "user_country": "ITA",
   "primary_focus": "family reliability, space, safety",
   "constraints": {
-      "budget": "25000 - 35000| None",
+      "budget": "25000 - 35000 EUR",
       "must_have": [
           "family safety technology features",
           "trunk_volume_minimum_3_suitcases",
@@ -129,7 +129,7 @@ Return this JSON format:
   "user_country": "ISO-3166-1 alpha-3 code translated STRICTLY (not inferenced) from the locale region in ${language}",
   "primary_focus": "3 adjectives at most to describe the primary focus of the user's request",
   "constraints": {
-    "budget": "10000 - 20000 | none",
+    "budget": "10000 - 20000 EUR | 50000 USD | none",
     "must_have": ["safety technology features", "security", "consumption"],
   },
   "interesting_properties": ["trunk_volume", "ncap_rating"]

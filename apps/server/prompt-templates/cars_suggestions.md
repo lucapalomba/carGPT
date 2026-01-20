@@ -26,6 +26,7 @@ Suggest only REAL cars available in the user country.
 # Selection Rules
 
 ## FOR "CHOICES" array (New Suggestions):
+- **SUGGEST ONLY REAL, COMMERCIALLY AVAILABLE CARS.** Do not invent models or trims.
 - Suggest at max 3 NEW Cars available in the User country (country).
 - If is indicated a Budget, car value (price) MUST stay in budget with more or less 10% of the budget (for used cars)
 - If not specificate to be interested only in new cars, evaluate cars max 5 years old  
@@ -33,10 +34,16 @@ Suggest only REAL cars available in the user country.
 - Use the User feedback (if any) to refine your selection.
 - pinned value is EVER false
 
+### ANTI-HALLUCINATION RULES:
+- **VERIFY TRIMS:** Use only official, existing trim levels (e.g., "M Sport", "AMG Line", "Allure"). If unsure, use the base model name.
+- **CHECK ENGINE CONSISTENCY:** Verify that the Engine Displacement and Fuel Type matches the Model for the specific year. (e.g. Do not suggest a 5.0L V8 for a Fiat Panda).
+- **NO HYBRIDS IF NOT EXIST:** Do not suggest "Hybrid" or "Electric" versions of cars if they were not produced for that specific year/model.
+- If you are unsure about a specific configuration, provide a generic valid one rather than inventing details.
+
 ## FOR "PINNED_CARS" array (Existing Choices):
 - You will be provided with a list of "Pinned Cars to include".
 - You MUST include ALL of them in the "pinned_cars" array.
-- For these cars, re-evaluate "percentage", "selection_reasoning", "configuration", and "precise_model" based on the updated User feedback and intent.
+- For these cars, re-evaluate "percentage", "selection_reasoning", based on the updated User feedback and intent.
 - pinned value is EVER true
 
 ----------
@@ -54,7 +61,7 @@ system: 'User intent JSON: {
 "user_country": "ITA",
 "primary_focus": "family, space, reliability",
 "constraints": {
-    "budget": "25000-35000",
+    "budget": "25000-35000 EUR",
     "must_have": [
         "safety technology features",
         "trunk_volume_minimum_3_suitcases",
@@ -103,7 +110,7 @@ system: 'IMPORTANT: The user has previously pinned the following cars. You MUST 
 For each of these cars, you must:
 1. Re-evaluate his "percentage" based on the new intent.
 2. Provide a new "selection_reasoning" explaining why it is still relevant.
-3. Ensure the "configuration" and "precise_model" are accurate.
+3. Ensure the "configuration" and "precise_model" are accurate and **real**.
 
 Pinned Cars to include:
 - Volkswagen T-Roc (2021)'
@@ -158,6 +165,6 @@ Return this JSON format:
 - configuration = trim level or engine designation ONLY (e.g. 1.0, 1.8 HB Active, e:HEV Executive)
 - year = production year of the selected configuration
 - pinned = boolean is ever true if the car is in pinned_cars array otherwise false
-- precise_model = precise model identifier used to identify uniquely a model, for example: Toyota Corolla 1.8 HB Active 2019 is different from Toyota Corolla 2.0 HB Active 2019 and different from Toyota Corolla 1.8 HB GR SPORT 2019
+- precise_model = precise model identifier used to identify uniquely a model, for example: Toyota Corolla 1.8 HB Active 2019 is different from Toyota Corolla 2.0 HB Active 2019 and different from Toyota Corolla 1.8 HB GR SPORT 2019, **MUST be REAL configuration and not builed or hallucinated**
 - constraints_satisfaction = A json object reporting satisfaction percentages and why for every point of "User intent JSON" under "constraints" properties
 - percentage = Percentage from 0 to 100 indicating how well this car matches the initial request

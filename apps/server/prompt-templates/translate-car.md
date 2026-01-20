@@ -11,13 +11,14 @@ Return ONLY valid JSON (no markdown) representing the translated car object.
 - "percentage" (number)
 - "precise_model" (model variant name)
 - "configuration" (engine/trim specification)
+- "price" (string)
+- "price_when_new" (string)
 - Any numeric values
 - Any boolean values
 - Any null values
 
 ## FIELDS TO TRANSLATE:
-- "selection_reasoning" → translate the text
-- "reasoning" → translate the text
+- "reason" → translate the text
 - "properties" array → translate the "property" and "value" text fields
 - "strengths" array → translate value text fields
 - "weaknesses" array → translate value text fields

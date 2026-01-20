@@ -8,19 +8,42 @@ Your focus is too elaborate descriptions and values with concrete unit of measur
 # Specifications
 
 - JSON is in English ignore user input language.
+- JSON is in English ignore user input language.
+- **IMPORTANT**: Return a **flat JSON object**. Do NOT wrap the properties in a "car" object.
+- The elaboration of "interesting_properties" must be referenced to the car suggested in "Current car to elaborate" especially into the precise_model.
 
 ----------
 
 # Task
 
 1. Compile for the car suggested in "Current car to elaborate" the JSON object with the shape of the JSON in chapter "Response Format"
-2. For every property in "interesting_properties" of the "User Intent JSON", you must generate a schema and put in "vehicle_properties" array in this way:  
-    "trunk_volume" -> "trunk_volume": {
-        translatedLabel: "Volume of the trunk",
-        value: "A single discursive value" // This MUST be discursive and NOT a JSON!
+2. For every property in "interesting_properties" of the "User Intent JSON", you must generate a schema and put it in the "vehicle_properties" object (NOT an array).
+    **CRITICAL**: Every property MUST be an object with `translatedLabel` and `value`.
+    **WRONG**: `"brake_system_type": "ABS"` 
+    **RIGHT**: 
+    ```json
+    "brake_system_type": {
+        "translatedLabel": "Brake System",
+        "value": "ABS with EBD"
     }
+    ```
+    "trunk_volume" -> "trunk_volume": {
+        "translatedLabel": "Volume of the trunk",
+        "value": "A single discursive value"
+    }
+3. Do Consistency Check
 
+----------
 
+# Consistency Check
+Before elaborating, verify that:
+1. The `make` and `model` are real and commercially available.
+2. The `configuration` (engine/trim) actually exists for this specific `year` and `model`.
+3. If the configuration is invalid (e.g. a 5.0L engine in a small city car), try to correct it to the closest valid configuration or standard version.
+4. interesting_properties MUST be an array of JSON objects : "{
+        "translatedLabel": "string",
+        "value": "string"
+    }" 
 
 ----------
 
@@ -51,9 +74,8 @@ system: 'User intent JSON: {"user_country":"ITA","primary_focus":"family, space,
 
 Response:
 {
-            "car": {
-                "price": "25000",
-                "price_when_new": "35000",
+                "price": "25000 EUR",
+                "price_when_new": "35000 EUR",
                 "type": "Compact SUV",
                 "market_availability": "Available in Italy",
                 "vehicle_properties": {
@@ -117,8 +139,7 @@ Response:
                 ],
                 "reason": "The Hyundai Tucson 1.6 GDI meets your budget constraints (within €25,000–€35,000) and prioritizes family safety, space, and efficiency. Its Euro NCAP safety rating and spacious rear cargo area align well with your preferences.",
                 "pinned": false
-            }
-        }
+}
 
 ----------
 
@@ -126,9 +147,8 @@ Response:
 
 Return this JSON format:
 {
-  "car": {
-    "price": "15000",
-    "price_when_new": "25000",
+    "price": "15000 EUR | USD | No informations",
+    "price_when_new": "25000 EUR | USD | No informations",
     "type": "SUV",
     "market_availability": "Yes in France",
     "vehicle_properties": {
@@ -141,10 +161,11 @@ Return this JSON format:
     "weaknesses": ["point 1", "point 2", "point 3"],
     "reason": "brief explanation why it's suitable (1-2 sentences)",
     "pinned": false | true
-  }
 }
 
 ## SEMANTIC FIELD RULES:
-- price: the actual value of the car
-- price_when_new: the base price of the car when it was new
+- price: the actual value of the car, use currency of the country of the user, don't invent also "NO informations" is acceptable 
+- price_when_new: the base price of the car when it was new, use currency of the country of the user, don't invent also "NO informations" is acceptable
+- strengths: array of strings, minimum 3, each string is a strength of the car
+- weaknesses: array of strings, minimum 3, each string is a weakness of the car
 - type: type of the vehicle (SUV, Sedan, Compact, Station Wagon, etc)
