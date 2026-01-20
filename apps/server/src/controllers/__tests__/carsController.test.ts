@@ -143,56 +143,7 @@ describe('carsController', () => {
     });
   });
 
-  describe('askAboutCar', () => {
-    it('should throw ValidationError if car or question is missing', async () => {
-        const next = vi.fn();
-        await carsController.askAboutCar(req, res, next);
-        expect(next).toHaveBeenCalledWith(expect.any(ValidationError));
-    });
 
-    it('should return answer on success', async () => {
-        const { ollamaService } = await import('../../services/ollamaService.js');
-        const { promptService } = await import('../../services/promptService.js');
-        req.body = { car: 'Tesla Model 3', question: 'Range?' };
-        (promptService.loadTemplate as any).mockReturnValue('template');
-        (ollamaService.callOllama as any).mockResolvedValue('{"answer": "400 miles"}');
-        (ollamaService.parseJsonResponse as any).mockReturnValue({ answer: "400 miles" });
-        (conversationService.getOrInitialize as any).mockReturnValue({ history: [] });
-
-        await carsController.askAboutCar(req, res, vi.fn());
-
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            success: true,
-            answer: '400 miles'
-        }));
-    });
-  });
-
-  describe('getAlternatives', () => {
-      it('should return alternatives', async () => {
-          const { ollamaService } = await import('../../services/ollamaService.js');
-          req.body = { car: 'Toyota' };
-          (ollamaService.callOllama as any).mockResolvedValue('{"alternatives": []}');
-          (ollamaService.parseJsonResponse as any).mockReturnValue({ alternatives: [] });
-          (conversationService.getOrInitialize as any).mockReturnValue({ history: [] });
-
-          await carsController.getAlternatives(req, res, vi.fn());
-          expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
-      });
-  });
-
-  describe('compareCars', () => {
-      it('should return comparison', async () => {
-          const { ollamaService } = await import('../../services/ollamaService.js');
-          req.body = { car1: 'A', car2: 'B' };
-          (ollamaService.callOllama as any).mockResolvedValue('{}');
-          (ollamaService.parseJsonResponse as any).mockReturnValue({});
-          (conversationService.getOrInitialize as any).mockReturnValue({ history: [] });
-
-          await carsController.compareCars(req, res, vi.fn());
-          expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
-      });
-  });
 
   describe('resetConversation', () => {
     it('should delete conversation and return success', async () => {

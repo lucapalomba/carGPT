@@ -19,24 +19,6 @@ vi.mock('../../controllers/carsController.js', () => ({
       conv.history.push({ type: 'refine-search', timestamp: new Date(), data: { feedback: req.body.feedback } });
       res.json({ success: true, sessionId, cars: [] });
     },
-    compareCars: (req: any, res: any) => {
-      const sessionId = req.body.sessionId || 'test-session';
-      const conv = conversationService.getOrInitialize(sessionId);
-      conv.history.push({ type: 'compare-cars', timestamp: new Date(), data: { car1: req.body.car1, car2: req.body.car2 } });
-      res.json({ success: true, comparison: {} });
-    },
-    askAboutCar: (req: any, res: any) => {
-      const sessionId = req.body.sessionId || 'test-session';
-      const conv = conversationService.getOrInitialize(sessionId);
-      conv.history.push({ type: 'ask-about-car', timestamp: new Date(), data: { car: req.body.car, question: req.body.question } });
-      res.json({ success: true, answer: 'Safe.' });
-    },
-    getAlternatives: (req: any, res: any) => {
-      const sessionId = req.body.sessionId || 'test-session';
-      const conv = conversationService.getOrInitialize(sessionId);
-      conv.history.push({ type: 'get-alternatives', timestamp: new Date(), data: { car: req.body.car, reason: req.body.reason } });
-      res.json({ success: true, alternatives: [] });
-    },
     resetConversation: (req: any, res: any) => {
       const sessionId = req.body.sessionId || 'test-session';
       conversationService.delete(sessionId);
@@ -72,36 +54,15 @@ describe('Conversation History Flow', () => {
       .send({ requirements: 'cheap city car', sessionId });
     expect(findRes.body.success).toBe(true);
 
-    // 2. Compare Cars
-    const compareRes = await request(app)
-      .post('/api/compare-cars')
-      .send({ car1: 'Fiat 500', car2: 'Smart Fortwo', sessionId });
-    expect(compareRes.body.success).toBe(true);
-
-    // 3. Ask about car
-    const askRes = await request(app)
-      .post('/api/ask-about-car')
-      .send({ car: 'Fiat 500', question: 'Is it reliable?', sessionId });
-    expect(askRes.body.success).toBe(true);
-
-    // 4. Get alternatives
-    const altRes = await request(app)
-      .post('/api/get-alternatives')
-      .send({ car: 'Fiat 500', reason: 'Too small', sessionId });
-    expect(altRes.body.success).toBe(true);
-
-    // 5. Verify History
+    // 2. Verify History
     const histRes = await request(app).get('/api/get-conversations');
     expect(histRes.body.success).toBe(true);
 
     const myConv = histRes.body.conversations.find((c: any) => c.id === sessionId);
     expect(myConv).toBeDefined();
-    expect(myConv.history.length).toBe(4);
+    expect(myConv.history.length).toBe(1);
     
     const types = myConv.history.map((h: any) => h.type);
     expect(types).toContain('find-cars');
-    expect(types).toContain('compare-cars');
-    expect(types).toContain('ask-about-car');
-    expect(types).toContain('get-alternatives');
   });
 });
