@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ollamaService } from '../ollamaService.js';
 import { OllamaError } from '../../utils/AppError.js';
 import logger from '../../utils/logger.js';
+import { config } from '../../config/index.js';
 
 describe('ollamaService', () => {
   beforeEach(() => {
@@ -84,7 +85,7 @@ describe('ollamaService', () => {
     it('should return true if model exists', async () => {
       (fetch as any).mockResolvedValue({
         ok: true,
-        json: async () => ({ models: [{ name: 'ministral-3:3b' }] })
+        json: async () => ({ models: [{ name: config.ollama.model }] })
       });
 
       const result = await ollamaService.verifyOllama();

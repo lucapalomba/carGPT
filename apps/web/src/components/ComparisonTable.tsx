@@ -10,7 +10,7 @@ interface ComparisonTableProps {
 
 function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTableProps) {
   const allPropertyIds = Array.from(new Set(
-    cars.flatMap(car => car.properties ? Object.keys(car.properties) : [])
+    cars.flatMap(car => car.vehicle_properties ? Object.keys(car.vehicle_properties) : [])
   ));
 
   return (
@@ -94,14 +94,14 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
           </Table.Row>
 
           {allPropertyIds.map(id => {
-            const label = cars.find(c => c.properties?.[id])?.properties?.[id]?.translatedLabel || id;
+            const label = cars.find(c => c.vehicle_properties?.[id])?.vehicle_properties?.[id]?.translatedLabel || id;
             
             return (
               <Table.Row key={id}>
                 <Table.Cell p={6} fontWeight="bold" color="fg" bg="bg.subtle" position="sticky" left={0} zIndex={5}>{label}</Table.Cell>
                 {cars.map((car, i) => (
                   <Table.Cell key={i} p={6} color="fg">
-                    {car.properties?.[id]?.value || '-'}
+                    {car.vehicle_properties?.[id]?.value || '-'}
                   </Table.Cell>
                 ))}
               </Table.Row>

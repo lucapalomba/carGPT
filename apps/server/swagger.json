@@ -576,6 +576,11 @@
                         "description": "Price range when new",
                         "example": "25,000-30,000€"
                     },
+                    "price_when_new": {
+                        "type": "string",
+                        "description": "Base price when new",
+                        "example": "28,000€"
+                    },
                     "type": {
                         "type": "string",
                         "description": "Car type/category",
@@ -586,7 +591,7 @@
                         "description": "Availability in the user's market",
                         "example": "Available in the US market"
                     },
-                    "properties": {
+                    "vehicle_properties": {
                         "type": "object",
                         "description": "Dynamic properties of the car",
                         "additionalProperties": {
@@ -648,12 +653,12 @@
                         "type": "object",
                         "description": "Satisfaction percentages for each constraint",
                         "additionalProperties": {
-                            "type": "integer"
+                            "type": "string"
                         },
                         "example": {
-                            "budget": 90,
-                            "trunk_space": 85,
-                            "fuel_efficiency": 80
+                            "budget": "90, fits well within budget",
+                            "trunk_space": "85, large trunk but slightly less than requested",
+                            "fuel_efficiency": "80, average consumption"
                         }
                     },
                     "reasoning": {
