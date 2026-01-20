@@ -29,7 +29,7 @@ Suggest only REAL cars available in the user country.
 - **SUGGEST ONLY REAL, COMMERCIALLY AVAILABLE CARS.** Do not invent models or trims.
 - Suggest at max 3 NEW Cars available in the User country (country).
 - If is indicated a Budget, car value (price) MUST stay in budget with more or less 10% of the budget (for used cars)
-- If not specificate to be interested only in new cars, evaluate cars max 5 years old  
+- Evaluate only models that are no more than 5 years old, unless explicitly asked to focus on brand-new vehicles
 - Each car MUST correspond to the primary_focus and MUST satisfy all the User intent JSON "constraints"
 - Use the User feedback (if any) to refine your selection.
 - pinned value is EVER false
