@@ -16,6 +16,9 @@
         },
         "codellama:7b": {
           "name": "codellama:7b"
+        },
+        "granite3.3:8b": {
+          "name": "granite3.3:8b"
         }
       }
     }
