@@ -62,6 +62,50 @@ const connectionPool = new OllamaConnectionPool();
  * Service to handle communication with Ollama
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+const getModelForOperation = (operationName?: string): string => {
+  if (!operationName) return config.ollama.model;
+  
+  if (operationName.includes('translate')) {
+    return config.ollama.models.translation;
+  }
+  if (operationName.includes('suggestion')) {
+    return config.ollama.models.suggestion;
+  }
+  if (operationName.includes('intent')) {
+    return config.ollama.models.intent;
+  }
+  if (operationName.includes('elaborate')) {
+    return config.ollama.models.elaboration;
+  }
+  if (operationName.includes('verify_image')) {
+    return config.ollama.models.vision;
+  }
+  
+  return config.ollama.model;
+};
+
+const getOperationType = (operationName?: string): string => {
+  if (!operationName) return 'unknown';
+  
+  if (operationName.includes('translate')) {
+    return 'translation';
+  }
+  if (operationName.includes('suggestion')) {
+    return 'suggestion';
+  }
+  if (operationName.includes('intent')) {
+    return 'intent';
+  }
+  if (operationName.includes('elaborate')) {
+    return 'elaboration';
+  }
+  if (operationName.includes('verify_image')) {
+    return 'vision';
+  }
+  
+  return 'general';
+};
+
 export const ollamaService = {
   /**
    * Sends a list of messages to Ollama and returns the content of the response.
@@ -72,8 +116,8 @@ export const ollamaService = {
    * @returns {Promise<string>} The response content from Ollama
    * @throws {Error} If the connection fails or Ollama returns an error
    */
-async callOllama(messages: Message[], trace?: any, operationName?: string) {
-     const model = config.ollama.model;
+ async callOllama(messages: Message[], trace?: any, operationName?: string, modelOverride?: string) {
+      const model = modelOverride || getModelForOperation(operationName);
      const ollamaResponseFormat = "json";
      const options = {
        temperature: 0,
@@ -137,6 +181,11 @@ async callOllama(messages: Message[], trace?: any, operationName?: string) {
           input: data.prompt_eval_count,
           output: data.eval_count,
           total: data.prompt_eval_count + data.eval_count
+        },
+        metadata: {
+          operationType: getOperationType(operationName),
+          defaultModel: config.ollama.model,
+          selectedModel: model
         }
       });
 

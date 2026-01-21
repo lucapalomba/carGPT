@@ -6,6 +6,13 @@ dotenv.config();
 interface OllamaConfig {
   url: string;
   model: string;
+  models: {
+    translation: string;
+    suggestion: string;
+    intent: string;
+    elaboration: string;
+    vision: string;
+  };
 }
 
 interface SessionConfig {
@@ -71,7 +78,14 @@ export const config: AppConfig = {
   port: Number(process.env.PORT) || 3000,
   ollama: {
     url: process.env.OLLAMA_URL || 'http://localhost:11434',
-    model: process.env.OLLAMA_MODEL || 'ministral-3:3b'
+    model: process.env.OLLAMA_MODEL || 'ministral-3:3b',
+    models: {
+      translation: process.env.OLLAMA_MODEL_TRANSLATION || 'ministral-3:3b',
+      suggestion: process.env.OLLAMA_MODEL_SUGGESTION || 'ministral-3:3b', 
+      intent: process.env.OLLAMA_MODEL_INTENT || 'ministral-3:3b',
+      elaboration: process.env.OLLAMA_MODEL_ELABORATION || 'ministral-3:3b',
+      vision: process.env.OLLAMA_MODEL_VISION || 'ministral-3:3b'
+    }
   },
   aiProvider: process.env.AI_PROVIDER || 'ollama',
   mode: process.env.APP_ENV || process.env.NODE_ENV || 'development',
