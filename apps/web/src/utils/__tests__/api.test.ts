@@ -4,7 +4,10 @@ import { toast } from 'react-hot-toast';
 
 // Mock fetch and toast
 const fetchMock = vi.fn();
-global.fetch = fetchMock;
+Object.defineProperty(globalThis, 'fetch', {
+  value: fetchMock,
+  writable: true,
+});
 
 vi.mock('react-hot-toast', () => ({
   toast: {
@@ -17,7 +20,7 @@ describe('api utility', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // navigator.language is needed by api.ts
-    Object.defineProperty(global, 'navigator', {
+    Object.defineProperty(globalThis, 'navigator', {
       value: { language: 'en-US' },
       configurable: true,
     });

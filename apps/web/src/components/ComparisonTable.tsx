@@ -1,5 +1,5 @@
 import { Box, Table, Text, Flex, Button, Stack, Badge } from '@chakra-ui/react';
-import type { Car } from '../App';
+import type { Car } from '../hooks/useCarSearch';
 import ImageCarousel from './ImageCarousel';
 
 interface ComparisonTableProps {
@@ -22,7 +22,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
             {cars.map((car, i) => (
               <Table.ColumnHeader key={i} p={6} borderBottomWidth="1px" borderColor="border" minW="300px" data-testid="car-card">
                 <Flex justify="space-between" align="start" mb={4}>
-                  <Badge variant="solid"  size="lg"  colorPalette={car.percentage > 80 ? 'green' : car.percentage > 50 ? 'orange' : 'red'}>{car.percentage}</Badge>
+                  <Badge variant="solid"  size="lg"  colorPalette={(car.percentage || 0) > 80 ? 'green' : (car.percentage || 0) > 50 ? 'orange' : 'red'}>{car.percentage || 0}</Badge>
                   <Button
                     onClick={() => onTogglePin(i)}
                     size="xs"
@@ -67,7 +67,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
             {cars.map((car, i) => (
               <Table.Cell key={i} p={6}>
                 <Stack gap={1}>
-                  {car && car.strengths && car.strengths.map((s, idx) => (
+                  {car && car.strengths && car.strengths.map((s: string, idx: number) => (
                     <Flex key={idx} fontSize="sm" color="fg.success" align="start" gap={2}>
                         <Text as="span" mt={0.5}>✅</Text>
                         <Text as="span">{s}</Text>
@@ -82,7 +82,7 @@ function ComparisonTable({ cars, pinnedIndices, onTogglePin }: ComparisonTablePr
             {cars.map((car, i) => (
               <Table.Cell key={i} p={6}>
                 <Stack gap={1}>
-                  {car && car.weaknesses && car.weaknesses.map((w, idx) => (
+                  {car && car.weaknesses && car.weaknesses.map((w: string, idx: number) => (
                     <Flex key={idx} fontSize="sm" color="fg.error" align="start" gap={2}>
                         <Text as="span" mt={0.5}>❌</Text>
                         <Text as="span">{w}</Text>

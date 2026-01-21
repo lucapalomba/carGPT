@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { api } from '../utils/api';
+import { carSearchService } from '../services/CarSearchService';
 import type { Car, SearchResponse as SharedSearchResponse } from '../../../server/src/services/ai/types';
 
 // Legacy export for backward compatibility
@@ -24,7 +24,12 @@ export const useCarSearch = () => {
     
     setIsSearching(true);
     try {
-      const data = await api.post<SearchResponse>('/api/find-cars', { requirements });
+      // Validate requirements before sending
+      if (!carSearchService.validateSearchRequirements(requirements)) {
+        throw new Error('Please provide valid search requirements (3-1000 characters)');
+      }
+      
+      const data = await carSearchService.findCars(requirements);
       
       // Check if request is still valid (not cancelled)
       if (pendingRequestsRef.current.has(requestId)) {
@@ -37,6 +42,7 @@ export const useCarSearch = () => {
     } catch (error) {
       if (pendingRequestsRef.current.has(requestId)) {
         console.error('Search error:', error);
+        throw error; // Re-throw for component to handle
       }
     } finally {
       pendingRequestsRef.current.delete(requestId);
@@ -50,7 +56,12 @@ export const useCarSearch = () => {
     
     setIsSearching(true);
     try {
-      const data = await api.post<SearchResponse>('/api/refine-search', { feedback, pinnedCars });
+      // Validate feedback before sending
+      if (!carSearchService.validateFeedback(feedback)) {
+        throw new Error('Please provide valid feedback (3-500 characters)');
+      }
+      
+      const data = await carSearchService.refineSearch(feedback, pinnedCars);
 
       // Check if request is still valid (not cancelled)
       if (pendingRequestsRef.current.has(requestId)) {
@@ -62,6 +73,7 @@ export const useCarSearch = () => {
     } catch (error) {
       if (pendingRequestsRef.current.has(requestId)) {
         console.error('Refine error:', error);
+        throw error; // Re-throw for component to handle
       }
     } finally {
       pendingRequestsRef.current.delete(requestId);
@@ -76,7 +88,7 @@ export const useCarSearch = () => {
     if (!confirm('Do you want to start a new search? Current results will be lost.')) return;
 
     try {
-      await api.post('/api/reset-conversation', {});
+      await carSearchService.resetConversation();
       
       // Reset all states
       setView('form');

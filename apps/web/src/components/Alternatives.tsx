@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Box, Stack, Heading, Text, Button, NativeSelect, Input, Dialog } from '@chakra-ui/react';
-import type { Car } from '../App';
+import type { Car } from '../hooks/useCarSearch';
 import { api } from '../utils/api';
 
 interface AlternativesProps {
