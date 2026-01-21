@@ -1,32 +1,11 @@
 import { useState, useCallback } from 'react';
 import { api } from '../utils/api';
+import type { Car, SearchResponse as SharedSearchResponse } from '../../../server/src/services/ai/types';
 
-export interface Car {
-  make: string;
-  model: string;
-  year: number;
-  type: string;
-  price: string;
-  strengths: string[];
-  weaknesses: string[];
-  reason: string;
-  pinned?: boolean;
-  precise_model?: string;
-  percentage: number;
-  vehicle_properties?: Record<string, {
-    translatedLabel: string;
-    value: string;
-  }>;
-  images?: Array<{
-    url: string;
-    title: string;
-    thumbnail?: string;
-    source?: string;
-  }>;
-}
+// Legacy export for backward compatibility
+export type { Car };
 
-export interface SearchResponse {
-  cars: Car[];
+export interface SearchResponse extends SharedSearchResponse {
   analysis: string;
 }
 
