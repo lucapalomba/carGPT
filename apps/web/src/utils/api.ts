@@ -2,81 +2,79 @@
  * Centralized API utility for CarGPT web application.
  * Handles fetch calls, error response normalization, and notification triggers.
  */
-import { toast } from 'react-hot-toast';
+import { errorHandler } from './errorHandler';
 
-/**
- * Normalizes error messages from the backend or the environment.
- * Priority: data.message -> data.error (legacy) -> data.statusText -> generic fallback
- */
-async function getErrorMessage(response: Response): Promise<string> {
-  try {
-    const data = await response.json();
-    return data.message || data.error || response.statusText || 'Unknown server error';
-  } catch {
-    return response.statusText || 'Server communication error';
+class ApiClient {
+  private static instance: ApiClient;
+  
+  static getInstance(): ApiClient {
+    if (!ApiClient.instance) {
+      ApiClient.instance = new ApiClient();
+    }
+    return ApiClient.instance;
   }
-}
 
-export const api = {
-  async post<T = unknown>(url: string, body: unknown): Promise<T | null> {
+  private async makeRequest<T>(
+    url: string, 
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    body?: unknown,
+    headers?: Record<string, string>
+  ): Promise<T | null> {
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Accept-Language': navigator.language,
+          ...headers
         },
-        body: JSON.stringify(body),
+        body: body ? JSON.stringify(body) : undefined,
       });
 
       if (!response.ok) {
-        const errorMsg = await getErrorMessage(response);
-        toast.error(errorMsg);
+        await errorHandler.handleResponseError(response, `${method} ${url}`);
         return null;
       }
 
       const data = await response.json();
+      const validatedResponse = errorHandler.validateResponse<T>(data);
       
-      if (!data.success) {
-        toast.error(data.message || data.error || 'Operation failed');
+      if (!validatedResponse.success) {
+        errorHandler.handleError(
+          validatedResponse.error || validatedResponse.message || 'Operation failed',
+          `${method} ${url}`
+        );
         return null;
       }
 
-      return data;
-    } catch (error) {
-      console.error(`API Error [POST ${url}]:`, error);
-      toast.error('Connection error. Please check if the server is running.');
-      return null;
-    }
-  },
-
-  async get<T = unknown>(url: string): Promise<T | null> {
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept-Language': navigator.language,
-        },
-      });
-
-      if (!response.ok) {
-        const errorMsg = await getErrorMessage(response);
-        toast.error(errorMsg);
-        return null;
+      // Return the original data structure if it's a legacy API response
+      // or return just the data field for new structured responses
+      if (typeof data === 'object' && data !== null && 'success' in data) {
+        return data as T;
       }
-
-      const data = await response.json();
       
-      if (!data.success) {
-        toast.error(data.message || data.error || 'Operation failed');
-        return null;
-      }
-
-      return data;
+      return validatedResponse.data ?? (data as T);
     } catch (error) {
-      console.error(`API Error [GET ${url}]:`, error);
-      toast.error('Connection error.');
+      errorHandler.handleError(error, `${method} ${url}`);
       return null;
     }
   }
-};
+
+  async post<T = unknown>(url: string, body: unknown): Promise<T | null> {
+    return this.makeRequest<T>(url, 'POST', body);
+  }
+
+  async get<T = unknown>(url: string): Promise<T | null> {
+    return this.makeRequest<T>(url, 'GET');
+  }
+
+  async put<T = unknown>(url: string, body: unknown): Promise<T | null> {
+    return this.makeRequest<T>(url, 'PUT', body);
+  }
+
+  async delete<T = unknown>(url: string): Promise<T | null> {
+    return this.makeRequest<T>(url, 'DELETE');
+  }
+}
+
+export const api = ApiClient.getInstance();
