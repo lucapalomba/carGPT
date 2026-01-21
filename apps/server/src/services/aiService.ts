@@ -120,7 +120,13 @@ export const aiService = {
         enrichmentService.enrichCarsWithImages(elaboratedCars, trace)
       ]);
 
-      const result = { searchIntent, suggestions, ...translatedResult, cars: carsWithImages };
+      // Merge translated cars with images to preserve translations
+      const finalCars = carsWithImages.map((carWithImages, index) => ({
+        ...carWithImages,
+        ...translatedResult.cars[index] // Preserve translations
+      }));
+
+      const result = { searchIntent, suggestions, ...translatedResult, cars: finalCars };
       trace.update({ output: result });
       
       logger.info('ai.search.complete', { 
@@ -217,7 +223,13 @@ export const aiService = {
         enrichmentService.enrichCarsWithImages(elaboratedCars, trace)
       ]);
 
-      const result = { searchIntent, suggestions, ...translatedResult, cars: carsWithImages };
+      // Merge translated cars with images to preserve translations
+      const finalCars = carsWithImages.map((carWithImages, index) => ({
+        ...carWithImages,
+        ...translatedResult.cars[index] // Preserve translations
+      }));
+
+      const result = { searchIntent, suggestions, ...translatedResult, cars: finalCars };
       trace.update({ output: result });
       
       logger.info('ai.refine.complete', { 
