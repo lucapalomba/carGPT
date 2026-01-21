@@ -10,6 +10,12 @@
       "models": {
         "qwen2.5-coder:3b": {
           "name": "qwen2.5-coder:3b"
+        },
+        "ministral-3:3b": {
+          "name": "ministral-3:3b"
+        },
+        "codellama:7b": {
+          "name": "codellama:7b"
         }
       }
     }

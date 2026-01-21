@@ -41,18 +41,22 @@ setupDevelopmentFeatures();
 setupProductionFeatures();
 
 // Apply middleware with environment-specific configuration
-app.use(requestIdMiddleware);
-app.use(responseTimeMiddleware);
-app.use(requestLogger);
-app.use(cors(getCorsConfig()));
-app.use(express.json());
 const sessionConfig = getSessionConfig();
-app.use(session({
-  secret: sessionConfig.secret,
-  resave: false,
-  saveUninitialized: true,
-  cookie: sessionConfig.cookie
-}));
+
+// Core middleware stack
+app.use([
+  requestIdMiddleware,
+  responseTimeMiddleware,
+  requestLogger,
+  cors(getCorsConfig()),
+  express.json(),
+  session({
+    secret: sessionConfig.secret,
+    resave: false,
+    saveUninitialized: true,
+    cookie: sessionConfig.cookie
+  })
+]);
 
 // Setup environment-specific features
 setupDevelopmentEnvironment(app);
