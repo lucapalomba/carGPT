@@ -93,8 +93,12 @@ const startServer = async () => {
   });
 
   // Graceful shutdown
-  const gracefulShutdown = (signal: string) => {
+const gracefulShutdown = (signal: string) => {
     logger.info(`${signal} received, shutting down gracefully`);
+    
+    // Close Ollama connections
+    ollamaService.closeConnections();
+    
     server.close(() => {
       logger.info('Server closed');
       process.exit(0);

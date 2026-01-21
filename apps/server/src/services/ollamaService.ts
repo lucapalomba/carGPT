@@ -11,6 +11,54 @@ export interface Message {
 }
 
 /**
+ * Connection pool for Ollama API requests
+ */
+class OllamaConnectionPool {
+  private connections: Map<string, AbortController> = new Map();
+  private maxConnections: number = 5;
+  private activeConnections: number = 0;
+
+  async getConnection(operationName: string): Promise<AbortController> {
+    if (this.activeConnections >= this.maxConnections) {
+      logger.warn('Ollama connection pool full, waiting for available connection', { operationName });
+      await this.waitForConnection();
+    }
+
+    const controller = new AbortController();
+    this.connections.set(operationName, controller);
+    this.activeConnections++;
+    
+    return controller;
+  }
+
+  releaseConnection(operationName: string): void {
+    this.connections.delete(operationName);
+    this.activeConnections--;
+  }
+
+  private async waitForConnection(): Promise<void> {
+    return new Promise(resolve => {
+      const checkConnection = () => {
+        if (this.activeConnections < this.maxConnections) {
+          resolve();
+        } else {
+          setTimeout(checkConnection, 100);
+        }
+      };
+      checkConnection();
+    });
+  }
+
+  closeAll(): void {
+    this.connections.forEach(controller => controller.abort());
+    this.connections.clear();
+    this.activeConnections = 0;
+  }
+}
+
+const connectionPool = new OllamaConnectionPool();
+
+/**
  * Service to handle communication with Ollama
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -24,8 +72,7 @@ export const ollamaService = {
    * @returns {Promise<string>} The response content from Ollama
    * @throws {Error} If the connection fails or Ollama returns an error
    */
-  async callOllama(messages: Message[], trace?: any, operationName?: string) {
-
+async callOllama(messages: Message[], trace?: any, operationName?: string) {
      const model = config.ollama.model;
      const ollamaResponseFormat = "json";
      const options = {
@@ -35,21 +82,24 @@ export const ollamaService = {
        top_k: 5,
      };
      const messagesCount = messages.length;
+     const opName = operationName || `ollama_call_${Date.now()}`;
 
     try {
      
       logger.debug('Calling Ollama API', { 
         model,
         messagesCount,
-        fullPrompt: messages 
+        operationName: opName
       });
 
       const start = performance.now();
+      const controller = await connectionPool.getConnection(opName);
 
       const response = await fetch(`${config.ollama.url}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Connection': 'keep-alive',
         },
         body: JSON.stringify({
           model: model,
@@ -58,7 +108,8 @@ export const ollamaService = {
           stream: false,
           options,
           format: ollamaResponseFormat
-        })
+        }),
+        signal: controller.signal
       });
 
       if (!response.ok) {
@@ -89,9 +140,12 @@ export const ollamaService = {
         }
       });
 
+      connectionPool.releaseConnection(opName);
       return data.message.content;
 
-    } catch (error: unknown) {
+} catch (error: unknown) {
+      connectionPool.releaseConnection(opName);
+      
       if (error instanceof OllamaError) {
         throw error;
       }
@@ -101,12 +155,12 @@ export const ollamaService = {
       logger.error('Ollama connection failed', { 
         error: errorMessage,
         url: config.ollama.url,
-        operationName
+        operationName: opName
       });
 
       langfuse.generation({
         traceId: trace?.id,
-        name: operationName,
+        name: opName,
         model: model,
         modelParameters: options,
         level: "ERROR",
@@ -114,6 +168,8 @@ export const ollamaService = {
       });
 
       throw new OllamaError('Unable to connect to Ollama. Ensure Ollama is running (ollama serve)');
+    } finally {
+      connectionPool.releaseConnection(opName);
     }
   },
 
@@ -237,6 +293,14 @@ export const ollamaService = {
       logger.error('[Vision] Error during verification', { error: errorMessage, imageUrl });
       return false;
     }
+},
+
+  /**
+   * Close all connections and cleanup resources
+   */
+  closeConnections(): void {
+    connectionPool.closeAll();
+    logger.info('Ollama connections closed');
   }
 };
 /* eslint-enable @typescript-eslint/no-explicit-any */
