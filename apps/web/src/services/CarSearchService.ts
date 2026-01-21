@@ -1,5 +1,7 @@
 import { api } from '../utils/api';
+import { conversationRepository } from '../repositories/ConversationRepository';
 import type { Car, SearchResponse } from '../hooks/useCarSearch';
+import type { ConversationMessage } from '../repositories/ConversationRepository';
 
 /**
  * Service class for handling car search business logic
@@ -21,16 +23,81 @@ export class CarSearchService {
   }
 
   /**
+   * Get or create current conversation ID for session
+   * @param sessionId - Session identifier
+   * @returns Promise<string> - Conversation ID
+   */
+  private async getCurrentConversationId(sessionId: string): Promise<string> {
+    try {
+      const conversations = await conversationRepository.findBySessionId(sessionId);
+      
+      if (conversations.length > 0) {
+        return conversations[0].id; // Use most recent conversation
+      }
+      
+      // Create new conversation
+      const newConversation = await conversationRepository.create(sessionId);
+      return newConversation.id;
+    } catch (error) {
+      console.error('CarSearchService: Error getting/creating conversation', error);
+      // Fallback: generate temporary ID
+      return `temp-${Date.now()}`;
+    }
+  }
+
+  /**
    * Search for cars based on user requirements
    * @param requirements - User's car search requirements
+   * @param sessionId - Session identifier for conversation tracking
    * @returns Promise<SearchResponse> - Search results with cars and analysis
    * @throws Error - If API call fails
    */
-  async findCars(requirements: string): Promise<SearchResponse | null> {
+  async findCars(requirements: string, sessionId: string): Promise<SearchResponse | null> {
+    const startTime = Date.now();
+    
     try {
+      // Log user message to conversation
+      await conversationRepository.addMessage(
+        await this.getCurrentConversationId(sessionId),
+        {
+          timestamp: new Date(),
+          type: 'user',
+          content: requirements,
+          metadata: { searchIntent: 'initial_search' }
+        }
+      );
+
       const data = await api.post<SearchResponse>('/api/find-cars', { requirements });
+      
+      // Log assistant response to conversation
+      if (data) {
+        await conversationRepository.addMessage(
+          await this.getCurrentConversationId(sessionId),
+          {
+            timestamp: new Date(),
+            type: 'assistant',
+            content: data.analysis,
+            metadata: {
+              carCount: data.cars?.length || 0,
+              processingTime: Date.now() - startTime
+            }
+          } as ConversationMessage
+        );
+      }
+      
       return data;
     } catch (error) {
+      // Log error to conversation
+      await conversationRepository.addMessage(
+        await this.getCurrentConversationId(sessionId),
+        {
+          timestamp: new Date(),
+          type: 'system',
+          content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          metadata: { processingTime: Date.now() - startTime }
+        } as unknown as ConversationMessage
+      );
+      
       console.error('CarSearchService: Error in findCars', error);
       throw new Error('Failed to search for cars. Please try again.');
     }
@@ -40,29 +107,89 @@ export class CarSearchService {
    * Refine existing search results with user feedback
    * @param feedback - User's feedback on current results
    * @param pinnedCars - Previously pinned cars to include in results
+   * @param sessionId - Session identifier for conversation tracking
    * @returns Promise<SearchResponse> - Refined search results
    * @throws Error - If API call fails
    */
-  async refineSearch(feedback: string, pinnedCars: Car[] = []): Promise<SearchResponse | null> {
+  async refineSearch(feedback: string, pinnedCars: Car[] = [], sessionId?: string): Promise<SearchResponse | null> {
+    const startTime = Date.now();
+    
     try {
+      if (sessionId) {
+        // Log user feedback to conversation
+        await conversationRepository.addMessage(
+          await this.getCurrentConversationId(sessionId),
+          {
+            timestamp: new Date(),
+            type: 'user',
+            content: feedback,
+            metadata: { 
+              searchIntent: 'refinement',
+              feedback,
+              pinnedCarsCount: pinnedCars.length
+            }
+          } as unknown as ConversationMessage
+        );
+      }
+
       const data = await api.post<SearchResponse>('/api/refine-search', { 
         feedback, 
         pinnedCars 
       });
+      
+      if (sessionId && data) {
+        // Log assistant response to conversation
+        await conversationRepository.addMessage(
+          await this.getCurrentConversationId(sessionId),
+          {
+            timestamp: new Date(),
+            type: 'assistant',
+            content: data.analysis,
+            metadata: {
+              carCount: data.cars?.length || 0,
+              processingTime: Date.now() - startTime,
+              feedbackLength: feedback.length
+            }
+          } as unknown as ConversationMessage
+        );
+      }
+      
       return data;
     } catch (error) {
+      if (sessionId) {
+        // Log error to conversation
+        await conversationRepository.addMessage(
+          await this.getCurrentConversationId(sessionId),
+          {
+            timestamp: new Date(),
+            type: 'system',
+            content: `Refinement Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            metadata: { processingTime: Date.now() - startTime }
+          } as unknown as ConversationMessage
+        );
+      }
+      
       console.error('CarSearchService: Error in refineSearch', error);
       throw new Error('Failed to refine search results. Please try again.');
     }
   }
 
   /**
-   * Reset conversation context on the backend
+   * Reset conversation context on backend
+   * @param sessionId - Session identifier for cleanup
    * @throws Error - If API call fails
    */
-  async resetConversation(): Promise<void> {
+  async resetConversation(sessionId?: string): Promise<void> {
     try {
       await api.post('/api/reset-conversation', {});
+      
+      if (sessionId) {
+        // Clear conversation data for this session
+        const conversations = await conversationRepository.findBySessionId(sessionId);
+        for (const conversation of conversations) {
+          await conversationRepository.delete(conversation.id);
+        }
+      }
     } catch (error) {
       console.error('CarSearchService: Error in resetConversation', error);
       throw new Error('Failed to reset conversation. Please try again.');
@@ -162,6 +289,33 @@ export class CarSearchService {
     
     const baseInfo = `${make} ${model}`;
     return year ? `${year} ${baseInfo}` : baseInfo;
+  }
+
+  /**
+   * Update conversation data after search results
+   * @param sessionId - Session identifier
+   * @param cars - Current search results
+   * @param analysisHistory - Analysis history
+   * @param pinnedIndices - Pinned indices
+   * @returns Promise<void>
+   */
+  async updateConversationData(
+    sessionId: string,
+    cars?: Car[],
+    analysisHistory?: string[],
+    pinnedIndices?: Set<number>
+  ): Promise<void> {
+    try {
+      await conversationRepository.updateConversationData(
+        await this.getCurrentConversationId(sessionId),
+        cars,
+        analysisHistory,
+        pinnedIndices
+      );
+    } catch (error) {
+      console.error('CarSearchService: Error updating conversation data', error);
+      // Don't throw - this is not critical for search functionality
+    }
   }
 }
 

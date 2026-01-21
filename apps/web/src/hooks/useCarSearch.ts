@@ -20,6 +20,7 @@ export const useCarSearch = () => {
 
   const handleSearch = useCallback(async (requirements: string) => {
     const requestId = `search-${Date.now()}`;
+    const sessionId = `session-${Date.now()}`; // Generate session ID
     pendingRequestsRef.current.add(requestId);
     
     setIsSearching(true);
@@ -29,7 +30,7 @@ export const useCarSearch = () => {
         throw new Error('Please provide valid search requirements (3-1000 characters)');
       }
       
-      const data = await carSearchService.findCars(requirements);
+      const data = await carSearchService.findCars(requirements, sessionId);
       
       // Check if request is still valid (not cancelled)
       if (pendingRequestsRef.current.has(requestId)) {
@@ -37,6 +38,15 @@ export const useCarSearch = () => {
           setCurrentCars(data.cars);
           setAnalysisHistory([data.analysis]);
           setView('results');
+          
+          // Update conversation data
+          const newHistory = [data.analysis];
+          carSearchService.updateConversationData(
+            sessionId, 
+            data.cars, 
+            newHistory, 
+            new Set()
+          );
         }
       }
     } catch (error) {
@@ -52,6 +62,7 @@ export const useCarSearch = () => {
 
   const refineSearch = useCallback(async (feedback: string, pinnedCars: Car[] = []) => {
     const requestId = `refine-${Date.now()}`;
+    const sessionId = `session-${Date.now()}`; // Generate session ID
     pendingRequestsRef.current.add(requestId);
     
     setIsSearching(true);
@@ -61,13 +72,22 @@ export const useCarSearch = () => {
         throw new Error('Please provide valid feedback (3-500 characters)');
       }
       
-      const data = await carSearchService.refineSearch(feedback, pinnedCars);
+      const data = await carSearchService.refineSearch(feedback, pinnedCars, sessionId);
 
       // Check if request is still valid (not cancelled)
       if (pendingRequestsRef.current.has(requestId)) {
         if (data) {
           setCurrentCars(data.cars);
           setAnalysisHistory(prev => [...prev, data.analysis]);
+          
+          // Update conversation data
+          const newHistory = [...analysisHistory, data.analysis];
+          carSearchService.updateConversationData(
+            sessionId, 
+            data.cars, 
+            newHistory, 
+            new Set()
+          );
         }
       }
     } catch (error) {
