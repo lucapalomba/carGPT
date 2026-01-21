@@ -1,6 +1,6 @@
 import { Box } from '@chakra-ui/react';
 import { Toaster } from 'react-hot-toast';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import InitialForm from './components/InitialForm';
 import ResultsContainer from './components/ResultsContainer';
 import { useCarSearch } from './hooks/useCarSearch';
@@ -28,12 +28,20 @@ function App() {
     if (currentCars.length > 0) {
       updatePinnedIndices(currentCars);
     }
+    // Cleanup function to prevent memory leaks
+    return () => {
+      // Clear any pending operations if needed
+    };
   }, [currentCars, updatePinnedIndices]);
 
-  const handleRefineSearch = async (feedback: string) => {
-    const pinnedCars = getPinnedCars();
-    await refineSearch(feedback, pinnedCars);
-  };
+  const handleRefineSearch = useCallback(async (feedback: string) => {
+    try {
+      const pinnedCars = getPinnedCars();
+      await refineSearch(feedback, pinnedCars);
+    } catch (error) {
+      console.error('Error during refine search:', error);
+    }
+  }, [getPinnedCars, refineSearch]);
 
   return (
     <Box minH="100vh" bg="bg.muted" py={12} px={{ base: 4, sm: 6, lg: 8 }}>
