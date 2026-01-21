@@ -2,7 +2,7 @@ import express from 'express';
 import session from 'express-session';
 import cors from 'cors';
 
-import { config } from './src/config/index.js';
+import { config, validateConfig } from './src/config/index.js';
 import { ollamaService } from './src/services/ollamaService.js';
 import logger from './src/utils/logger.js';
 import { 
@@ -20,6 +20,15 @@ import {
   logServerInfo,
   setupGracefulShutdown
 } from './src/utils/serverSetup.js';
+import { 
+  setupDevelopmentFeatures,
+  setupProductionFeatures,
+  getSessionConfig,
+  getCorsConfig
+} from './src/config/environment.js';
+
+// Validate configuration on startup
+validateConfig();
 
 const app = express();
 
@@ -27,17 +36,22 @@ const app = express();
 unhandledRejectionHandler();
 uncaughtExceptionHandler();
 
-// Apply middleware
+// Apply environment-specific features
+setupDevelopmentFeatures();
+setupProductionFeatures();
+
+// Apply middleware with environment-specific configuration
 app.use(requestIdMiddleware);
 app.use(responseTimeMiddleware);
 app.use(requestLogger);
-app.use(cors());
+app.use(cors(getCorsConfig()));
 app.use(express.json());
+const sessionConfig = getSessionConfig();
 app.use(session({
-  secret: config.session.secret,
+  secret: sessionConfig.secret,
   resave: false,
   saveUninitialized: true,
-  cookie: config.session.cookie
+  cookie: sessionConfig.cookie
 }));
 
 // Setup environment-specific features
