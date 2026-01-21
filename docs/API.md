@@ -65,6 +65,10 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
     "analysis": "User needs a family car with large trunk...",
     "choices": [...]
   },
+  "ui_suggestions": {
+    "trunk_volume": { "component": "simple_text", "label": "Trunk Size", "unit": "liters", "priority": 8 },
+    "fuel_consumption": { "component": "progress_bar", "label": "Efficiency", "unit": "l/100km", "priority": 9 }
+  },
   "analysis": "Analysis of user requirements...",
   "cars": [
     {

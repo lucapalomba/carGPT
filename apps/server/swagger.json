@@ -500,6 +500,22 @@
                                 }
                             }
                         }
+                    },
+                    "ui_suggestions": {
+                        "type": "object",
+                        "description": "Suggested UI components for vehicle properties",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "component": {
+                                    "type": "string",
+                                    "enum": ["tag", "progress_bar", "icon_text", "highlight_text", "simple_text"]
+                                },
+                                "label": { "type": "string" },
+                                "unit": { "type": "string", "nullable": true },
+                                "priority": { "type": "integer" }
+                            }
+                        }
                     }
                 }
             },

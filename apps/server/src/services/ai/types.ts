@@ -15,5 +15,14 @@ export interface SearchResponse {
   auto?: Car[]; // For some LLM responses that might stick to 'auto' key
   userLanguage?: string;
   user_market?: string;
+  ui_suggestions?: UISuggestion[];
   [key: string]: unknown;
+}
+
+export interface UISuggestion {
+  component: string;
+  label: string;
+  unit: string | null;
+  priority: number;
+  details?: Record<string, unknown>;
 }
