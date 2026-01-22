@@ -6,32 +6,34 @@ import { config } from '../../config/index.js';
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+// Mock config to ensure API key and CX are available for tests
+const originalConfig = { ...config };
+
 describe('imageSearchService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockClear();
+    
+    // Reset config with test values
+    config.googleSearch.apiKey = 'test-api-key';
+    config.googleSearch.cx = 'test-cx';
   });
 
   describe('searchCarImages', () => {
     it('should return empty array when API key is missing', async () => {
-      // Override config for this test
-      const originalApiKey = config.googleSearch.apiKey;
       config.googleSearch.apiKey = '';
       
       const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 3);
       
       expect(result).toEqual([]);
-      config.googleSearch.apiKey = originalApiKey;
     });
 
     it('should return empty array when CX is missing', async () => {
-      const originalCx = config.googleSearch.cx;
       config.googleSearch.cx = '';
       
       const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 3);
       
       expect(result).toEqual([]);
-      config.googleSearch.cx = originalCx;
     });
 
     it('should construct correct query with year', async () => {
