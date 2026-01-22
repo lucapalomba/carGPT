@@ -54,7 +54,10 @@ app.use([
     secret: sessionConfig.secret,
     resave: false,
     saveUninitialized: true,
-    cookie: sessionConfig.cookie
+    cookie: {
+      ...sessionConfig.cookie,
+      secure: config.isProduction
+    }
   })
 ]);
 
