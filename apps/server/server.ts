@@ -3,7 +3,7 @@ import session from 'express-session';
 import cors from 'cors';
 
 import { config, validateConfig } from './src/config/index.js';
-import { ollamaService } from './src/services/ollamaService.js';
+// Services will be injected via DI container
 import logger from './src/utils/logger.js';
 import { 
   unhandledRejectionHandler,
@@ -26,9 +26,14 @@ import {
   getSessionConfig,
   getCorsConfig
 } from './src/config/environment.js';
+import { container, registerDependencies } from './src/container/index.js';
+import { SERVICE_IDENTIFIERS, IOllamaService } from './src/container/interfaces.js';
 
 // Validate configuration on startup
 validateConfig();
+
+// Register all dependencies
+registerDependencies();
 
 const app = express();
 
@@ -69,6 +74,7 @@ setupRoutes(app);
 
 // Start Server
 const startServer = async () => {
+  const ollamaService = container.get<IOllamaService>(SERVICE_IDENTIFIERS.OLLAMA_SERVICE);
   const isOllamaReady = await ollamaService.verifyOllama();
   
   const server = app.listen(config.port, () => {
