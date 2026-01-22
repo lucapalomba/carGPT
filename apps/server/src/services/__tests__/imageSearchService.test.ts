@@ -3,11 +3,13 @@ import { imageSearchService, CarImage } from '../imageSearchService.js';
 import { config } from '../../config/index.js';
 
 // Mock fetch to avoid external API calls
-global.fetch = vi.fn();
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
 
 describe('imageSearchService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFetch.mockClear();
   });
 
   describe('searchCarImages', () => {
@@ -51,11 +53,11 @@ describe('imageSearchService', () => {
         })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 3);
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(mockFetch).toHaveBeenCalledWith(
         expect.stringMatching(/q=2020[+%20]Toyota[+%20]Corolla/)
       );
     });
@@ -66,11 +68,11 @@ describe('imageSearchService', () => {
         json: vi.fn().mockResolvedValue({ items: [] })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(mockFetch).toHaveBeenCalledWith(
         expect.stringMatching(/q=Toyota[+%20]Corolla/)
       );
     });
@@ -104,7 +106,7 @@ describe('imageSearchService', () => {
         })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 3);
 
@@ -144,7 +146,7 @@ describe('imageSearchService', () => {
         })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 1);
 
@@ -164,7 +166,7 @@ describe('imageSearchService', () => {
         json: vi.fn().mockResolvedValue({ items: [] })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
 
@@ -177,7 +179,7 @@ describe('imageSearchService', () => {
         json: vi.fn().mockResolvedValue({ items: null })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
 
@@ -191,7 +193,7 @@ describe('imageSearchService', () => {
         json: vi.fn().mockResolvedValue({ error: 'Invalid request' })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
 
@@ -213,7 +215,7 @@ describe('imageSearchService', () => {
         json: vi.fn().mockRejectedValue(new Error('Invalid JSON'))
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
 
@@ -226,11 +228,11 @@ describe('imageSearchService', () => {
         json: vi.fn().mockResolvedValue({ items: [] })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 5);
 
-      const calledUrl = (fetch as any).mock.calls[0][0];
+      const calledUrl = mockFetch.mock.calls[0][0];
       expect(calledUrl).toContain('key=');
       expect(calledUrl).toContain('cx=');
       expect(calledUrl).toContain('searchType=image');
@@ -256,7 +258,7 @@ describe('imageSearchService', () => {
         })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const cars = [
         { make: 'Toyota', model: 'Corolla', year: '2020' },
@@ -268,7 +270,7 @@ describe('imageSearchService', () => {
       expect(Object.keys(result)).toHaveLength(2);
       expect(result['Toyota-Corolla']).toHaveLength(1);
       expect(result['Honda-Civic']).toHaveLength(1);
-      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 
     it('should handle cars without year', async () => {
@@ -277,7 +279,7 @@ describe('imageSearchService', () => {
         json: vi.fn().mockResolvedValue({ items: [] })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const cars = [
         { make: 'Toyota', model: 'Corolla' }
@@ -315,13 +317,13 @@ describe('imageSearchService', () => {
         json: vi.fn().mockResolvedValue({ items: [] })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const cars = [{ make: 'Toyota', model: 'Corolla' }];
       
       await imageSearchService.searchMultipleCars(cars);
 
-      const calledUrl = (fetch as any).mock.calls[0][0];
+      const calledUrl = mockFetch.mock.calls[0][0];
       expect(calledUrl).toContain(`num=${config.carouselImageLength}`);
     });
 
@@ -329,7 +331,7 @@ describe('imageSearchService', () => {
       const result = await imageSearchService.searchMultipleCars([]);
 
       expect(result).toEqual({});
-      expect(fetch).not.toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
     it('should preserve car key format correctly', async () => {
@@ -338,7 +340,7 @@ describe('imageSearchService', () => {
         json: vi.fn().mockResolvedValue({ items: [] })
       };
       
-      (fetch as any).mockResolvedValue(mockResponse);
+      mockFetch.mockResolvedValue(mockResponse);
 
       const cars = [
         { make: 'BMW', model: 'M3' },
