@@ -1,11 +1,18 @@
 import { readFileSync } from 'fs';
 import path from 'path';
 import logger from '../utils/logger.js';
-import { injectable } from 'inversify';
-import { IPromptService } from '../container/interfaces.js';
 
-@injectable()
-export class PromptService implements IPromptService {
+/**
+ * Service to handle loading and managing prompt templates
+ */
+export const promptService = {
+  /**
+   * Loads a prompt template from the prompt-templates directory.
+   * 
+   * @param {string} fileName - The name of the template file (e.g., 'find-cars.md')
+   * @returns {string} The content of the template file
+   * @throws {Error} If the file cannot be read
+   */
   loadTemplate(fileName: string): string {
     try {
       const templatePath = path.join(process.cwd(), 'prompt-templates', fileName);
@@ -15,6 +22,4 @@ export class PromptService implements IPromptService {
       throw new Error(`Unable to load prompt template: ${fileName}`);
     }
   }
-}
-
-export const promptService = new PromptService();
+};
