@@ -1,0 +1,26 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "qwen2.5-coder:3b": {
+          "name": "qwen2.5-coder:3b"
+        },
+        "ministral-3:3b": {
+          "name": "ministral-3:3b"
+        },
+        "codellama:7b": {
+          "name": "codellama:7b"
+        },
+        "granite3.3:8b": {
+          "name": "granite3.3:8b"
+        }
+      }
+    }
+  }
+}

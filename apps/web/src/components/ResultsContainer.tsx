@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Box, Stack, Flex, Heading, Text, Button, Field, Input } from '@chakra-ui/react';
-import type { Car } from '../App';
+import type { Car } from '../hooks/useCarSearch';
 import ComparisonTable from './ComparisonTable';
 
 

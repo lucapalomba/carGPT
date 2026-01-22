@@ -22,3 +22,10 @@ if [ $? -ne 0 ]; then
   echo "Unit/Integration tests failed, aborting commit."
   exit 1
 fi
+
+echo "Running coverage..."
+npm run test:coverage
+if [ $? -ne 0 ]; then
+  echo "Coverage failed, aborting commit."
+  exit 1
+fi

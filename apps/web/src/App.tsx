@@ -1,103 +1,47 @@
-import { useState } from 'react';
 import { Box } from '@chakra-ui/react';
 import { Toaster } from 'react-hot-toast';
+import { useEffect, useCallback } from 'react';
 import InitialForm from './components/InitialForm';
 import ResultsContainer from './components/ResultsContainer';
-import { api } from './utils/api';
-
-export interface Car {
-  make: string;
-  model: string;
-  year: number;
-  type: string;
-  price: string;
-  strengths: string[];
-  weaknesses: string[];
-  reason: string;
-  pinned?: boolean;
-  precise_model?: string;
-  percentage: number;
-  vehicle_properties?: Record<string, {
-    translatedLabel: string;
-    value: string;
-  }>;
-  images?: Array<{
-    url: string;
-    title: string;
-    thumbnail?: string;
-    source?: string;
-  }>;
-}
-
-interface SearchResponse {
-  cars: Car[];
-  analysis: string;
-}
+import { useCarSearch } from './hooks/useCarSearch';
+import { usePinnedCars } from './hooks/usePinnedCars';
 
 function App() {
-  const [currentCars, setCurrentCars] = useState<Car[]>([]);
-  const [analysisHistory, setAnalysisHistory] = useState<string[]>([]);
-  const [pinnedIndices, setPinnedIndices] = useState<Set<number>>(new Set());
-  const [isSearching, setIsSearching] = useState(false);
-  const [view, setView] = useState<'form' | 'results'>('form');
+  const {
+    currentCars,
+    analysisHistory,
+    isSearching,
+    view,
+    handleSearch,
+    refineSearch,
+    resetSearch
+  } = useCarSearch();
 
-  const handleSearch = async (requirements: string) => {
-    setIsSearching(true);
-    const data = await api.post<SearchResponse>('/api/find-cars', { requirements });
-    
-    if (data) {
-      setCurrentCars(data.cars);
-      setAnalysisHistory([data.analysis]);
-      setPinnedIndices(new Set());
-      setView('results');
+  const {
+    pinnedIndices,
+    togglePin,
+    updatePinnedIndices,
+    getPinnedCars
+  } = usePinnedCars(currentCars);
+
+  useEffect(() => {
+    if (currentCars.length > 0) {
+      updatePinnedIndices(currentCars);
     }
-    
-    setIsSearching(false);
-  };
+    // Cleanup function to prevent memory leaks
+    return () => {
+      // Clear any pending operations if needed
+    };
+  }, [currentCars, updatePinnedIndices]);
 
-  const refineSearch = async (feedback: string) => {
-    const pinnedCars = Array.from(pinnedIndices).map(idx => currentCars[idx]).filter(Boolean);
-    
-    setIsSearching(true);
-    const data = await api.post<SearchResponse>('/api/refine-search', { feedback, pinnedCars });
-
-    if (data) {
-      setCurrentCars(data.cars);
-      setAnalysisHistory(prev => [...prev, data.analysis]);
-      
-      // Calculate new pinned indices based on the 'pinned' property from the server
-      const newPinned = new Set<number>();
-      data.cars.forEach((car, index) => {
-        if (car.pinned) {
-          newPinned.add(index);
-        }
-      });
-      setPinnedIndices(newPinned);
+  const handleRefineSearch = useCallback(async (feedback: string) => {
+    try {
+      const pinnedCars = getPinnedCars();
+      await refineSearch(feedback, pinnedCars);
+    } catch (error) {
+      console.error('Error during refine search:', error);
     }
-
-    setIsSearching(false);
-  };
-
-  const resetSearch = async () => {
-    if (!confirm('Do you want to start a new search? Current results will be lost.')) return;
-
-    await api.post('/api/reset-conversation', {});
-
-    setView('form');
-    setCurrentCars([]);
-    setAnalysisHistory([]);
-    setPinnedIndices(new Set());
-  };
-
-  const togglePin = (index: number) => {
-    const next = new Set(pinnedIndices);
-    if (next.has(index)) {
-      next.delete(index);
-    } else {
-      next.add(index);
-    }
-    setPinnedIndices(next);
-  };
+  }, [getPinnedCars, refineSearch]);
 
   return (
     <Box minH="100vh" bg="bg.muted" py={12} px={{ base: 4, sm: 6, lg: 8 }}>
@@ -111,7 +55,7 @@ function App() {
             analysisHistory={analysisHistory} 
             pinnedIndices={pinnedIndices}
             onTogglePin={togglePin}
-            onRefine={refineSearch}
+            onRefine={handleRefineSearch}
             onNewSearch={resetSearch}
             isSearching={isSearching}
           />

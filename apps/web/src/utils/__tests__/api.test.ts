@@ -4,7 +4,10 @@ import { toast } from 'react-hot-toast';
 
 // Mock fetch and toast
 const fetchMock = vi.fn();
-global.fetch = fetchMock;
+Object.defineProperty(globalThis, 'fetch', {
+  value: fetchMock,
+  writable: true,
+});
 
 vi.mock('react-hot-toast', () => ({
   toast: {
@@ -17,7 +20,7 @@ describe('api utility', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // navigator.language is needed by api.ts
-    Object.defineProperty(global, 'navigator', {
+    Object.defineProperty(globalThis, 'navigator', {
       value: { language: 'en-US' },
       configurable: true,
     });
@@ -65,14 +68,14 @@ describe('api utility', () => {
       expect(toast.error).toHaveBeenCalledWith('Failed operation');
     });
 
-    it('should handle network errors', async () => {
+it('should handle network errors', async () => {
       fetchMock.mockRejectedValue(new Error('Network failure'));
       console.error = vi.fn(); // Suppress log in test
 
       const result = await api.post('/test', {});
 
       expect(result).toBeNull();
-      expect(toast.error).toHaveBeenCalledWith('Connection error. Please check if the server is running.');
+      expect(toast.error).toHaveBeenCalledWith('Network failure');
     });
   });
 

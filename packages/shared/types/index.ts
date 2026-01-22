@@ -1,5 +1,5 @@
 /**
- * Shared types for AI services
+ * Shared types between frontend and backend
  */
 
 export interface Car {

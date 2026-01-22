@@ -4,7 +4,9 @@ import { Box, Image, IconButton, Text, Flex } from '@chakra-ui/react';
 interface ImageCarouselProps {
   images: Array<{
     url: string;
-    title: string;
+    thumbnailUrl?: string;
+    source?: string;
+    sourceUrl?: string;
   }>;
 }
 
@@ -31,7 +33,7 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
     <Box position="relative" role="group" w="full" h="48" mt={4} overflow="hidden" borderRadius="lg" bg="gray.100">
       <Image
         src={images[currentIndex].url}
-        alt={images[currentIndex].title}
+        alt={`Car image ${currentIndex + 1} of ${images.length}`}
         loading="lazy"
         w="full"
         h="full"

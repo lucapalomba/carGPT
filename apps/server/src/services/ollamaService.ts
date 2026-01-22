@@ -11,9 +11,106 @@ export interface Message {
 }
 
 /**
+ * Connection pool for Ollama API requests
+ */
+class OllamaConnectionPool {
+  private connections: Map<string, AbortController> = new Map();
+  private maxConnections: number = 5;
+  private activeConnections: number = 0;
+
+  async getConnection(operationName: string): Promise<AbortController> {
+    if (this.activeConnections >= this.maxConnections) {
+      logger.warn('ollama.pool.waiting', { 
+        operation: operationName,
+        activeConnections: this.activeConnections,
+        maxConnections: this.maxConnections,
+        category: 'performance'
+      });
+      await this.waitForConnection();
+    }
+
+    const controller = new AbortController();
+    this.connections.set(operationName, controller);
+    this.activeConnections++;
+    
+    return controller;
+  }
+
+  releaseConnection(operationName: string): void {
+    this.connections.delete(operationName);
+    this.activeConnections--;
+  }
+
+  private async waitForConnection(): Promise<void> {
+    return new Promise(resolve => {
+      const checkConnection = () => {
+        if (this.activeConnections < this.maxConnections) {
+          resolve();
+        } else {
+          setTimeout(checkConnection, 100);
+        }
+      };
+      checkConnection();
+    });
+  }
+
+  closeAll(): void {
+    this.connections.forEach(controller => controller.abort());
+    this.connections.clear();
+    this.activeConnections = 0;
+  }
+}
+
+const connectionPool = new OllamaConnectionPool();
+
+/**
  * Service to handle communication with Ollama
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+const getModelForOperation = (operationName?: string): string => {
+  if (!operationName) return config.ollama.model;
+  
+  if (operationName.includes('translate')) {
+    return config.ollama.models.translation;
+  }
+  if (operationName.includes('suggestion')) {
+    return config.ollama.models.suggestion;
+  }
+  if (operationName.includes('intent')) {
+    return config.ollama.models.intent;
+  }
+  if (operationName.includes('elaborate')) {
+    return config.ollama.models.elaboration;
+  }
+  if (operationName.includes('verify_image')) {
+    return config.ollama.models.vision;
+  }
+  
+  return config.ollama.model;
+};
+
+const getOperationType = (operationName?: string): string => {
+  if (!operationName) return 'unknown';
+  
+  if (operationName.includes('translate')) {
+    return 'translation';
+  }
+  if (operationName.includes('suggestion')) {
+    return 'suggestion';
+  }
+  if (operationName.includes('intent')) {
+    return 'intent';
+  }
+  if (operationName.includes('elaborate')) {
+    return 'elaboration';
+  }
+  if (operationName.includes('verify_image')) {
+    return 'vision';
+  }
+  
+  return 'general';
+};
+
 export const ollamaService = {
   /**
    * Sends a list of messages to Ollama and returns the content of the response.
@@ -24,9 +121,8 @@ export const ollamaService = {
    * @returns {Promise<string>} The response content from Ollama
    * @throws {Error} If the connection fails or Ollama returns an error
    */
-  async callOllama(messages: Message[], trace?: any, operationName?: string) {
-
-     const model = config.ollama.model;
+ async callOllama(messages: Message[], trace?: any, operationName?: string, modelOverride?: string) {
+      const model = modelOverride || getModelForOperation(operationName);
      const ollamaResponseFormat = "json";
      const options = {
        temperature: 0,
@@ -35,21 +131,25 @@ export const ollamaService = {
        top_k: 5,
      };
      const messagesCount = messages.length;
+     const opName = operationName || `ollama_call_${Date.now()}`;
 
     try {
      
-      logger.debug('Calling Ollama API', { 
+      logger.debug('ollama.api.call', { 
         model,
         messagesCount,
-        fullPrompt: messages 
+        operation: opName,
+        category: 'ai'
       });
 
       const start = performance.now();
+      const controller = await connectionPool.getConnection(opName);
 
       const response = await fetch(`${config.ollama.url}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Connection': 'keep-alive',
         },
         body: JSON.stringify({
           model: model,
@@ -58,7 +158,8 @@ export const ollamaService = {
           stream: false,
           options,
           format: ollamaResponseFormat
-        })
+        }),
+        signal: controller.signal
       });
 
       if (!response.ok) {
@@ -67,10 +168,17 @@ export const ollamaService = {
 
       const data: any = await response.json();
       const durationMs = performance.now() - start;
-      logger.info('Ollama API response received', { 
-        operationName, 
-        durationMs: durationMs.toFixed(0),
-        tokens: data.eval_count 
+      logger.info('ollama.api.response', { 
+        operation: operationName, 
+        duration: Math.round(durationMs),
+        tokens: data.eval_count,
+        model,
+        category: 'ai',
+        performance: {
+          duration: Math.round(durationMs),
+          tokens: data.eval_count,
+          tokensPerSecond: data.eval_count ? Math.round((data.eval_count / durationMs) * 1000) : 0
+        }
       });
 
       langfuse.generation({
@@ -86,27 +194,38 @@ export const ollamaService = {
           input: data.prompt_eval_count,
           output: data.eval_count,
           total: data.prompt_eval_count + data.eval_count
+        },
+        metadata: {
+          operationType: getOperationType(operationName),
+          defaultModel: config.ollama.model,
+          selectedModel: model
         }
       });
 
+      connectionPool.releaseConnection(opName);
       return data.message.content;
 
-    } catch (error: unknown) {
+} catch (error: unknown) {
+      connectionPool.releaseConnection(opName);
+      
       if (error instanceof OllamaError) {
         throw error;
       }
       
       const errorMessage = error instanceof Error ? error.message : String(error);
       
-      logger.error('Ollama connection failed', { 
+      logger.error('ollama.api.error', { 
         error: errorMessage,
         url: config.ollama.url,
-        operationName
+        operation: opName,
+        model: model,
+        category: 'ai',
+        errorCode: 'connection_failed'
       });
 
       langfuse.generation({
         traceId: trace?.id,
-        name: operationName,
+        name: opName,
         model: model,
         modelParameters: options,
         level: "ERROR",
@@ -114,6 +233,8 @@ export const ollamaService = {
       });
 
       throw new OllamaError('Unable to connect to Ollama. Ensure Ollama is running (ollama serve)');
+    } finally {
+      connectionPool.releaseConnection(opName);
     }
   },
 
@@ -148,9 +269,12 @@ export const ollamaService = {
       return JSON.parse(cleaned);
     } catch (firstError: unknown) {
       const firstErrorMessage = firstError instanceof Error ? firstError.message : String(firstError);
-      logger.warn('JSON parse failed', { 
-        error: firstErrorMessage, 
-        textSnippet: cleaned.length > 200 ? cleaned.substring(0, 200) + '...' : cleaned 
+      logger.warn('ollama.response.parse_error', { 
+        error: firstErrorMessage,
+        operation: 'json_parse',
+        textLength: cleaned.length,
+        category: 'ai',
+        errorCode: 'parse_failed'
       });
       
       throw new Error(`Failed to parse JSON: ${firstErrorMessage}`);
@@ -169,15 +293,29 @@ export const ollamaService = {
       const modelExists = data.models.some((m: any) => m.name.includes(config.ollama.model));
 
       if (!modelExists) {
-        logger.warn(`Model ${config.ollama.model} not found! Run: ollama pull ${config.ollama.model}`);
+        logger.warn('ollama.model.not_found', { 
+          model: config.ollama.model,
+          suggestion: `ollama pull ${config.ollama.model}`,
+          category: 'ai',
+          errorCode: 'model_missing'
+        });
         return false;
       }
 
-      logger.info('Ollama connected', { model: config.ollama.model });
+      logger.info('ollama.connected', { 
+        model: config.ollama.model,
+        url: config.ollama.url,
+        category: 'lifecycle'
+      });
       return true;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Ollama not reachable!', { url: config.ollama.url, error: errorMessage });
+      logger.error('ollama.connection.failed', { 
+        url: config.ollama.url,
+        error: errorMessage,
+        category: 'ai',
+        errorCode: 'connection_unreachable'
+      });
       return false;
     }
   },
@@ -187,11 +325,20 @@ export const ollamaService = {
    */
   async verifyImageContainsCar(carInfo: string, year: string | number, imageUrl: string, trace: any): Promise<boolean> {
     try {
-      logger.info(`[Vision] Verifying ${year} ${carInfo}...`, { imageUrl });
+       logger.debug('vision.verify.start', { 
+         car: `${year} ${carInfo}`,
+         imageUrl,
+         category: 'vision'
+       });
 
       const imgRes = await fetch(imageUrl);
       if (!imgRes.ok) {
-        logger.warn(`[Vision] Failed to fetch image: ${imageUrl}`, { status: imgRes.status });
+        logger.warn('vision.image.fetch_error', { 
+          imageUrl,
+          status: imgRes.status,
+          category: 'vision',
+          errorCode: 'image_fetch_failed'
+        });
         return false;
       }
 
@@ -225,18 +372,54 @@ export const ollamaService = {
       const isMatch = isModelMatch && !hasTooMuchText;
 
       if (isMatch) {
-        logger.info(`[Vision] ✅ Match! (Model: ${modelConfidence.toFixed(2)}, Text: ${textConfidence.toFixed(2)})`, { imageUrl });
+        logger.info('vision.verify.match', { 
+          imageUrl,
+          confidence: {
+            model: Math.round(modelConfidence * 100),
+            text: Math.round(textConfidence * 100)
+          },
+          thresholds: {
+            model: Math.round(config.vision.modelConfidenceThreshold * 100),
+            text: Math.round(config.vision.textConfidenceThreshold * 100)
+          },
+          category: 'vision'
+        });
       } else {
         const reason = !isModelMatch ? `Low model confidence (${modelConfidence.toFixed(2)} < ${modelThreshold})` : `Too much text (${textConfidence.toFixed(2)} > ${textThreshold})`;
-        logger.info(`[Vision] ❌ Reject: (Model: ${modelConfidence.toFixed(2)}, Text: ${textConfidence.toFixed(2)}) ${reason}`, { imageUrl });
+        logger.info('vision.verify.reject', { 
+          imageUrl,
+          confidence: {
+            model: Math.round(modelConfidence * 100),
+            text: Math.round(textConfidence * 100)
+          },
+          thresholds: {
+            model: Math.round(config.vision.modelConfidenceThreshold * 100),
+            text: Math.round(config.vision.textConfidenceThreshold * 100)
+          },
+          reason,
+          category: 'vision'
+        });
       }
 
       return isMatch;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('[Vision] Error during verification', { error: errorMessage, imageUrl });
+      logger.error('vision.verify.error', { 
+        error: errorMessage,
+        imageUrl,
+        category: 'vision',
+        errorCode: 'verification_failed'
+      });
       return false;
     }
+},
+
+  /**
+   * Close all connections and cleanup resources
+   */
+  closeConnections(): void {
+    connectionPool.closeAll();
+    logger.info('ollama.pool.closed', { category: 'lifecycle' });
   }
 };
 /* eslint-enable @typescript-eslint/no-explicit-any */

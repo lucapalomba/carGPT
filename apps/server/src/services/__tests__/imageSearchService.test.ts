@@ -1,0 +1,358 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { imageSearchService, CarImage } from '../imageSearchService.js';
+import { config } from '../../config/index.js';
+
+// Mock fetch to avoid external API calls
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
+// Mock config to ensure API key and CX are available for tests
+const originalConfig = { ...config };
+
+describe('imageSearchService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockClear();
+    
+    // Reset config with test values
+    config.googleSearch.apiKey = 'test-api-key';
+    config.googleSearch.cx = 'test-cx';
+  });
+
+  describe('searchCarImages', () => {
+    it('should return empty array when API key is missing', async () => {
+      config.googleSearch.apiKey = '';
+      
+      const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 3);
+      
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array when CX is missing', async () => {
+      config.googleSearch.cx = '';
+      
+      const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 3);
+      
+      expect(result).toEqual([]);
+    });
+
+    it('should construct correct query with year', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          items: [
+            {
+              link: 'https://example.com/image1.jpg',
+              image: {
+                thumbnailLink: 'https://example.com/thumb1.jpg',
+                width: 800,
+                height: 600
+              },
+              title: 'Toyota Corolla 2020',
+              displayLink: 'example.com'
+            }
+          ]
+        })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 3);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringMatching(/q=2020[+%20]Toyota[+%20]Corolla/)
+      );
+    });
+
+    it('should construct correct query without year', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ items: [] })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringMatching(/q=Toyota[+%20]Corolla/)
+      );
+    });
+
+    it('should handle successful API response with multiple images', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          items: [
+            {
+              link: 'https://example.com/image1.jpg',
+              image: {
+                thumbnailLink: 'https://example.com/thumb1.jpg',
+                width: 800,
+                height: 600
+              },
+              title: 'Toyota Corolla 2020',
+              displayLink: 'example.com'
+            },
+            {
+              link: 'https://example.com/image2.jpg',
+              image: {
+                thumbnailLink: 'https://example.com/thumb2.jpg',
+                width: 1024,
+                height: 768
+              },
+              title: 'Toyota Corolla 2020 Side',
+              displayLink: 'cars.com'
+            }
+          ]
+        })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 3);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        url: 'https://example.com/image1.jpg',
+        thumbnail: 'https://example.com/thumb1.jpg',
+        title: 'Toyota Corolla 2020',
+        source: 'example.com',
+        width: 800,
+        height: 600
+      });
+      expect(result[1]).toEqual({
+        url: 'https://example.com/image2.jpg',
+        thumbnail: 'https://example.com/thumb2.jpg',
+        title: 'Toyota Corolla 2020 Side',
+        source: 'cars.com',
+        width: 1024,
+        height: 768
+      });
+    });
+
+    it('should handle API response with missing optional fields', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          items: [
+            {
+              link: 'https://example.com/image1.jpg',
+              image: {
+                thumbnailLink: 'https://example.com/thumb1.jpg'
+              },
+              title: 'Toyota Corolla'
+              // missing displayLink, width, height
+            }
+          ]
+        })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 1);
+
+      expect(result[0]).toEqual({
+        url: 'https://example.com/image1.jpg',
+        thumbnail: 'https://example.com/thumb1.jpg',
+        title: 'Toyota Corolla',
+        source: '',
+        width: undefined,
+        height: undefined
+      });
+    });
+
+    it('should handle API response with no items', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ items: [] })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle API response with null items', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ items: null })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle API error response', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: vi.fn().mockResolvedValue({ error: 'Invalid request' })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle network error', async () => {
+      (fetch as any).mockRejectedValue(new Error('Network error'));
+
+      const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle JSON parse error', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: vi.fn().mockRejectedValue(new Error('Invalid JSON'))
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should use correct URL parameters', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ items: [] })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 5);
+
+      const calledUrl = mockFetch.mock.calls[0][0];
+      expect(calledUrl).toContain('key=');
+      expect(calledUrl).toContain('cx=');
+      expect(calledUrl).toContain('searchType=image');
+      expect(calledUrl).toContain('imgType=photo');
+      expect(calledUrl).toContain('safe=active');
+      expect(calledUrl).toContain('num=5');
+    });
+  });
+
+  describe('searchMultipleCars', () => {
+    it('should search images for multiple cars in parallel', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          items: [
+            {
+              link: 'https://example.com/image.jpg',
+              image: { thumbnailLink: 'https://example.com/thumb.jpg' },
+              title: 'Car Image',
+              displayLink: 'example.com'
+            }
+          ]
+        })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const cars = [
+        { make: 'Toyota', model: 'Corolla', year: '2020' },
+        { make: 'Honda', model: 'Civic', year: '2021' }
+      ];
+
+      const result = await imageSearchService.searchMultipleCars(cars);
+
+      expect(Object.keys(result)).toHaveLength(2);
+      expect(result['Toyota-Corolla']).toHaveLength(1);
+      expect(result['Honda-Civic']).toHaveLength(1);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle cars without year', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ items: [] })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const cars = [
+        { make: 'Toyota', model: 'Corolla' }
+      ];
+
+      const result = await imageSearchService.searchMultipleCars(cars);
+
+      expect(result['Toyota-Corolla']).toEqual([]);
+    });
+
+    it('should handle mixed success and failure cases', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ items: [] })
+      };
+      
+      (fetch as any)
+        .mockResolvedValueOnce(mockResponse) // First call succeeds
+        .mockRejectedValueOnce(new Error('Network error')); // Second call fails
+
+      const cars = [
+        { make: 'Toyota', model: 'Corolla' },
+        { make: 'Honda', model: 'Civic' }
+      ];
+
+      const result = await imageSearchService.searchMultipleCars(cars);
+
+      expect(result['Toyota-Corolla']).toEqual([]);
+      expect(result['Honda-Civic']).toEqual([]);
+    });
+
+    it('should use config.carouselImageLength for image count', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ items: [] })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const cars = [{ make: 'Toyota', model: 'Corolla' }];
+      
+      await imageSearchService.searchMultipleCars(cars);
+
+      const calledUrl = mockFetch.mock.calls[0][0];
+      expect(calledUrl).toContain(`num=${config.carouselImageLength}`);
+    });
+
+    it('should handle empty cars array', async () => {
+      const result = await imageSearchService.searchMultipleCars([]);
+
+      expect(result).toEqual({});
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should preserve car key format correctly', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ items: [] })
+      };
+      
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const cars = [
+        { make: 'BMW', model: 'M3' },
+        { make: 'Mercedes-Benz', model: 'C-Class' }
+      ];
+
+      const result = await imageSearchService.searchMultipleCars(cars);
+
+      expect(result).toHaveProperty('BMW-M3');
+      expect(result).toHaveProperty('Mercedes-Benz-C-Class');
+    });
+  });
+});
