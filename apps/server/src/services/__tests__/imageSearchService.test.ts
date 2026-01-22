@@ -56,7 +56,7 @@ describe('imageSearchService', () => {
       await imageSearchService.searchCarImages('Toyota', 'Corolla', '2020', 3);
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('q=2020+Toyota+Corolla')
+        expect.stringMatching(/q=2020[+%20]Toyota[+%20]Corolla/)
       );
     });
 
@@ -71,7 +71,7 @@ describe('imageSearchService', () => {
       await imageSearchService.searchCarImages('Toyota', 'Corolla', '', 3);
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('q=Toyota+Corolla')
+        expect.stringMatching(/q=Toyota[+%20]Corolla/)
       );
     });
 
