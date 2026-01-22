@@ -8,12 +8,13 @@ Please include a summary of the change and which issue is fixed. Please also inc
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] This change requires a documentation update
+- [ ] Model prompt update or change
 
 ## Testing
-- [ ] I have added unit tests
-- [ ] I have added integration tests
-- [ ] I have added E2E tests
+- [ ] I have added tests
 - [ ] All tests pass locally
+- [ ] I checked edges cases on models
+
 
 ## Checklist:
 - [ ] My code follows the style guidelines of this project
