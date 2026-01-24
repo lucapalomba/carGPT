@@ -2,6 +2,7 @@ import { ollamaService, Message as OllamaMessage } from '../ollamaService.js';
 import { promptService } from '../promptService.js';
 import logger from '../../utils/logger.js';
 import { Car } from './types.js';
+import { getDateSystemMessage } from '../../utils/dateUtils.js';
 
 export const elaborationService = {
   /**
@@ -15,7 +16,8 @@ export const elaborationService = {
 
       const elaboratedCars = await Promise.all(carChoices.map(async (carChoice: any) => {
         try {
-          const messages: OllamaMessage[] = [
+const messages: OllamaMessage[] = [
+            { role: "system", content: "Today is: " + getDateSystemMessage() },
             { role: "system", content: carsElaborationTemplates },
             { role: "system", content: "Current car to elaborate: " + JSON.stringify(carChoice) },
             { role: "system", content: "User intent JSON: " + JSON.stringify(searchIntent) },

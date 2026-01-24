@@ -1,5 +1,6 @@
 import { ollamaService, Message as OllamaMessage } from '../ollamaService.js';
 import { promptService } from '../promptService.js';
+import { getDateSystemMessage } from '../../utils/dateUtils.js';
 
 export const suggestionService = {
   /**
@@ -11,7 +12,8 @@ export const suggestionService = {
       const carsSuggestionTemplates = promptService.loadTemplate('cars_suggestions.md');
       const jsonGuard = promptService.loadTemplate('json-guard.md');
 
-      const messages: OllamaMessage[] = [
+const messages: OllamaMessage[] = [
+        { role: "system", content: "Today is: " + getDateSystemMessage() },
         { role: "system", content: carsSuggestionTemplates },
         { role: "system", content: "User intent JSON: " + JSON.stringify(searchIntent) },
         ...(pinnedCarsPrompt ? [{ role: "system" as const, content: pinnedCarsPrompt }] : []),
