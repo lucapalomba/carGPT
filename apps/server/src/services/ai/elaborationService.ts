@@ -3,6 +3,7 @@ import { injectable, inject } from 'inversify';
 import { IElaborationService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import logger from '../../utils/logger.js';
 import { Car } from './types.js';
+import { getDateSystemMessage } from '../../utils/dateUtils.js';
 
 @injectable()
 export class ElaborationService implements IElaborationService {
@@ -22,7 +23,8 @@ export class ElaborationService implements IElaborationService {
 
       const elaboratedCars = await Promise.all(carChoices.map(async (carChoice: any) => {
         try {
-          const messages: OllamaMessage[] = [
+const messages: OllamaMessage[] = [
+            { role: "system", content: "Today is: " + getDateSystemMessage() },
             { role: "system", content: carsElaborationTemplates },
             { role: "system", content: "Current car to elaborate: " + JSON.stringify(carChoice) },
             { role: "system", content: "User intent JSON: " + JSON.stringify(searchIntent) },

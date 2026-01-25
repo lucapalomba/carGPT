@@ -1,6 +1,7 @@
 import { Message as OllamaMessage } from '../ollamaService.js';
 import { injectable, inject } from 'inversify';
 import { IIntentService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
+import { getDateSystemMessage } from '../../utils/dateUtils.js';
 
 @injectable()
 export class IntentService implements IIntentService {
@@ -18,7 +19,8 @@ export class IntentService implements IIntentService {
       const intentPromptTemplate = this.promptService.loadTemplate('search_intent.md');
       const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
-      const messages: OllamaMessage[] = [
+const messages: OllamaMessage[] = [
+        { role: "system", content: "Today is: " + getDateSystemMessage() },
         { role: "system", content: intentPromptTemplate.replace(/\${language}/g, language) },
         { role: "system", content: jsonGuard },
         { role: "user", content: context }
