@@ -59,6 +59,8 @@ describe('AIService', () => {
 
       expect(result.cars).toHaveLength(1);
       expect(result.analysis).toBe('Translated analysis');
+      expect(result.searchIntent).toEqual(mockIntent);
+      expect(result.suggestions).toEqual(mockSuggestions);
     });
 
     it('should propagate errors', async () => {
@@ -86,6 +88,8 @@ describe('AIService', () => {
       expect(mockIntentService.determineSearchIntent).toHaveBeenCalled();
       expect(mockSuggestionService.getCarSuggestions).toHaveBeenCalledWith(mockIntent, 'feedback', 'context', expect.anything());
       expect(result.cars).toEqual([]);
+      expect(result.searchIntent).toEqual(mockIntent);
+      expect(result.suggestions).toEqual(mockSuggestions);
     });
 
     it('should coordinate the refinement process with pinned cars', async () => {
@@ -124,6 +128,8 @@ describe('AIService', () => {
       
       expect(result.cars).toHaveLength(2);
       expect(result.cars[0].pinned).toBe(true);
+      expect(result.searchIntent).toEqual(mockIntent);
+      expect(result.suggestions).toEqual(mockSuggestions);
     });
 
     it('should propagate errors in refinement', async () => {

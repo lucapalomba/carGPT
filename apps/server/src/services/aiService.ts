@@ -57,7 +57,9 @@ export class AIService implements IAIService {
       const result = {
         success: true,
         analysis: translatedResults.analysis,
-        cars: enrichedCars
+        cars: enrichedCars,
+        searchIntent: searchIntent,
+        suggestions: suggestions
       };
 
       trace.update({ output: result });
@@ -108,7 +110,9 @@ export class AIService implements IAIService {
       const result = {
         success: true,
         analysis: translatedResults.analysis,
-        cars: enrichedCars
+        cars: enrichedCars,
+        searchIntent: searchIntent,
+        suggestions: suggestions
       };
 
       trace.update({ output: result });
