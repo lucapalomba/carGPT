@@ -28,3 +28,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  seq:
+    image: datalust/seq:latest
+    ports:
+      - "5341:80"
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "True"
+    restart: unless-stopped

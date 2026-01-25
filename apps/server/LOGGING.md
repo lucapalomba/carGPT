@@ -4,10 +4,11 @@ CarGPT uses a centralized logging system based on [Winston](https://github.com/w
 
 ## Log Structure
 
-Logs are stored in the `apps/server/logs/` directory and are automatically rotated daily.
+Logs are sent to **Seq** (https://datalust.co/seq) for centralized logging and analysis. Seq provides a web interface for viewing, filtering, and searching logs.
 
-- `combined-YYYY-MM-DD.log`: All logs across all levels (info, debug, warn, error).
-- `error-YYYY-MM-DD.log`: Only logs with the `error` level.
+- **Seq UI**: Available at `http://localhost:5341` when running Docker Compose
+- **Log Levels**: Configurable via `LOG_LEVEL` environment variable (default: `debug` in development, `info` in production)
+- **Structured JSON**: All logs are formatted as JSON for better searchability and analysis
 
 In **Development**, logs are also colorized and streamed to the console for easier debugging.
 
@@ -20,7 +21,7 @@ In **Development**, logs are also colorized and streamed to the console for easi
 
 ## Structured Logging
 
-Logs are formatted as JSON on disk to allow for easy integration with log management tools (e.g., ELK stack, Datadog).
+Logs are formatted as structured JSON and sent to Seq, providing powerful search and analysis capabilities. Seq automatically indexes log properties, allowing you to filter by any field.
 
 Example log entry:
 ```json
@@ -37,7 +38,7 @@ Example log entry:
 
 ## Prompt Logging
 
-For AI observability, the **complete compiled prompt** (all system messages, history, and user input) is logged at the `debug` level before being sent to Ollama. This can be found in the `combined` log files or in the console when `LOG_LEVEL=debug` is set.
+For AI observability, the **complete compiled prompt** (all system messages, history, and user input) is logged at the `debug` level before being sent to Ollama. These detailed prompts can be viewed in Seq when `LOG_LEVEL=debug` is set.
 
 ## Request Correlation
 
@@ -65,12 +66,44 @@ logger.info('User started a new search', { userId: '123' });
 logger.error('Failed to connect to database', { error: err.message, stack: err.stack });
 ```
 
+## Seq Setup
+
+### Starting Seq
+
+```bash
+# Start Seq service only
+docker-compose up seq
+
+# Or start all services including Seq
+docker-compose up
+```
+
+### Accessing Logs
+
+1. Open `http://localhost:5341` in your browser
+2. Use the powerful search interface to filter logs
+3. Filter by properties like `@level`, `service`, `environment`, or custom fields
+4. Create alerts and dashboards for monitoring
+
+### Configuration
+
+Seq is configured via environment variables:
+
+```bash
+# Seq server URL (default: http://localhost:5341)
+SEQ_URL=http://localhost:5341
+
+# Optional API key for authentication
+SEQ_API_KEY=your_api_key_here
+```
+
 ## 🌍 Environment Differences
 
 | Feature | Development | Production |
 |---------|-------------|------------|
-| **Log Format** | Colorized Console | Structured JSON |
+| **Log Format** | Colorized Console + Seq | Seq only |
 | **Log Level** | `debug` (default) | `info` (recommended) |
+| **Log Storage** | Seq + Console | Seq only |
 | **Swagger UI** | Enabled (`/api-docs`) | Disabled |
 | **Debug APIs** | Enabled (`/api/get-conversations`) | Disabled |
 | **Error Detail** | Includes stack traces | Error message only |
