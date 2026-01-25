@@ -273,7 +273,7 @@ flowchart TD
 
 - **Frontend (`apps/web`)**: React 19, TypeScript, Chakra UI v2
 - **Backend (`apps/server`)**: Node.js, Express, TypeScript, MVC + Service Layer. AI logic is split into specialized micro-services (`intent`, `suggestion`, `elaboration`, `translation`, `enrichment`).
-- **Logging**: Centralized structured logging with Winston.
+- **Logging**: Centralized structured logging with Winston + Seq for real-time log analysis.
 - **Observability**: **Langfuse** integration for tracing LLM chains, latency, and costs (token usage).
 - **Monorepo**: Centralized management via root `package.json`
 

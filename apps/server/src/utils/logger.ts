@@ -1,5 +1,5 @@
 import winston from 'winston';
-import DailyRotateFile from 'winston-daily-rotate-file';
+import { SeqTransport } from '@datalust/winston-seq';
 import { config } from '../config/index.js';
 
 const { combine, timestamp, printf, colorize, errors, json } = winston.format;
@@ -36,23 +36,13 @@ const logger = winston.createLogger({
     environment: config.mode
   },
   transports: [
-    // Error logs - separate file
-    new DailyRotateFile({
-      filename: 'logs/error-%DATE%.log',
-      datePattern: 'YYYY-MM-DD',
-      level: 'error',
-      maxSize: '20m',
-      maxFiles: '14d',
-      format: json()
-    }),
-
-    // Combined logs - all levels
-    new DailyRotateFile({
-      filename: 'logs/combined-%DATE%.log',
-      datePattern: 'YYYY-MM-DD',
-      maxSize: '20m',
-      maxFiles: '30d',
-      format: json()
+    // Seq transport for centralized logging
+    new SeqTransport({
+      serverUrl: process.env.SEQ_URL || 'http://localhost:5341',
+      apiKey: process.env.SEQ_API_KEY,
+      onError: (e) => console.error('Seq transport error:', e),
+      handleExceptions: true,
+      handleRejections: true
     })
   ],
   // Don't exit on error

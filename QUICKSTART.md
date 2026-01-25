@@ -40,7 +40,16 @@ You should see:
 Ollama is running
 ```
 
-### 4️⃣ Setup CarGPT project
+### 4️⃣ Start Seq for centralized logging (optional but recommended)
+
+Open a **NEW** terminal and start Seq:
+```bash
+docker-compose up seq
+```
+
+Seq will be available at: **http://localhost:5341**
+
+### 5️⃣ Setup CarGPT project
 
 Open a **NEW** terminal in the `CarGPT` folder:
 
@@ -55,9 +64,11 @@ cp apps/server/.env.example apps/server/.env
 npm run dev
 ```
 
-### 5️⃣ Open browser
+### 6️⃣ Open browser
 
 Go to: **http://localhost:5173**
+
+For logs and monitoring, visit: **http://localhost:5341** (Seq)
 
 ---
 

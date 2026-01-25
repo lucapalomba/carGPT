@@ -228,6 +228,15 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - SESSION_SECRET=${SESSION_SECRET}
+      - SEQ_URL=http://seq:5341
+  
+  seq:
+    image: datalust/seq:latest
+    ports:
+      - "5341:80"
+    environment:
+      - ACCEPT_EULA=Y
+    restart: unless-stopped
       - OLLAMA_URL=http://localhost:11434
       - OLLAMA_MODEL=ministral
     volumes:
@@ -323,9 +332,18 @@ server {
         proxy_read_timeout 60s;
     }
 
-    # Logging
+# Logging
     access_log /var/log/nginx/cargpt-access.log;
     error_log /var/log/nginx/cargpt-error.log;
+    
+    # Seq Logging (if using Seq)
+    location /seq {
+        proxy_pass http://localhost:5341;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
 
