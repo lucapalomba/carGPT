@@ -1,31 +1,34 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { suggestionService } from '../suggestionService.js';
-import { ollamaService } from '../../ollamaService.js';
-import { promptService } from '../../promptService.js';
+import { SuggestionService } from '../suggestionService.js';
 
-vi.mock('../../ollamaService.js');
-vi.mock('../../promptService.js');
+describe('SuggestionService', () => {
+  let suggestionService: SuggestionService;
+  let mockOllamaService: any;
+  let mockPromptService: any;
 
-describe('suggestionService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockOllamaService = { callOllama: vi.fn(), parseJsonResponse: vi.fn() };
+    mockPromptService = { loadTemplate: vi.fn() };
+    suggestionService = new SuggestionService(mockOllamaService, mockPromptService);
   });
 
   describe('getCarSuggestions', () => {
-    it('should throw error if suggestion fails', async () => {
-        (ollamaService.callOllama as any).mockRejectedValue(new Error('Suggestion error'));
-        await expect(suggestionService.getCarSuggestions({}, 'context', '', { span: vi.fn().mockReturnValue({ end: vi.fn() }) })).rejects.toThrow('Suggestion error');
-    });
+    it('should call Ollama and return suggestions', async () => {
+      const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn(), update: vi.fn(), id: '1' }) };
+      const searchIntent = { intent: "search" };
+      const requirements = "family car";
+      const mockResult = { choices: [] };
 
-    it('should get suggestions successfully', async () => {
-        const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn() }) };
-        (promptService.loadTemplate as any).mockReturnValue('template');
-        (ollamaService.callOllama as any).mockResolvedValue('{"choices": []}');
-        (ollamaService.parseJsonResponse as any).mockReturnValue({ choices: [] });
+      mockPromptService.loadTemplate.mockReturnValue('template');
+      mockOllamaService.callOllama.mockResolvedValue('{"choices": []}');
+      mockOllamaService.parseJsonResponse.mockReturnValue(mockResult);
 
-        const result = await suggestionService.getCarSuggestions({}, 'context', '', mockTrace);
-        
-        expect(result).toEqual({ choices: [] });
+      const result = await suggestionService.getCarSuggestions(searchIntent, requirements, '', mockTrace);
+
+      expect(mockPromptService.loadTemplate).toHaveBeenCalledWith('cars_suggestions.md');
+      expect(mockOllamaService.callOllama).toHaveBeenCalled();
+      expect(result).toEqual(mockResult);
     });
   });
 });

@@ -125,7 +125,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 
 **Endpoint**: `POST /api/refine-search`
 
-**Description**: Updates the list of car suggestions based on user feedback and pinned cars.
+**Description**: Updates the list of car suggestions based on user feedback. Pinned cars are included in the process and re-elaborated to ensure contextual consistency with the new feedback.
 
 **Request Body**:
 ```json

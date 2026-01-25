@@ -1,12 +1,13 @@
+import 'reflect-metadata';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { conversationService } from '../conversationService.js';
+import { ConversationService } from '../conversationService.js';
 
-describe('conversationService', () => {
+describe('ConversationService', () => {
+  let conversationService: ConversationService;
   const sessionId = 'test-session-123';
 
   beforeEach(() => {
-    // Clean up before each test
-    conversationService.delete(sessionId);
+    conversationService = new ConversationService();
   });
 
   it('should initialize a new conversation if it does not exist', () => {

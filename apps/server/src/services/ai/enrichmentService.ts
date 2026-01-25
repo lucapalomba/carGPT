@@ -1,9 +1,15 @@
-import { ollamaService } from '../ollamaService.js';
-import { imageSearchService } from '../imageSearchService.js';
+import { injectable, inject } from 'inversify';
+import { IEnrichmentService, IOllamaService, IImageSearchService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import logger from '../../utils/logger.js';
 import { Car } from './types.js';
 
-export const enrichmentService = {
+@injectable()
+export class EnrichmentService implements IEnrichmentService {
+  constructor(
+    @inject(SERVICE_IDENTIFIERS.OLLAMA_SERVICE) private ollamaService: IOllamaService,
+    @inject(SERVICE_IDENTIFIERS.IMAGE_SEARCH_SERVICE) private imageSearchService: IImageSearchService
+  ) {}
+
   /**
    * Enrich cars with images
    */
@@ -16,7 +22,7 @@ export const enrichmentService = {
         return [];
       }
       logger.info(`Searching images for ${carList.length} cars`);
-      const imageMap = await imageSearchService.searchMultipleCars(
+      const imageMap = await this.imageSearchService.searchMultipleCars(
         carList.map(c => ({ make: c.make, model: c.model, year: c.year?.toString() }))
       );
 
@@ -33,7 +39,7 @@ export const enrichmentService = {
       span.end({ level: "ERROR", statusMessage: String(error) });
       throw error;
     }
-  },
+  }
 
   /**
    * Filters images using vision to ensure they contain the specified car
@@ -48,7 +54,7 @@ export const enrichmentService = {
 
       for (const image of (images as any[])) {
         const urlToVerify = image.thumbnail || image.url;
-        const isValid = await ollamaService.verifyImageContainsCar(carInfo, year, urlToVerify, trace);
+        const isValid = await this.ollamaService.verifyImageContainsCar(carInfo, year, urlToVerify, trace);
         if (isValid) verifiedImages.push(image);
       }
 
@@ -56,7 +62,7 @@ export const enrichmentService = {
       return verifiedImages;
     } catch (error) {
       span.end({ level: "ERROR", statusMessage: String(error) });
-      return images.slice(0, 3); // Fallback to first 3 images if vision fails
+      return (images as any[]).slice(0, 3); // Fallback to first 3 images if vision fails
     }
   }
-};
+}

@@ -1,5 +1,7 @@
 import { config } from '../config/index.js';
 import logger from '../utils/logger.js';
+import { injectable } from 'inversify';
+import { IImageSearchService } from '../container/interfaces.js';
 
 export interface CarImage {
   url: string;
@@ -26,16 +28,10 @@ interface GoogleSearchResponse {
 /**
  * Service to search car images using Google Custom Search API
  */
-export const imageSearchService = {
+@injectable()
+export class ImageSearchService implements IImageSearchService {
   /**
    * Search for images of a specific car model using Google Custom Search
-   * 
-   * @param make - Car manufacturer
-   * @param model - Car model name
-   * @param year - Car year
-   * @param count - Number of images to return (default: 3)
-   * @param trace - Optional Langfuse trace for observability
-   * @returns Array of car images
    */
   async searchCarImages(
     make: string, 
@@ -108,7 +104,7 @@ export const imageSearchService = {
       
       return [];
     }
-  },
+  }
 
   /**
    * Search images for multiple cars in parallel
@@ -143,4 +139,4 @@ export const imageSearchService = {
 
     return imageMap;
   }
-};
+}

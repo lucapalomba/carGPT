@@ -1,18 +1,25 @@
-import { ollamaService, Message as OllamaMessage } from '../ollamaService.js';
-import { promptService } from '../promptService.js';
+import { Message as OllamaMessage } from '../ollamaService.js';
+import { injectable, inject } from 'inversify';
+import { IElaborationService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import logger from '../../utils/logger.js';
 import { Car } from './types.js';
 import { getDateSystemMessage } from '../../utils/dateUtils.js';
 
-export const elaborationService = {
+@injectable()
+export class ElaborationService implements IElaborationService {
+  constructor(
+    @inject(SERVICE_IDENTIFIERS.OLLAMA_SERVICE) private ollamaService: IOllamaService,
+    @inject(SERVICE_IDENTIFIERS.PROMPT_SERVICE) private promptService: IPromptService
+  ) {}
+
   /**
    * Elaborate car details using a flat JSON schema
    */
   async elaborateCars(carChoices: any[], searchIntent: any, trace: any): Promise<Car[]> {
     const span = trace.span({ name: "elaborate_cars_parallel", input: { count: carChoices.length } });
     try {
-      const carsElaborationTemplates = promptService.loadTemplate('elaborate_suggestion.md');
-      const jsonGuard = promptService.loadTemplate('json-guard.md');
+      const carsElaborationTemplates = this.promptService.loadTemplate('elaborate_suggestion.md');
+      const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
       const elaboratedCars = await Promise.all(carChoices.map(async (carChoice: any) => {
         try {
@@ -24,11 +31,10 @@ const messages: OllamaMessage[] = [
             { role: "system", content: jsonGuard }
           ];
 
-          const response = await ollamaService.callOllama(messages, trace, `elaborate_${carChoice.make}_${carChoice.model}`);
-          const result = ollamaService.parseJsonResponse(response);
+          const response = await this.ollamaService.callOllama(messages, trace, `elaborate_${carChoice.make}_${carChoice.model}`);
+          const result = this.ollamaService.parseJsonResponse(response);
           
           // Simplified logic: Assume flat structure as per new prompt
-          // We still keep a safe check just in case, but prioritize the direct result
           let elaborationData = result;
 
           // Legacy fallback: if the model still wraps in "car", unwrap it
@@ -58,4 +64,4 @@ const messages: OllamaMessage[] = [
       throw error;
     }
   }
-};
+}

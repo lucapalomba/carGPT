@@ -10,7 +10,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": false
+    "noEmit": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["server.ts", "src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

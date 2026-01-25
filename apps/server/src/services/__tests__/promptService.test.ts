@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { promptService } from '../promptService.js';
+import { PromptService } from '../promptService.js';
 import { readFileSync } from 'fs';
 import path from 'path';
 import logger from '../../utils/logger.js';
@@ -7,9 +7,12 @@ import logger from '../../utils/logger.js';
 vi.mock('fs');
 vi.mock('../../utils/logger.js');
 
-describe('promptService', () => {
+describe('PromptService', () => {
+  let promptService: PromptService;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    promptService = new PromptService();
   });
 
   it('should load a template successfully', () => {

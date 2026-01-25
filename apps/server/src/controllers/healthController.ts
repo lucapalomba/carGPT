@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { ollamaService } from '../services/ollamaService.js';
-import { conversationService } from '../services/conversationService.js';
+import { container } from '../container/index.js';
+import { SERVICE_IDENTIFIERS, IOllamaService, IConversationService } from '../container/interfaces.js';
 import { config } from '../config/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
@@ -12,6 +12,9 @@ export const healthController = {
    * Performs a health check on the server and Ollama connection
    */
   checkHealth: asyncHandler(async (req: Request, res: Response) => {
+    const ollamaService = container.get<IOllamaService>(SERVICE_IDENTIFIERS.OLLAMA_SERVICE);
+    const conversationService = container.get<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE);
+    
     const isOllamaConnected = await ollamaService.verifyOllama();
     
     res.json({

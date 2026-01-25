@@ -163,7 +163,7 @@
                     "Cars"
                 ],
                 "summary": "Refine existing suggestions",
-                "description": "Updates the list of car suggestions based on user feedback and pinned cars",
+                "description": "Updates the list of car suggestions based on user feedback. Pinned cars are included in the process and re-elaborated to ensure contextual consistency.",
                 "operationId": "refineSearch",
                 "parameters": [
                     {
@@ -195,9 +195,9 @@
                                     "pinnedCars": {
                                         "type": "array",
                                         "items": {
-                                            "$ref": "#/components/schemas/Car"
+                                        "$ref": "#/components/schemas/Car"
                                         },
-                                        "description": "List of cars to keep in the results"
+                                        "description": "List of cars to keep in the results. These cars will be re-elaborated by the AI during the refinement process."
                                     }
                                 }
                             }

@@ -1,8 +1,15 @@
-import { ollamaService, Message as OllamaMessage } from '../ollamaService.js';
-import { promptService } from '../promptService.js';
+import { Message as OllamaMessage } from '../ollamaService.js';
+import { injectable, inject } from 'inversify';
+import { ITranslationService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import logger from '../../utils/logger.js';
 
-export const translationService = {
+@injectable()
+export class TranslationService implements ITranslationService {
+  constructor(
+    @inject(SERVICE_IDENTIFIERS.OLLAMA_SERVICE) private ollamaService: IOllamaService,
+    @inject(SERVICE_IDENTIFIERS.PROMPT_SERVICE) private promptService: IPromptService
+  ) {}
+
   /**
    * Translates the search response to the target language
    */
@@ -45,7 +52,7 @@ export const translationService = {
       span.end({ level: "ERROR", statusMessage: errorMessage });
       return results; // Return original results if translation fails
     }
-  },
+  }
 
   /**
    * Translates a single car object
@@ -57,8 +64,8 @@ export const translationService = {
     index: number
   ): Promise<any> {
     try {
-      const translateCarTemplate = promptService.loadTemplate('translate-car.md');
-      const jsonGuard = promptService.loadTemplate('json-guard.md');
+      const translateCarTemplate = this.promptService.loadTemplate('translate-car.md');
+      const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
       const messages: OllamaMessage[] = [
         {
@@ -75,8 +82,8 @@ export const translationService = {
         }
       ];
 
-      const response = await ollamaService.callOllama(messages, trace, `translate_car_${car.make}_${car.model}`);
-      const translatedCar = ollamaService.parseJsonResponse(response);
+      const response = await this.ollamaService.callOllama(messages, trace, `translate_car_${car.make}_${car.model}`);
+      const translatedCar = this.ollamaService.parseJsonResponse(response);
       
       // Validate the translated car maintains critical fields
       if (!this.validateCarTranslation(car, translatedCar)) {
@@ -103,7 +110,7 @@ export const translationService = {
       });
       return car; // Return original car if translation fails
     }
-  },
+  }
 
   /**
    * Translates the analysis text
@@ -119,7 +126,7 @@ export const translationService = {
     });
 
     try {
-      const translateAnalysisTemplate = promptService.loadTemplate('translate-analysis.md');
+      const translateAnalysisTemplate = this.promptService.loadTemplate('translate-analysis.md');
 
       const messages: OllamaMessage[] = [
         {
@@ -132,10 +139,10 @@ export const translationService = {
         }
       ];
 
-      const response = await ollamaService.callOllama(messages, trace, 'translate_analysis');
+      const response = await this.ollamaService.callOllama(messages, trace, 'translate_analysis');
       
       // Parse JSON response and extract analysis
-      const parsed = ollamaService.parseJsonResponse(response);
+      const parsed = this.ollamaService.parseJsonResponse(response);
       const translatedText = parsed.analysis;
       
       if (!translatedText || translatedText.length < 10) {
@@ -152,12 +159,12 @@ export const translationService = {
       span.end({ level: "ERROR", statusMessage: errorMessage });
       return analysis; // Return original analysis if translation fails
     }
-  },
+  }
 
   /**
    * Validates that a translated car maintains critical unchanged fields
    */
-  validateCarTranslation(original: any, translated: any): boolean {
+  public validateCarTranslation(original: any, translated: any): boolean {
     if (!translated || typeof translated !== 'object') {
       logger.warn('Car translation: result is not an object');
       return false;
@@ -211,4 +218,4 @@ export const translationService = {
 
     return true;
   }
-};
+}

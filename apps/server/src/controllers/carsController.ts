@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { ollamaService } from '../services/ollamaService.js';
-import { aiService } from '../services/aiService.js';
-import { conversationService, Conversation, ConversationHistoryItem } from '../services/conversationService.js';
-import { promptService } from '../services/promptService.js';
+import { Conversation, ConversationHistoryItem } from '../services/conversationService.js';
+import { container } from '../container/index.js';
+import { SERVICE_IDENTIFIERS, IAIService, IConversationService } from '../container/interfaces.js';
 import { config } from '../config/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ValidationError } from '../utils/AppError.js';
@@ -25,6 +24,7 @@ export const carsController = {
       throw new ValidationError('Describe your needs in more detail (at least 10 characters)');
     }
 
+    const conversationService = container.get<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE);
     const conversation = conversationService.getOrInitialize(sessionId);
 
     logger.info('Car search request received', { 
@@ -33,7 +33,8 @@ export const carsController = {
       provider: config.aiProvider
     });
 
-    // Use unified AI service that handles both Ollama and Claude
+    // Get AI service from DI container
+    const aiService = container.get<IAIService>(SERVICE_IDENTIFIERS.AI_SERVICE);
     const result = await aiService.findCarsWithImages(
       requirements,
       language,
@@ -65,8 +66,8 @@ export const carsController = {
     logger.info('Suggestions generated successfully', { 
       sessionId, 
       provider: config.aiProvider,
-      cars: result.cars.map((c) => `${c.make} ${c.model}`).join(', '),
-      imagesFound: result.cars.reduce((sum, c) => sum + ((c.images && Array.isArray(c.images)) ? c.images.length : 0), 0)
+      cars: result.cars.map((c: any) => `${c.make} ${c.model}`).join(', '),
+      imagesFound: result.cars.reduce((sum: number, c: any) => sum + ((c.images && Array.isArray(c.images)) ? c.images.length : 0), 0)
     });
 
     res.json({
@@ -88,6 +89,7 @@ export const carsController = {
       throw new ValidationError('Please provide some feedback to refine the search');
     }
 
+    const conversationService = container.get<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE);
     const conversation = conversationService.get(sessionId);
     if (!conversation) {
       logger.warn('Refinement attempted without active conversation', { sessionId });
@@ -103,8 +105,9 @@ export const carsController = {
       pinnedCarsCount: validatedPinnedCars.length
     });
 
-    // Use unified AI service
-    const result = await aiService.refineCarsWithImages(
+    // Get AI service from container for refinement
+    const refineAIService = container.get<IAIService>(SERVICE_IDENTIFIERS.AI_SERVICE);
+    const result = await refineAIService.refineCarsWithImages(
       feedback,
       language,
       sessionId,
@@ -130,6 +133,7 @@ export const carsController = {
    */
   resetConversation: asyncHandler(async (req: Request, res: Response) => {
     const sessionId = req.sessionID;
+    const conversationService = container.get<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE);
     conversationService.delete(sessionId);
     
     logger.info('Conversation reset', { sessionId });
