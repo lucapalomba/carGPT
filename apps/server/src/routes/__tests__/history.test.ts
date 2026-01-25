@@ -1,27 +1,30 @@
+import 'reflect-metadata';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import apiRoutes from '../api.js';
-import { conversationService } from '../../services/conversationService.js';
+import { ConversationService } from '../../services/conversationService.js';
+
+const mockConversationService = new ConversationService();
 
 // Mocking controllers to simulate history recording without real LLM calls
 vi.mock('../../controllers/carsController.js', () => ({
   carsController: {
     findCars: (req: any, res: any) => {
       const sessionId = req.body.sessionId || 'test-session';
-      const conv = conversationService.getOrInitialize(sessionId);
+      const conv = mockConversationService.getOrInitialize(sessionId);
       conv.history.push({ type: 'find-cars', timestamp: new Date(), data: { requirements: req.body.requirements } });
       res.json({ success: true, sessionId, cars: [{ make: 'Fiat', model: '500' }, { make: 'Smart', model: 'Fortwo' }] });
     },
     refineSearch: (req: any, res: any) => {
       const sessionId = req.body.sessionId || 'test-session';
-      const conv = conversationService.getOrInitialize(sessionId);
+      const conv = mockConversationService.getOrInitialize(sessionId);
       conv.history.push({ type: 'refine-search', timestamp: new Date(), data: { feedback: req.body.feedback } });
       res.json({ success: true, sessionId, cars: [] });
     },
     resetConversation: (req: any, res: any) => {
       const sessionId = req.body.sessionId || 'test-session';
-      conversationService.delete(sessionId);
+      mockConversationService.delete(sessionId);
       res.json({ success: true });
     }
   },
@@ -30,7 +33,7 @@ vi.mock('../../controllers/carsController.js', () => ({
 vi.mock('../../controllers/qaController.js', () => ({
   qaController: {
     getConversations: (req: any, res: any) => {
-      const all = conversationService.getAll().map(([id, conv]) => ({ id, ...conv }));
+      const all = mockConversationService.getAll().map(([id, conv]) => ({ id, ...conv }));
       res.json({ success: true, conversations: all });
     },
   },
@@ -44,7 +47,7 @@ describe('Conversation History Flow', () => {
     app = express();
     app.use(express.json());
     app.use('/api', apiRoutes);
-    conversationService.delete(sessionId);
+    mockConversationService.delete(sessionId);
   });
 
   it('should capture all steps in conversation history', async () => {

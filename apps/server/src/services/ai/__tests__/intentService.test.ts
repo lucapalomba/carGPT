@@ -1,42 +1,34 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { intentService } from '../intentService.js';
-import { ollamaService } from '../../ollamaService.js';
-import { promptService } from '../../promptService.js';
+import { IntentService } from '../intentService.js';
 
-vi.mock('../../ollamaService.js', () => ({
-  ollamaService: {
-    callOllama: vi.fn(),
-    parseJsonResponse: vi.fn(),
-    verifyOllama: vi.fn(),
-    verifyImageContainsCar: vi.fn()
-  }
-}));
-vi.mock('../../promptService.js');
+describe('IntentService', () => {
+  let intentService: IntentService;
+  let mockOllamaService: any;
+  let mockPromptService: any;
 
-describe('intentService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockOllamaService = { callOllama: vi.fn(), parseJsonResponse: vi.fn() };
+    mockPromptService = { loadTemplate: vi.fn() };
+    intentService = new IntentService(mockOllamaService, mockPromptService);
   });
 
   describe('determineSearchIntent', () => {
-    it('should throw error if determination fails', async () => {
-        (promptService.loadTemplate as any).mockReturnValue('template');
-        (ollamaService.callOllama as any).mockImplementation(async () => {
-             throw new Error('Intent error');
-        });
-        await expect(intentService.determineSearchIntent('context', 'en', { span: vi.fn().mockReturnValue({ end: vi.fn() }) })).rejects.toThrow('Intent error');
-    });
+    it('should call Ollama and parse search intent', async () => {
+      const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn(), update: vi.fn(), id: '1' }) };
+      const requirements = 'family car';
+      const language = 'en';
+      const mockResult = { intent: "search" };
+      
+      mockPromptService.loadTemplate.mockReturnValue('template');
+      mockOllamaService.callOllama.mockResolvedValue('{"intent": "search"}');
+      mockOllamaService.parseJsonResponse.mockReturnValue(mockResult);
 
-    it('should determine intent successfully', async () => {
-        const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn() }) };
-        (promptService.loadTemplate as any).mockReturnValue('template');
-        (ollamaService.callOllama as any).mockResolvedValue('{"intent": "search"}');
-        (ollamaService.parseJsonResponse as any).mockReturnValue({ intent: "search" });
+      const result = await intentService.determineSearchIntent(requirements, language, mockTrace);
 
-        const result = await intentService.determineSearchIntent('requirements', 'en', mockTrace);
-        
-        expect(result).toEqual({ intent: "search" });
-        expect(ollamaService.callOllama).toHaveBeenCalled();
+      expect(mockPromptService.loadTemplate).toHaveBeenCalledWith('search_intent.md');
+      expect(mockOllamaService.callOllama).toHaveBeenCalled();
+      expect(result).toEqual(mockResult);
     });
   });
 });

@@ -3,6 +3,9 @@ import { injectable, inject } from 'inversify';
 import { IOllamaService, SERVICE_IDENTIFIERS } from '../container/interfaces.js';
 import { IPromptService } from '../container/interfaces.js';
 import langfuse from '../utils/langfuse.js';
+import { config } from '../config/index.js';
+import logger from '../utils/logger.js';
+import { OllamaError } from '../utils/AppError.js';
 
 export interface Message {
   role: string;
@@ -65,99 +68,96 @@ export class OllamaService implements IOllamaService {
   ) {}
 
   private getModelForOperation(operationName?: string): string {
-    // Simplified implementation
-    return 'ministral-3:3b';
+    if (operationName?.includes('vision') || operationName?.includes('image')) {
+      return config.ollama.models.vision;
+    }
+    return config.ollama.model;
   }
 
   private getOperationType(operationName?: string): string {
+    if (operationName?.includes('translate')) return 'translation';
+    if (operationName?.includes('intent')) return 'intent_determination';
+    if (operationName?.includes('suggestion')) return 'suggestion_generation';
+    if (operationName?.includes('elaborate')) return 'car_elaboration';
+    if (operationName?.includes('vision')) return 'image_verification';
     return 'general';
   }
 
-async callOllama(messages: Message[], trace?: any, operationName?: string, modelOverride?: string): Promise<string> {
+  async callOllama(messages: Message[], trace?: any, operationName?: string, modelOverride?: string): Promise<string> {
     const model = modelOverride || this.getModelForOperation(operationName);
     const opName = operationName || `ollama_call_${Date.now()}`;
 
-    // Create generation from trace context if available, otherwise standalone
-    let generation;
-    if (trace && trace.generation) {
-      generation = trace.generation({
-        name: opName,
-        model: model,
-        input: { messages },
-        startTime: new Date(),
-      });
-    } else {
-      // Fallback: create standalone generation (shouldn't happen in normal flow)
-      generation = langfuse.generation({
-        name: opName,
-        model: model,
-        input: { messages },
-        startTime: new Date(),
-      });
-    }
-
+    // Simplified fetch for DI demo
     try {
-      // logger implementation would go here
+      logger.debug(`Calling Ollama API (${opName})`, { model, messageCount: messages.length });
       const start = performance.now();
       const controller = await this.connectionPool.getConnection(opName);
 
-      // Simplified fetch for DI demo
-      const response = await fetch(`${process.env.OLLAMA_URL || 'http://localhost:11434'}/api/chat`, {
+      const response = await fetch(`${config.ollama.url}/api/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: model,
           messages: messages,
+          think: false,
           stream: false,
+          options: {
+            temperature: 0,
+            num_predict: -1,
+            top_p: 0.1,
+            top_k: 5,
+          },
+          format: "json"
         }),
         signal: controller.signal
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new OllamaError(`Ollama API error: ${response.statusText}`);
       }
 
       const data: any = await response.json();
       const durationMs = performance.now() - start;
       const result = data.message?.content || '';
 
-      // Update generation with results
-      generation.update({
-        output: { content: result },
+      langfuse.generation({
+        input: messages,
+        output: result,
+        traceId: trace?.id,
+        name: operationName || 'ollama_call',
+        model: model,
+        startTime: new Date(Date.now() - durationMs),
         endTime: new Date(),
         usage: data.usage ? {
-          promptTokens: data.usage.prompt_tokens || 0,
-          completionTokens: data.usage.completion_tokens || 0,
-          totalTokens: data.usage.total_tokens || 0,
-        } : undefined,
+          input: data.usage.prompt_tokens || 0,
+          output: data.usage.completion_tokens || 0,
+          total: data.usage.total_tokens || 0,
+        } : {
+          input: data.prompt_eval_count || 0,
+          output: data.eval_count || 0,
+          total: (data.prompt_eval_count || 0) + (data.eval_count || 0)
+        },
         metadata: {
           operationType: this.getOperationType(operationName),
           durationMs: Math.round(durationMs),
         }
       });
 
-      // End the generation
-      generation.end();
-      
-      this.connectionPool.releaseConnection(opName);
       return result;
 
     } catch (error) {
-      this.connectionPool.releaseConnection(opName);
-      
       const errorMessage = error instanceof Error ? error.message : String(error);
       
-      // Update generation with error
-      generation.update({
-        endTime: new Date(),
-        statusMessage: `Ollama call failed: ${errorMessage}`,
-        level: "ERROR"
+      langfuse.generation({
+        traceId: trace?.id,
+        name: opName,
+        model: model,
+        level: "ERROR",
+        statusMessage: errorMessage
       });
-      generation.end();
 
-      throw new Error(`Unable to connect to Ollama. ${errorMessage}`);
+      if (error instanceof OllamaError) throw error;
+      throw new OllamaError(`Unable to connect to Ollama. ${errorMessage}`);
     } finally {
       this.connectionPool.releaseConnection(opName);
     }
@@ -165,31 +165,75 @@ async callOllama(messages: Message[], trace?: any, operationName?: string, model
 
   parseJsonResponse(text: string): any {
     try {
-      return JSON.parse(text);
+      let cleaned = text.trim();
+      if (cleaned.includes('```json')) {
+        cleaned = cleaned.split('```json')[1].split('```')[0].trim();
+      } else if (cleaned.includes('```')) {
+        cleaned = cleaned.split('```')[1].split('```')[0].trim();
+      }
+
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+      if (jsonMatch) {
+        cleaned = jsonMatch[0];
+      }
+
+      return JSON.parse(cleaned);
     } catch (error) {
+      logger.error('Failed to parse JSON response from Ollama', { text, error });
       throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   async verifyOllama(): Promise<boolean> {
     try {
-      const response = await fetch(`${process.env.OLLAMA_URL || 'http://localhost:11434'}/api/tags`);
+      const response = await fetch(`${config.ollama.url}/api/tags`);
       const data: any = await response.json();
-      return data.models?.length > 0;
+      const modelExists = data.models?.some((m: any) => m.name.includes(config.ollama.model));
+      return !!modelExists;
     } catch (error) {
+      logger.error('Ollama verification failed', { error });
       return false;
     }
   }
 
   async verifyImageContainsCar(carInfo: string, year: string | number, imageUrl: string, trace: any): Promise<boolean> {
-    // Simplified implementation
-    return true;
+    const span = trace.span ? trace.span({
+      name: "verify_image_vision",
+      metadata: { carInfo, year, imageUrl }
+    }) : { end: () => {} };
+
+    try {
+      const visionPrompt = this.promptService.loadTemplate('verify-car.md');
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error('Failed to fetch image for vision verification');
+      
+      const buffer = await response.arrayBuffer();
+      const base64Image = Buffer.from(buffer).toString('base64');
+
+      const messages: Message[] = [
+        {
+          role: "user",
+          content: visionPrompt
+            .replace(/{carInfo}/g, `${carInfo} (${year})`),
+          images: [base64Image]
+        }
+      ];
+
+      const llmResponse = await this.callOllama(messages, trace, 'vision_verification');
+      const result = this.parseJsonResponse(llmResponse);
+      
+      const isValid = (result.modelConfidence > 0.8) && (result.textConfidence < 0.2);
+      
+      if (span.end) span.end({ output: { ...result, isValid } });
+      return isValid;
+    } catch (error) {
+      logger.warn('Vision verification failed, falling back to true', { error: String(error) });
+      if (span.end) span.end({ level: "WARNING", statusMessage: String(error) });
+      return false;
+    }
   }
 
   closeConnections(): void {
     this.connectionPool.closeAll();
   }
 }
-
-// Legacy export for backward compatibility
-export const ollamaService = new OllamaService();

@@ -16,5 +16,3 @@ export class PromptService implements IPromptService {
     }
   }
 }
-
-export const promptService = new PromptService();

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { conversationService, Conversation, ConversationHistoryItem } from '../services/conversationService.js';
+import { Conversation, ConversationHistoryItem } from '../services/conversationService.js';
 import { container } from '../container/index.js';
-import { SERVICE_IDENTIFIERS, IAIService, IOllamaService } from '../container/interfaces.js';
+import { SERVICE_IDENTIFIERS, IAIService, IConversationService } from '../container/interfaces.js';
 import { config } from '../config/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ValidationError } from '../utils/AppError.js';
@@ -24,6 +24,7 @@ export const carsController = {
       throw new ValidationError('Describe your needs in more detail (at least 10 characters)');
     }
 
+    const conversationService = container.get<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE);
     const conversation = conversationService.getOrInitialize(sessionId);
 
     logger.info('Car search request received', { 
@@ -88,6 +89,7 @@ export const carsController = {
       throw new ValidationError('Please provide some feedback to refine the search');
     }
 
+    const conversationService = container.get<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE);
     const conversation = conversationService.get(sessionId);
     if (!conversation) {
       logger.warn('Refinement attempted without active conversation', { sessionId });
@@ -131,6 +133,7 @@ export const carsController = {
    */
   resetConversation: asyncHandler(async (req: Request, res: Response) => {
     const sessionId = req.sessionID;
+    const conversationService = container.get<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE);
     conversationService.delete(sessionId);
     
     logger.info('Conversation reset', { sessionId });

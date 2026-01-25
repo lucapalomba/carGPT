@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { conversationService } from '../services/conversationService.js';
+import { container } from '../container/index.js';
+import { SERVICE_IDENTIFIERS, IConversationService } from '../container/interfaces.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 /**
@@ -10,6 +11,7 @@ export const qaController = {
    * Retrieves all active conversations (for admin/debug)
    */
   getConversations: asyncHandler(async (req: Request, res: Response) => {
+    const conversationService = container.get<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE);
     const rawConversations = conversationService.getAll();
     const formattedConversations = rawConversations.map(([id, data]) => ({
       id,

@@ -1,23 +1,33 @@
-import { SERVICE_IDENTIFIERS, IOllamaService, ICacheService } from '../container/interfaces.js';
+import { 
+  SERVICE_IDENTIFIERS, 
+  IOllamaService, 
+  ICacheService,
+  IIntentService,
+  ISuggestionService,
+  IElaborationService,
+  ITranslationService,
+  IEnrichmentService,
+  IAIService
+} from '../container/interfaces.js';
 import { Car, SearchResponse } from './ai/types.js';
 import { injectable, inject } from 'inversify';
-import { intentService } from './ai/intentService.js';
-import { suggestionService } from './ai/suggestionService.js';
-import { elaborationService } from './ai/elaborationService.js';
-import { translationService } from './ai/translationService.js';
-import { enrichmentService } from './ai/enrichmentService.js';
-import { ollamaService } from './ollamaService.js';
-import { createTrace } from '../utils/langfuse.js';
+import { langfuse } from '../utils/langfuse.js';
+import { config } from '../config/index.js';
 
 // Export Shared Types for consumers
 export type { Car, SearchResponse };
 
 // DI-enabled AIService implementation
 @injectable()
-export class AIService {
+export class AIService implements IAIService {
   constructor(
     @inject(SERVICE_IDENTIFIERS.OLLAMA_SERVICE) private ollamaService: IOllamaService,
-    @inject(SERVICE_IDENTIFIERS.CACHE_SERVICE) private cache: ICacheService
+    @inject(SERVICE_IDENTIFIERS.CACHE_SERVICE) private cache: ICacheService,
+    @inject(SERVICE_IDENTIFIERS.INTENT_SERVICE) private intentService: IIntentService,
+    @inject(SERVICE_IDENTIFIERS.SUGGESTION_SERVICE) private suggestionService: ISuggestionService,
+    @inject(SERVICE_IDENTIFIERS.ELABORATION_SERVICE) private elaborationService: IElaborationService,
+    @inject(SERVICE_IDENTIFIERS.TRANSLATION_SERVICE) private translationService: ITranslationService,
+    @inject(SERVICE_IDENTIFIERS.ENRICHMENT_SERVICE) private enrichmentService: IEnrichmentService
   ) {}
   
   async findCarsWithImages(requirements: string, language: string, sessionId: string): Promise<SearchResponse> {
@@ -26,18 +36,23 @@ export class AIService {
       throw new Error('AI service not available');
     }
 
-    const trace = createTrace("findCarsWithImages", { requirements, language, sessionId });
+    const trace = langfuse.trace({
+      name: "search_cars_API",
+      sessionId: sessionId,
+      metadata: { model: config.ollama.model, environment: config.mode },
+      input: requirements,
+    });
     
     try {
-      const searchIntent = await intentService.determineSearchIntent(requirements, language, trace);
-      const suggestions = await suggestionService.getCarSuggestions(searchIntent, requirements, '', trace);
-      const elaboratedCars = await elaborationService.elaborateCars(suggestions.choices, searchIntent, trace);
-      const translatedResults = await translationService.translateResults(
+      const searchIntent = await this.intentService.determineSearchIntent(requirements, language, trace);
+      const suggestions = await this.suggestionService.getCarSuggestions(searchIntent, requirements, '', trace);
+      const elaboratedCars = await this.elaborationService.elaborateCars(suggestions.choices, searchIntent, trace);
+      const translatedResults = await this.translationService.translateResults(
         { analysis: suggestions.analysis, cars: elaboratedCars }, 
         language, 
         trace
       );
-      const enrichedCars = await enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
+      const enrichedCars = await this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
 
       const result = {
         success: true,
@@ -45,9 +60,7 @@ export class AIService {
         cars: enrichedCars
       };
 
-      trace.update({
-        output: result
-      });
+      trace.update({ output: result });
 
       return result;
     } catch (error) {
@@ -59,18 +72,38 @@ export class AIService {
   }
   
   async refineCarsWithImages(feedback: string, language: string, sessionId: string, fullContext: string, pinnedCars: Car[] = []): Promise<SearchResponse> {
-    const trace = createTrace("refineCarsWithImages", { feedback, language, sessionId, fullContext, pinnedCars });
+    const trace = langfuse.trace({
+      name: "refine_cars_API",
+      sessionId: sessionId,
+      metadata: { model: config.ollama.model, environment: config.mode },
+      input: feedback,
+    });
     
     try {
-      const searchIntent = await intentService.determineSearchIntent(feedback, language, trace);
-      const suggestions = await suggestionService.getCarSuggestions(searchIntent, feedback, fullContext, trace);
-      const elaboratedCars = await elaborationService.elaborateCars(suggestions.choices, searchIntent, trace);
-      const translatedResults = await translationService.translateResults(
+      const searchIntent = await this.intentService.determineSearchIntent(feedback, language, trace);
+      
+      // Incorporate pinned cars into the context
+      const pinnedCarsPrompt = pinnedCars.length > 0 
+        ? `The user has pinned the following cars: ${pinnedCars.map(c => `${c.make} ${c.model} (${c.year})`).join(', ')}. Keep these in mind while refining the search.`
+        : '';
+      
+      const combinedContext = [fullContext, pinnedCarsPrompt].filter(Boolean).join('\n\n');
+      
+      const suggestions = await this.suggestionService.getCarSuggestions(searchIntent, feedback, combinedContext, trace);
+      
+      // Combine pinned cars with new suggestions for elaboration
+      const combinedCars = [
+        ...pinnedCars.map(c => ({ ...c, pinned: true })),
+        ...suggestions.choices
+      ];
+      
+      const elaboratedCars = await this.elaborationService.elaborateCars(combinedCars, searchIntent, trace);
+      const translatedResults = await this.translationService.translateResults(
         { analysis: suggestions.analysis, cars: elaboratedCars }, 
         language, 
         trace
       );
-      const enrichedCars = await enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
+      const enrichedCars = await this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
 
       const result = {
         success: true,
@@ -78,9 +111,7 @@ export class AIService {
         cars: enrichedCars
       };
 
-      trace.update({
-        output: result
-      });
+      trace.update({ output: result });
 
       return result;
     } catch (error) {
@@ -103,74 +134,3 @@ export class AIService {
     return this.cache.getCacheStats();
   }
 }
-
-// Legacy export for backward compatibility - now uses the full implementation
-export const aiService = {
-  findCarsWithImages: async (requirements: string, language: string, sessionId: string) => {
-    const trace = createTrace("findCarsWithImages", { requirements, language, sessionId });
-    
-    try {
-      const searchIntent = await intentService.determineSearchIntent(requirements, language, trace);
-      const suggestions = await suggestionService.getCarSuggestions(searchIntent, requirements, '', trace);
-      const elaboratedCars = await elaborationService.elaborateCars(suggestions.choices, searchIntent, trace);
-      const translatedResults = await translationService.translateResults(
-        { analysis: suggestions.analysis, cars: elaboratedCars }, 
-        language, 
-        trace
-      );
-      const enrichedCars = await enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
-
-      const result = {
-        success: true,
-        analysis: translatedResults.analysis,
-        cars: enrichedCars
-      };
-
-      trace.update({
-        output: result
-      });
-
-      return result;
-    } catch (error) {
-      trace.update({
-        output: { error: error instanceof Error ? error.message : String(error) }
-      });
-      throw error;
-    }
-  },
-  refineCarsWithImages: async (feedback: string, language: string, sessionId: string, fullContext: string, pinnedCars: Car[] = []) => {
-    const trace = createTrace("refineCarsWithImages", { feedback, language, sessionId, fullContext, pinnedCars });
-    
-    try {
-      const searchIntent = await intentService.determineSearchIntent(feedback, language, trace);
-      const suggestions = await suggestionService.getCarSuggestions(searchIntent, feedback, fullContext, trace);
-      const elaboratedCars = await elaborationService.elaborateCars(suggestions.choices, searchIntent, trace);
-      const translatedResults = await translationService.translateResults(
-        { analysis: suggestions.analysis, cars: elaboratedCars }, 
-        language, 
-        trace
-      );
-      const enrichedCars = await enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
-
-      const result = {
-        success: true,
-        analysis: translatedResults.analysis,
-        cars: enrichedCars
-      };
-
-      trace.update({
-        output: result
-      });
-
-      return result;
-    } catch (error) {
-      trace.update({
-        output: { error: error instanceof Error ? error.message : String(error) }
-      });
-      throw error;
-    }
-  },
-  verify: async () => await ollamaService.verifyOllama(),
-  clearCache: () => {},
-  getCacheStats: () => ({ size: 0, keys: [] })
-};

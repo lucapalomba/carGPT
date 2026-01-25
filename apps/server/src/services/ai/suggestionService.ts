@@ -1,15 +1,22 @@
-import { ollamaService, Message as OllamaMessage } from '../ollamaService.js';
-import { promptService } from '../promptService.js';
+import { Message as OllamaMessage } from '../ollamaService.js';
+import { injectable, inject } from 'inversify';
+import { ISuggestionService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 
-export const suggestionService = {
+@injectable()
+export class SuggestionService implements ISuggestionService {
+  constructor(
+    @inject(SERVICE_IDENTIFIERS.OLLAMA_SERVICE) private ollamaService: IOllamaService,
+    @inject(SERVICE_IDENTIFIERS.PROMPT_SERVICE) private promptService: IPromptService
+  ) {}
+
   /**
    * Get car suggestions based on intent and context
    */
   async getCarSuggestions(searchIntent: any, context: string, pinnedCarsPrompt: string, trace: any): Promise<any> {
     const span = trace.span({ name: "get_car_suggestions" });
     try {
-      const carsSuggestionTemplates = promptService.loadTemplate('cars_suggestions.md');
-      const jsonGuard = promptService.loadTemplate('json-guard.md');
+      const carsSuggestionTemplates = this.promptService.loadTemplate('cars_suggestions.md');
+      const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
       const messages: OllamaMessage[] = [
         { role: "system", content: carsSuggestionTemplates },
@@ -19,8 +26,8 @@ export const suggestionService = {
         { role: "user", content: context }
       ];
 
-      const response = await ollamaService.callOllama(messages, trace, 'car_suggestions');
-      const result = ollamaService.parseJsonResponse(response);
+      const response = await this.ollamaService.callOllama(messages, trace, 'car_suggestions');
+      const result = this.ollamaService.parseJsonResponse(response);
       span.end({ output: result });
       return result;
     } catch (error) {
@@ -28,4 +35,4 @@ export const suggestionService = {
       throw error;
     }
   }
-};
+}

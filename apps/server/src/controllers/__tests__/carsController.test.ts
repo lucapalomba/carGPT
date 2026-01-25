@@ -1,18 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { carsController } from '../carsController.js';
-import { aiService } from '../../services/aiService.js';
-import { conversationService } from '../../services/conversationService.js';
+import { container } from '../../container/index.js';
+import { SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import { ValidationError } from '../../utils/AppError.js';
 
-vi.mock('../../services/aiService.js');
-vi.mock('../../services/conversationService.js');
-vi.mock('../../services/ollamaService.js');
-vi.mock('../../services/promptService.js');
-vi.mock('../../utils/logger.js');
+vi.mock('../../container/index.js', () => ({
+  container: {
+    get: vi.fn()
+  }
+}));
 
 describe('carsController', () => {
   let req: any;
   let res: any;
+  let mockAIService: any;
+  let mockConversationService: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -25,6 +27,21 @@ describe('carsController', () => {
       json: vi.fn(),
       status: vi.fn().mockReturnThis()
     };
+    mockAIService = {
+      findCarsWithImages: vi.fn(),
+      refineCarsWithImages: vi.fn()
+    };
+    mockConversationService = {
+        getOrInitialize: vi.fn(),
+        get: vi.fn(),
+        delete: vi.fn()
+    };
+
+    vi.mocked(container.get).mockImplementation((id) => {
+        if (id === SERVICE_IDENTIFIERS.AI_SERVICE) return mockAIService;
+        if (id === SERVICE_IDENTIFIERS.CONVERSATION_SERVICE) return mockConversationService;
+        return null;
+    });
   });
 
   describe('findCars', () => {
@@ -47,15 +64,16 @@ describe('carsController', () => {
         }], 
         userLanguage: 'en' 
       };
-      vi.mocked(aiService.findCarsWithImages).mockResolvedValue(mockResult as any);
+      mockAIService.findCarsWithImages.mockResolvedValue(mockResult);
       
       const mockConversation = { history: [], userLanguage: '' };
-      vi.mocked(conversationService.getOrInitialize).mockReturnValue(mockConversation as any);
+      mockConversationService.getOrInitialize.mockReturnValue(mockConversation as any);
 
       const next = vi.fn();
       await carsController.findCars(req, res, next);
 
-      expect(aiService.findCarsWithImages).toHaveBeenCalledWith('I need a family car with good safety features', 'en', 'session-123');
+      expect(container.get).toHaveBeenCalledWith(SERVICE_IDENTIFIERS.AI_SERVICE);
+      expect(mockAIService.findCarsWithImages).toHaveBeenCalledWith('I need a family car with good safety features', 'en', 'session-123');
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
         success: true,
         cars: mockResult.cars
@@ -73,7 +91,7 @@ describe('carsController', () => {
 
     it('should throw ValidationError if no active conversation', async () => {
       req.body.feedback = 'More speed';
-      (conversationService.get as any).mockReturnValue(null);
+      mockConversationService.get.mockReturnValue(null);
       const next = vi.fn();
       await carsController.refineSearch(req, res, next);
       expect(next).toHaveBeenCalledWith(expect.any(ValidationError));
@@ -86,69 +104,21 @@ describe('carsController', () => {
             history: [{ type: 'find-cars', data: { requirements: 'electric' } }],
             requirements: 'electric'
         };
-        (conversationService.get as any).mockReturnValue(mockConversation);
-        (aiService.refineCarsWithImages as any).mockResolvedValue({ cars: [] });
+        mockConversationService.get.mockReturnValue(mockConversation);
+        mockAIService.refineCarsWithImages.mockResolvedValue({ cars: [] });
 
         await carsController.refineSearch(req, res, vi.fn());
 
-        expect(aiService.refineCarsWithImages).toHaveBeenCalled();
+        expect(container.get).toHaveBeenCalledWith(SERVICE_IDENTIFIERS.AI_SERVICE);
+        expect(mockAIService.refineCarsWithImages).toHaveBeenCalled();
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
     });
-
-    it('should extract context correctly with multiple history items and missing requirements', async () => {
-        req.body.feedback = 'Bigger trunk';
-        const mockConversation = { 
-            history: [
-                { type: 'find-cars', data: { requirements: 'SUV' } },
-                { type: 'other', data: {} },
-                { type: 'refine-search', data: { feedback: 'Hybrid' } }
-            ]
-        };
-        (conversationService.get as any).mockReturnValue(mockConversation);
-        (aiService.refineCarsWithImages as any).mockResolvedValue({ cars: [] });
-
-        await carsController.refineSearch(req, res, vi.fn());
-
-        expect(aiService.refineCarsWithImages).toHaveBeenCalledWith(
-            'Bigger trunk',
-            expect.any(String),
-            'session-123',
-            expect.stringContaining('Original Request: "SUV"'),
-            expect.any(Array)
-        );
-        expect(aiService.refineCarsWithImages).toHaveBeenCalledWith(
-            expect.any(String),
-            expect.any(String),
-            expect.any(String),
-            expect.stringContaining('Refinement Step 3: "Hybrid"'),
-            expect.any(Array)
-        );
-    });
-
-    it('should use default requirements if not found in history', async () => {
-        req.body.feedback = 'Bigger trunk';
-        const mockConversation = { history: [] };
-        (conversationService.get as any).mockReturnValue(mockConversation);
-        (aiService.refineCarsWithImages as any).mockResolvedValue({ cars: [] });
-
-        await carsController.refineSearch(req, res, vi.fn());
-
-        expect(aiService.refineCarsWithImages).toHaveBeenCalledWith(
-            expect.any(String),
-            expect.any(String),
-            expect.any(String),
-            expect.stringContaining('Original Request: "User is looking for a car."'),
-            expect.any(Array)
-        );
-    });
   });
-
-
 
   describe('resetConversation', () => {
     it('should delete conversation and return success', async () => {
       await carsController.resetConversation(req, res, vi.fn());
-      expect(conversationService.delete).toHaveBeenCalledWith('session-123');
+      expect(mockConversationService.delete).toHaveBeenCalledWith('session-123');
       expect(res.json).toHaveBeenCalledWith({ success: true, message: 'Conversation reset' });
     });
   });

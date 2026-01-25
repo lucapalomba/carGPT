@@ -72,8 +72,13 @@ export const setupGracefulShutdown = (server: any) => {
     logger.info(`${signal} received, shutting down gracefully`);
     
     // Close Ollama connections
-    import('../services/ollamaService.js').then(({ ollamaService }) => {
-      ollamaService.closeConnections();
+    import('../container/index.js').then(({ container }) => {
+      import('../container/interfaces.js').then(({ SERVICE_IDENTIFIERS }) => {
+        const ollamaService = container.get<any>(SERVICE_IDENTIFIERS.OLLAMA_SERVICE);
+        if (ollamaService && typeof ollamaService.closeConnections === 'function') {
+          ollamaService.closeConnections();
+        }
+      });
     });
     
     server.close(() => {

@@ -1,4 +1,5 @@
 import { Car, SearchResponse } from '../services/ai/types.js';
+import { Conversation } from '../services/conversationService.js';
 
 // Core service interfaces
 export interface ICacheService {
@@ -7,6 +8,14 @@ export interface ICacheService {
   clear(): void;
   generateKey(prefix: string, ...args: (string | number)[]): string;
   getCacheStats(): { size: number; keys: string[] };
+}
+
+export interface IConversationService {
+  get(sessionId: string): Conversation | undefined;
+  getOrInitialize(sessionId: string): Conversation;
+  delete(sessionId: string): void;
+  getAll(): [string, Conversation][];
+  count(): number;
 }
 
 export interface IImageSearchService {
@@ -36,10 +45,13 @@ export interface IElaborationService {
 
 export interface ITranslationService {
   translateResults(result: any, language: string, trace?: any): Promise<SearchResponse>;
+  translateSingleCar(car: any, targetLanguage: string, trace: any, index: number): Promise<any>;
+  translateAnalysis(analysis: string, targetLanguage: string, trace: any): Promise<string>;
 }
 
 export interface IEnrichmentService {
   enrichCarsWithImages(cars: Car[], trace?: any): Promise<Car[]>;
+  filterImages(make: string, model: string, year: string | number, images: unknown[], trace: any): Promise<any[]>;
 }
 
 export interface IPromptService {
@@ -56,14 +68,15 @@ export interface IAIService {
 
 // Service identifiers for DI
 export const SERVICE_IDENTIFIERS = {
-  CACHE_SERVICE: Symbol('CacheService'),
-  IMAGE_SEARCH_SERVICE: Symbol('ImageSearchService'),
-  OLLAMA_SERVICE: Symbol('OllamaService'),
-  INTENT_SERVICE: Symbol('IntentService'),
-  SUGGESTION_SERVICE: Symbol('SuggestionService'),
-  ELABORATION_SERVICE: Symbol('ElaborationService'),
-  TRANSLATION_SERVICE: Symbol('TranslationService'),
-  ENRICHMENT_SERVICE: Symbol('EnrichmentService'),
-  AI_SERVICE: Symbol('AIService'),
-  PROMPT_SERVICE: Symbol('PromptService'),
+  CACHE_SERVICE: Symbol.for('CacheService'),
+  IMAGE_SEARCH_SERVICE: Symbol.for('ImageSearchService'),
+  OLLAMA_SERVICE: Symbol.for('OllamaService'),
+  INTENT_SERVICE: Symbol.for('IntentService'),
+  SUGGESTION_SERVICE: Symbol.for('SuggestionService'),
+  ELABORATION_SERVICE: Symbol.for('ElaborationService'),
+  TRANSLATION_SERVICE: Symbol.for('TranslationService'),
+  ENRICHMENT_SERVICE: Symbol.for('EnrichmentService'),
+  AI_SERVICE: Symbol.for('AI_SERVICE'),
+  PROMPT_SERVICE: Symbol.for('PromptService'),
+  CONVERSATION_SERVICE: Symbol.for('CONVERSATION_SERVICE'),
 } as const;
