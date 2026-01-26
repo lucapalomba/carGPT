@@ -1,0 +1,8 @@
+# crontab entry for SSL renewal
+# Add this to your production server's crontab: crontab -e
+
+# Renew SSL certificates daily at 3:30 AM
+30 3 * * * /path/to/your/project/scripts/renew-ssl.sh >> /var/log/ssl-renewal.log 2>&1
+
+# Optional: Weekly backup of SSL certificates
+0 4 * * 0 cp -r /path/to/your/project/nginx/ssl /backup/ssl-$(date +\%Y\%m\%d)

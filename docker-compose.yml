@@ -1,39 +1,100 @@
 # docker-compose.yml
-version: "3.9"
-
 services:
-  langfuse:
-    image: langfuse/langfuse:2.95
+  # Web Application (Frontend)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
     ports:
-      - "3000:3000"
+      - "5173:80"
     environment:
-      DATABASE_URL: postgres://langfuse:langfuse@db:5432/langfuse
-      NEXTAUTH_SECRET: secret
-      NEXTAUTH_URL: http://localhost:3000
-      SALT: salt
+      - NODE_ENV=production
     depends_on:
-      db:
-        condition: service_healthy
+      - server
+    restart: unless-stopped
 
-  db:
-    image: postgres:15
+  # Server Application (Backend)
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
     ports:
-      - "5432:5432"
+      - "3001:3001"
     environment:
-      POSTGRES_USER: langfuse
-      POSTGRES_PASSWORD: langfuse
-      POSTGRES_DB: langfuse
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U langfuse"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - NODE_ENV=development
+      - PORT=3001
+      - OLLAMA_URL=http://ollama:11434
+      - SEQ_URL=http://seq:5341
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_BASE_URL=http://langfuse:3000
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_CX=${GOOGLE_CX}
+      - SESSION_SECRET=${SESSION_SECRET}
+    depends_on:
+      - ollama
+      - seq
+    restart: unless-stopped
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./apps/server/src:/app/src
 
+  # Ollama AI Service
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+
+  # Seq Logging Service
   seq:
     image: datalust/seq:latest
     ports:
       - "5341:80"
     environment:
-      ACCEPT_EULA: "Y"
-      SEQ_FIRSTRUN_NOAUTHENTICATION: "True"
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=True
     restart: unless-stopped
+    volumes:
+      - seq_data:/data
+
+  # Langfuse Observability Service
+  langfuse:
+    image: langfuse/langfuse:2.95
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://langfuse:langfuse@db:5432/langfuse
+      - NEXTAUTH_SECRET=secret
+      - NEXTAUTH_URL=http://localhost:3000
+      - SALT=salt
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # PostgreSQL Database for Langfuse
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=langfuse
+      - POSTGRES_PASSWORD=langfuse
+      - POSTGRES_DB=langfuse
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  ollama_data:
+  seq_data:
+  postgres_data:

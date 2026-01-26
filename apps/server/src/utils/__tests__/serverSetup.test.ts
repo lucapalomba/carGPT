@@ -112,4 +112,31 @@ describe('serverSetup', () => {
       expect(logger.info).not.toHaveBeenCalledWith(expect.stringContaining('🤖 AI Model:'));
     });
   });
+
+  describe('setupRoutes', () => {
+    it('should mount API routes', async () => {
+      const { setupRoutes } = await import('../serverSetup.js');
+      const mockApp = { use: vi.fn() } as any;
+      
+      setupRoutes(mockApp);
+      
+      // Since it's an async import inside setupRoutes, we wait a bit or use vi.waitFor
+      await vi.waitFor(() => {
+        expect(mockApp.use).toHaveBeenCalledWith('/api', expect.anything());
+      });
+    });
+  });
+
+  describe('setupGracefulShutdown', () => {
+    it('should register signal handlers', async () => {
+      const { setupGracefulShutdown } = await import('../serverSetup.js');
+      const mockServer = { close: vi.fn() };
+      const processOnSpy = vi.spyOn(process, 'on');
+      
+      setupGracefulShutdown(mockServer);
+      
+      expect(processOnSpy).toHaveBeenCalledWith('SIGTERM', expect.any(Function));
+      expect(processOnSpy).toHaveBeenCalledWith('SIGINT', expect.any(Function));
+    });
+  });
 });

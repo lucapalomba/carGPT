@@ -6,11 +6,12 @@ CarGPT provides a RESTful API for interacting with the AI-powered car recommenda
 
 ## Interactive API Documentation
 
-**🚀 Swagger UI**: For interactive API documentation with the ability to test endpoints directly in your browser (Development Only), visit:
+**🚀 Swagger UI**: For interactive API documentation with the ability to test endpoints directly in your browser:
 
-```
-http://localhost:3000/api-docs
-```
+**Local Development**: http://localhost:3000/api-docs
+**Docker Development**: http://localhost:3001/api-docs
+
+Note: Swagger/Debug APIs are disabled in production mode.
 
 The Swagger UI provides:
 - Complete API reference with request/response schemas
@@ -20,9 +21,10 @@ The Swagger UI provides:
 
 ## Base URL
 
-```
-http://localhost:3000/api
-```
+**Local Development**: http://localhost:3000/api
+**Docker Development**: http://localhost:3001/api
+
+All API endpoints should be accessed via the appropriate base URL depending on your environment.
 
 ## Localization
 

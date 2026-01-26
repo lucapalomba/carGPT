@@ -1,0 +1,17 @@
+# Development Dockerfile for Server App
+FROM node:24-alpine
+
+WORKDIR /app
+
+# Install all dependencies (including dev dependencies)
+COPY apps/server/package.json ./
+# Check if package-lock.json exists, if not use npm install
+COPY apps/server/package-lock.json* ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# Copy source code
+COPY apps/server ./
+
+EXPOSE 3001
+
+CMD ["npx", "tsx", "server.ts"]

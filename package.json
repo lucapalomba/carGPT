@@ -27,10 +27,25 @@
   "workspaces": [
     "apps/*"
   ],
-  "scripts": {
+"scripts": {
     "dev:web": "npm run dev -w web",
     "dev:server": "npm run dev -w server",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
+    "docker:dev": "docker-compose up -d ollama seq db langfuse && docker-compose -f docker-compose.yml -f docker-compose.dev.yml build && docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d web server",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d web server",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:shell": "docker-compose exec server sh",
+    "ollama:pull": "docker-compose exec ollama ollama pull",
+    "prod:setup": "chmod +x scripts/*.sh && . scripts/setup-ssl.sh",
+    "prod:deploy": "npm run prod:build && npm run prod:up",
+    "prod:build": "docker-compose -f docker-compose.prod.yml build",
+    "prod:up": "docker-compose -f docker-compose.prod.yml up -d",
+    "prod:down": "docker-compose -f docker-compose.prod.yml down",
+    "prod:logs": "docker-compose -f docker-compose.prod.yml logs -f",
+    "prod:shell": "docker-compose -f docker-compose.prod.yml exec server sh",
+    "prod:ssl-renew": "scripts/renew-ssl.sh",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
     "test:unit": "npm run test -w server && npm run test -w web",
