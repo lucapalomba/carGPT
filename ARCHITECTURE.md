@@ -91,3 +91,13 @@ The backend is built with **TypeScript** and follows the **MVC** and **Service L
 -   **JSDoc Documentation**: All exported functions and methods are documented for better IDE support and developer experience.
 -   **Centralized Config**: No hardcoded secrets or environment dependencies outside `src/config/`.
 -   **Native Localization**: Built-in support for browser language detection and market restriction across all layers.
+
+---
+
+## 📚 Related Documentation
+
+For implementation details and troubleshooting:
+- [API Documentation](docs/API.md) - Complete endpoint reference
+- [Configuration Guide](docs/CONFIGURATION.md) - All environment variables
+- [Networking Troubleshooting](docs/NETWORKING.md) - Docker and connectivity issues
+- [Docker Development Guide](DOCKER.md) - Container setup and best practices

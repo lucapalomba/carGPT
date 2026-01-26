@@ -1,0 +1,62 @@
+# Docker Compose override for development
+# Use this for local development with hot reload
+services:
+  # Web Application (Frontend) - Development Mode
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    ports:
+      - "5174:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3001
+    volumes:
+      - ./apps/web/src:/app/src
+      - ./apps/web/public:/app/public
+      - ./apps/web/package.json:/app/package.json
+      - /app/node_modules
+    depends_on:
+      - server
+    restart: unless-stopped
+
+  # Server Application (Backend) - Development Mode  
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile.dev
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - OLLAMA_URL=http://ollama:11434
+      - SEQ_URL=http://seq:5341
+    depends_on:
+      - ollama
+      - seq
+    restart: unless-stopped
+    volumes:
+      - ./apps/server/src:/app/src
+      - ./apps/server/prompt-templates:/app/prompt-templates
+      - /app/node_modules
+      - ./.env:/app/.env
+
+  # Ollama AI Service - Development Mode
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    # Expose GPU to container if available (uncomment if you have NVIDIA GPU)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

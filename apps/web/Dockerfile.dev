@@ -1,0 +1,17 @@
+# Development Dockerfile for Web App
+FROM node:24-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY apps/web/package.json ./
+# Check if package-lock.json exists, if not use npm install
+COPY apps/web/package-lock.json* ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# Copy source code
+COPY apps/web ./
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev"]

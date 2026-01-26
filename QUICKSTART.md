@@ -1,74 +1,135 @@
 # 🚀 QUICK START GUIDE - CarGPT with Ollama
 
-## Setup in 5 minutes
+## Setup in 5 minutes (Recommended: Docker)
 
-### 1️⃣ Install Ollama
+### 🔥 Method 1: Docker Development (Recommended)
 
-**Windows:**
-- Go to https://ollama.ai/download
-- Download and install the executable
-- Restart your PC (recommended)
+Docker provides the most reliable setup with built-in logging and monitoring.
 
-**macOS:**
+#### Prerequisites
+- **Docker Desktop** installed ([Download](https://www.docker.com/products/docker-desktop))
+
+#### Quick Setup
 ```bash
-brew install ollama
+# 1. Clone and setup
+git clone https://github.com/lucapalomba/CarGPT.git
+cd CarGPT
+
+# 2. Create environment file
+cp .env.example .env
+# Edit .env and add your GOOGLE_API_KEY and GOOGLE_CX
+
+# 3. Start complete stack (one command!)
+npm run docker:dev
+
+# 4. Pull AI model (in another terminal)
+docker-compose exec ollama ollama pull mistral
 ```
 
-**Linux:**
+#### Access the Application
+- **Frontend**: http://localhost:5174
+- **Backend API**: http://localhost:3001
+- **API Documentation**: http://localhost:3001/api-docs
+- **Logging (Seq)**: http://localhost:5341
+- **Observability**: http://localhost:3000 (Langfuse)
+
+---
+
+### 💻 Method 2: Local Development
+
+If you prefer running directly on your machine.
+
+#### Prerequisites
+- **Node.js 18+** ([Download](https://nodejs.org))
+- **Ollama** ([Download](https://ollama.ai))
+
+#### Quick Setup
 ```bash
-curl -fsSL https://ollama.ai/install.sh | sh
-```
+# 1. Install Ollama
+# Windows: https://ollama.ai/download
+# macOS: brew install ollama
+# Linux: curl -fsSL https://ollama.ai/install.sh | sh
 
-### 2️⃣ Download the Ministral model
+# 2. Download AI model
+ollama pull mistral
 
-Open a terminal and run:
-```bash
-ollama pull ministral
-```
-
-Wait for download (about 4GB). This will take a few minutes.
-
-### 3️⃣ Start Ollama
-
-Leave this terminal open:
-```bash
+# 3. Start Ollama (keep running)
 ollama serve
-```
 
-You should see:
-```
-Ollama is running
-```
-
-### 4️⃣ Start Seq for centralized logging (optional but recommended)
-
-Open a **NEW** terminal and start Seq:
-```bash
-docker-compose up seq
-```
-
-Seq will be available at: **http://localhost:5341**
-
-### 5️⃣ Setup CarGPT project
-
-Open a **NEW** terminal in the `CarGPT` folder:
-
-```bash
-# Install dependencies for all workspaces
+# 4. Setup CarGPT
+git clone https://github.com/lucapalomba/CarGPT.git
+cd CarGPT
 npm install
-
-# Copy configuration for the server
 cp apps/server/.env.example apps/server/.env
+# Edit apps/server/.env and add your GOOGLE_API_KEY and GOOGLE_CX
 
-# Start both Frontend and Backend in parallel
+# 5. Start applications
 npm run dev
 ```
 
-### 6️⃣ Open browser
+#### Access the Application
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3000
+- **API Documentation**: http://localhost:3000/api-docs
 
-Go to: **http://localhost:5173**
+---
 
-For logs and monitoring, visit: **http://localhost:5341** (Seq)
+## ✅ Verify it works
+
+1. Fill the form with:
+   - Requirements: `Family car with 2 kids, large trunk, safe and spacious`
+   - Click "Find my perfect cars"
+
+2. You should get a response in ~10-30 seconds
+
+---
+
+## 🐛 Common Issues
+
+### Docker Issues
+```bash
+# Check containers are running
+docker-compose ps
+
+# View logs
+npm run docker:logs
+
+# Restart everything
+npm run docker:down && npm run docker:dev
+```
+
+### Local Development Issues
+```bash
+# Cannot connect to Ollama?
+ollama serve
+
+# Model not found?
+ollama pull mistral
+
+# Node.js server won't start?
+cd CarGPT
+rm -rf node_modules && npm install
+```
+
+### Performance Issues
+- **Docker**: Recommended for consistent performance
+- **NVIDIA GPU**: Automatically used if available
+- **Slower responses**: Normal, AI processing takes time
+- **Try lighter model**: `docker-compose exec ollama ollama pull phi3`
+
+---
+
+## 💡 Why Docker is Recommended
+
+| Feature | Docker | Local |
+|---------|---------|-------|
+| **Setup Complexity** | ✅ One command | ❌ Multiple steps |
+| **Environment Consistency** | ✅ Guaranteed | ⚠️ Variable |
+| **Built-in Logging** | ✅ Seq + Langfuse | ❌ Manual setup |
+| **Port Conflicts** | ✅ Handled | ⚠️ Common |
+| **GPU Support** | ✅ Auto-detected | ⚠️ Manual |
+| **Hot Reload** | ✅ Yes | ✅ Yes |
+| **Resource Usage** | ⚠️ Higher | ✅ Lower |
 
 ---
 
@@ -118,19 +179,52 @@ npm install
 
 ## 🎯 Next Steps
 
-- Try different models: `ollama pull llama3.2`
-- Customize the system prompt in `server.ts`
-- Explore other models at https://ollama.ai/library
+### For Docker Users
+```bash
+# Try different AI models
+docker-compose exec ollama ollama pull llama3.2
+
+# View application logs
+npm run docker:logs
+
+# Access monitoring dashboards
+# Seq: http://localhost:5341
+# Langfuse: http://localhost:3000
+```
+
+### For Local Users
+```bash
+# Try different models
+ollama pull llama3.2
+
+# Explore more models
+# Visit: https://ollama.ai/library
+```
 
 ---
 
 ## 💡 Tips
 
-- **Ministral is fast and accurate** - great for this project
-- **Ollama uses GPU** if available (automatic acceleration)
-- **Works offline** after downloading the model
-- **Zero cost** - use as much as you want without limits
+### Performance
+- **Docker**: More consistent performance across machines
+- **Mistral**: Fast and accurate - great for this project
+- **GPU Acceleration**: Automatic if NVIDIA GPU detected
+- **First query slower**: Model needs to load into memory
+
+### Usage
+- **Works offline**: Once AI model is downloaded
+- **Zero cost**: Use as much as you want without limits
+- **Privacy**: All AI processing stays on your machine
 
 ---
 
-**Have questions?** Check the full README.md!
+## 📚 More Documentation
+
+**Have questions?** Check the comprehensive documentation:
+
+- [🏠 Main README](README.md) - Complete project overview
+- [🐳 Docker Guide](DOCKER.md) - Detailed Docker setup
+- [🌐 Networking Help](docs/NETWORKING.md) - Troubleshooting guide
+- [⚙️ Configuration](docs/CONFIGURATION.md) - All environment variables
+- [🏗️ Architecture](ARCHITECTURE.md) - System design overview
+- [📖 API Docs](docs/API.md) - Complete API reference

@@ -143,11 +143,11 @@ npm run dev
 # NODE_ENV=production npm run start
 
 # 7. Open your browser
-# Visit Frontend: http://localhost:5173
-# Visit Backend API: http://localhost:3000
+# Visit Frontend: http://localhost:5173 (Local) or http://localhost:5174 (Docker)
+# Visit Backend API: http://localhost:3000 (Local) or http://localhost:3001 (Docker)
 
 # 8. (Optional) View API Documentation
-# Visit: http://localhost:3000/api-docs
+# Visit: http://localhost:3000/api-docs (Local) or http://localhost:3001/api-docs (Docker)
 ```
 
 ### 🛠️ Advanced Configuration
@@ -283,10 +283,22 @@ For a deep dive into the system design, see [**ARCHITECTURE.md**](ARCHITECTURE.m
 
 ## 📚 Documentation
 
+### Core Documentation
 - [**API Documentation**](docs/API.md) - Complete API reference
-- [**Swagger UI**](http://localhost:3000/api-docs) - Interactive UI (Development mode only)
+- [**Swagger UI**](http://localhost:3000/api-docs) - Interactive UI (Local Development)
+- [**Swagger UI (Docker)**](http://localhost:3001/api-docs) - Interactive UI (Docker Development)
+
+### Development Guides  
+- [**Docker Guide**](DOCKER.md) - Docker development setup
+- [**Networking Troubleshooting**](docs/NETWORKING.md) - Network & port issues
+- [**Configuration Reference**](docs/CONFIGURATION.md) - All environment variables
 - [**Logging Guide**](apps/server/LOGGING.md) - Structured logging & LLM prompt tracking
+
+### Deployment & Architecture
 - [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment instructions
+- [Architecture Overview](ARCHITECTURE.md) - System design & AI orchestration
+
+### Project Resources
 - [Contributing Guide](CONTRIBUTING.md) - How to contribute
 - [Changelog](CHANGELOG.md) - Version history
 - [Security Policy](SECURITY.md) - Security guidelines

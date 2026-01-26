@@ -1,7 +1,13 @@
 import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
 
+// Load environment variables from current directory or root
 dotenv.config();
+
+// If some essential variables are missing, try loading from root
+if (!process.env.GOOGLE_API_KEY && !process.env.SESSION_SECRET) {
+  dotenv.config({ path: '../../.env' });
+}
 
 interface OllamaConfig {
   url: string;
@@ -109,11 +115,13 @@ export const config: AppConfig = {
 };
 
 /**
- * Validates required configuration
+ * Validates required configuration and catches placeholder values
  */
 export const validateConfig = (): void => {
   const requiredEnvVars = [];
+  const placeholderVars = [];
   
+  // Check for missing variables
   if (config.isProduction && config.session.secret === 'cargpt-secret-key-change-in-production') {
     requiredEnvVars.push('SESSION_SECRET');
   }
@@ -122,9 +130,38 @@ export const validateConfig = (): void => {
     requiredEnvVars.push('OLLAMA_URL');
   }
   
-  if (requiredEnvVars.length > 0) {
-    throw new Error(`Missing required environment variables: ${requiredEnvVars.join(', ')}`);
+  // Check for placeholder values
+  if (config.googleSearch.apiKey === 'placeholder') {
+    placeholderVars.push('GOOGLE_API_KEY');
   }
+  
+  if (config.googleSearch.cx === 'placeholder') {
+    placeholderVars.push('GOOGLE_CX');
+  }
+  
+  if (process.env.LANGFUSE_PUBLIC_KEY === 'pk-lf-placeholder') {
+    placeholderVars.push('LANGFUSE_PUBLIC_KEY');
+  }
+  
+  if (process.env.LANGFUSE_SECRET_KEY === 'sk-lf-placeholder') {
+    placeholderVars.push('LANGFUSE_SECRET_KEY');
+  }
+  
+  // Report missing variables
+  if (requiredEnvVars.length > 0) {
+    throw new Error(`❌ Missing required environment variables: ${requiredEnvVars.join(', ')}`);
+  }
+  
+  // Report placeholder values
+  if (placeholderVars.length > 0) {
+    throw new Error(`⚠️  Environment variables have placeholder values: ${placeholderVars.join(', ')}. Please set actual values in .env file.`);
+  }
+  
+  // Log successful configuration
+  console.log('✅ Configuration validation passed');
+  console.log(`🔑 Google API Key: ${config.googleSearch.apiKey ? 'Set' : 'Missing'}`);
+  console.log(`🔍 Google CX: ${config.googleSearch.cx ? 'Set' : 'Missing'}`);
+  console.log(`📊 Langfuse: ${process.env.LANGFUSE_PUBLIC_KEY && process.env.LANGFUSE_PUBLIC_KEY !== 'pk-lf-placeholder' ? 'Enabled' : 'Missing/Placeholder'}`);
 };
 
 /**
