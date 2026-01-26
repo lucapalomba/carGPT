@@ -79,4 +79,9 @@ export const SERVICE_IDENTIFIERS = {
   AI_SERVICE: Symbol.for('AI_SERVICE'),
   PROMPT_SERVICE: Symbol.for('PromptService'),
   CONVERSATION_SERVICE: Symbol.for('CONVERSATION_SERVICE'),
+  JUDGE_SERVICE: Symbol.for('JudgeService'),
 } as const;
+
+export interface IJudgeService {
+  evaluateResponse(requirements: string, fullResponse: SearchResponse, language: string, trace?: any): Promise<string>;
+}

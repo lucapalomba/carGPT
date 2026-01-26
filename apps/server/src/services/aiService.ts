@@ -7,7 +7,8 @@ import {
   IElaborationService,
   ITranslationService,
   IEnrichmentService,
-  IAIService
+  IAIService,
+  IJudgeService
 } from '../container/interfaces.js';
 import { Car, SearchResponse } from './ai/types.js';
 import { injectable, inject } from 'inversify';
@@ -27,7 +28,8 @@ export class AIService implements IAIService {
     @inject(SERVICE_IDENTIFIERS.SUGGESTION_SERVICE) private suggestionService: ISuggestionService,
     @inject(SERVICE_IDENTIFIERS.ELABORATION_SERVICE) private elaborationService: IElaborationService,
     @inject(SERVICE_IDENTIFIERS.TRANSLATION_SERVICE) private translationService: ITranslationService,
-    @inject(SERVICE_IDENTIFIERS.ENRICHMENT_SERVICE) private enrichmentService: IEnrichmentService
+    @inject(SERVICE_IDENTIFIERS.ENRICHMENT_SERVICE) private enrichmentService: IEnrichmentService,
+    @inject(SERVICE_IDENTIFIERS.JUDGE_SERVICE) private judgeService: IJudgeService
   ) {}
   
   async findCarsWithImages(requirements: string, language: string, sessionId: string): Promise<SearchResponse> {
@@ -54,13 +56,26 @@ export class AIService implements IAIService {
       );
       const enrichedCars = await this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
 
-      const result = {
+      const result: SearchResponse = {
         success: true,
         analysis: translatedResults.analysis,
         cars: enrichedCars,
         searchIntent: searchIntent,
         suggestions: suggestions
       };
+
+      // Execute Judge Evaluation on the complete result
+      try {
+        await this.judgeService.evaluateResponse(
+            requirements,
+            result, 
+            language,
+            trace
+        );
+        // Judge result is now internal-only (traced), not added to response
+      } catch (judgeError) {
+        console.warn('Judge evaluation failed silently:', judgeError);
+      }
 
       trace.update({ output: result });
 
@@ -107,13 +122,30 @@ export class AIService implements IAIService {
       );
       const enrichedCars = await this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
 
-      const result = {
+      const result: SearchResponse = {
         success: true,
         analysis: translatedResults.analysis,
         cars: enrichedCars,
         searchIntent: searchIntent,
         suggestions: suggestions
       };
+
+      // Execute Judge Evaluation on the complete result
+      try {
+        // User requested that refinement evaluation includes initial request and all refinements
+        // fullContext contains the conversation history
+        const judgeContext = `Current Feedback: ${feedback}\n\nConversation History:\n${fullContext}`;
+        
+        await this.judgeService.evaluateResponse(
+            judgeContext,
+            result,
+            language,
+            trace
+        );
+        // Judge result is now internal-only (traced), not added to response
+      } catch (judgeError) {
+         console.warn('Judge evaluation failed silently during refinement:', judgeError);
+      }
 
       trace.update({ output: result });
 

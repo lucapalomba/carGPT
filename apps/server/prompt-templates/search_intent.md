@@ -257,4 +257,4 @@ Return this JSON format:
 - **NEVER** use currency symbols (€, $, £) to determine user_country - always use the explicit language code provided above!
 - primary_focus: the main focus of the user's request.
 - constraints: the constraints of the user's request to make a precise search.
-- interesting_properties: the properties that the analysis system should respond for each car, choose wisely an amount of 20 properties at most, included constraints names with slug. For each property, propose unit of measure using this format: { "property_name": "unit_of_measure" }
+- interesting_properties: the properties that the analysis system should respond for each car, choose wisely an amount of 20 properties at most, included constraints names with slug. For each property, propose unit of measure using this format: { "property_name": "unit_of_measure in English" }
