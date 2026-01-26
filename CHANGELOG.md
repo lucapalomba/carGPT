@@ -5,7 +5,68 @@ All notable changes to CarGPT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2024-12-07
+## [v2.1] - 2026-01-22
+
+### 🚀 Major Enhancements
+- **Comprehensive testing framework** with unit tests, coverage, and e2e testing
+- **Cross-environment validation** with secure cookies for production
+- **Repository pattern** for conversation storage and retrieval
+- **Service connection pool** for Ollama integration
+- **Agent connection definitions** for improved AI service management
+
+### ⚡ Performance & Architecture
+- **Parallel processing** for car elaboration and API calls
+- **Light caching and serialization** for optimized responses
+- **Refactored backend** with divided responsibilities
+- **Extracted business logic** into dedicated modules
+- **Configuration providers** using configuration abstraction
+
+### 🎨 UI/UX Improvements
+- **Migration to Chakra v3** from Tailwind CSS
+- **Brand theme application** with consistent styling
+- **Optimized loading states** and refresh renders
+- **Improved prompt workflows** with markdown formatting
+
+### 🔧 Technical Improvements
+- **Multiple model support** - each Ollama call can use different models
+- **Centralized error handling** and logging structure
+- **Type-safe shared types** instead of duplicate implementations
+- **Strict parameter validation** and boundary checks
+- **Comprehensive test coverage** with CI/CD integration
+
+### 🐛 Bug Fixes
+- **Translation flow fixes** to keep LLM focused
+- **Response determinism** enforcement
+- **Memory management** improvements
+- **Node.js version compatibility** fixes
+
+---
+
+## [v2] - 2026-01-12
+
+### 🧠 AI & Language Processing
+- **Refined search workflow** using long-term conversation context
+- **Divided principal prompt** into structured workflow
+- **Enhanced translation step** for better localization
+- **Pinned car elaboration** system for consistent results
+- **Parallel car processing** to maintain LLM focus
+
+### 🔄 API Improvements
+- **Separated Search Intent** from search prompt
+- **Improved JSON response structure** and validation
+- **User country determination** instead of inference
+- **Refactored helpers, controllers, and services**
+- **Enhanced prompt engineering** with better focus
+
+### 🌍 Localization
+- **Hardened translation vocabulary** for consistency
+- **Improved prompt language** for better AI understanding
+- **Documentation updates** with corrected schemas
+- **Multilingual response improvements**
+
+---
+
+## [v1] - 2026-01-04
 
 ### 🎉 Initial Release
 
@@ -52,6 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Model responses can take 10-30 seconds depending on hardware
 - No persistence across server restarts
 
+---
+
 ## [Unreleased]
 
 ### Planned Features
@@ -70,4 +133,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
-- **1.0.0** (2024-12-07) - Initial release with core features
+- **v2.1** (2026-01-22) - Testing framework, architecture refactoring, Chakra v3 migration
+- **v2** (2026-01-12) - AI workflow improvements, API enhancements, localization upgrades
+- **v1** (2026-01-04) - Initial release with core features

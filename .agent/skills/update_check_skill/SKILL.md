@@ -13,6 +13,7 @@ This skill must be invoked after every task is completed. Your primary responsib
    - Update the `swagger.json` file if any API endpoints, request/response schemas, or parameters have changed.
 2. Ensure that the documentation and the Swagger file remain synchronized with the implementation.
 3. If no changes were made that affect the API or documentation, you may skip the updates but you must still verify that everything is consistent.
+4. Update the `changelog.md` file with the changes made during the task.
 
 ---
 > **Important**: This is a mandatory step for the agent to perform before considering a task fully verified and closed.
