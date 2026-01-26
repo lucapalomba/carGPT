@@ -223,6 +223,7 @@ flowchart TD
         Refine --> Intent
         
         Intent --> Suggestions["Generate Suggestions<br/>(LLM: car_suggestions)"]
+        Intent --> UISuggestions["UI Suggestions<br/>(LLM: ui_suggestions)"]
         
         subgraph "Elaboration Phase (Parallel)"
             Suggestions --> Elab1["Elaborate Car 1<br/>(LLM: elaborate_car)"]
@@ -266,9 +267,13 @@ flowchart TD
             Vision1 -->|Confidence > Threshold| Keep1[Keep Image]
             Vision1 -->|Low Confidence| Drop1[Discard]
         end
+
+        subgraph "Quality Assurance"
+            TransAnalysis & Keep1 & Drop1 & UISuggestions --> Judge["Self-Reflection / Judge<br/>(LLM: judge)"]
+        end
     end
     
-    TransAnalysis & Keep1 & Drop1 --> FinalResponse([Final JSON Response])
+    Judge --> FinalResponse([Final JSON Response])
 ```
 
 - **Frontend (`apps/web`)**: React 19, TypeScript, Chakra UI v2

@@ -59,11 +59,16 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
       "budget": "20000 - 25000",
       "must_have": ["large trunk", "low consumption"]
     },
-    "interesting_properties": ["trunk_volume", "fuel_consumption", "ncap_rating"]
+    "interesting_properties": [{"trunk_volume": "liters"}, {"fuel_consumption": "l/100km"}, {"ncap_rating": "stars"}]
   },
   "suggestions": {
     "analysis": "User needs a family car with large trunk...",
     "choices": [...]
+  },
+  "ui_suggestions": {
+    "trunk_volume": "bar",
+    "fuel_consumption": "text",
+    "ncap_rating": "stars"
   },
   "analysis": "Analysis of user requirements...",
   "cars": [

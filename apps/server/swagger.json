@@ -500,6 +500,17 @@
                                 }
                             }
                         }
+                    },
+                    "ui_suggestions": {
+                      "type": "object",
+                      "description": "Suggestions for UI presentation of vehicle properties",
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "example": {
+                        "trunk_space": "bar",
+                        "fuel_efficiency": "text"
+                      }
                     }
                 }
             },
@@ -529,136 +540,13 @@
                     "interesting_properties": {
                         "type": "array",
                         "items": {
-                            "type": "string"
-                        },
-                        "description": "Properties to include in car details",
-                        "example": ["trunk_volume", "fuel_consumption", "ncap_rating"]
-                    }
-                }
-            },
-            "ComparisonCategory": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Category name",
-                        "example": "Performance"
-                    },
-                    "car1": {
-                        "type": "string",
-                        "description": "Car 1 evaluation",
-                        "example": "Strong acceleration, 150hp engine (rating: 8/10)"
-                    },
-                    "car2": {
-                        "type": "string",
-                        "description": "Car 2 evaluation",
-                        "example": "Moderate performance, 130hp engine (rating: 7/10)"
-                    },
-                    "winner": {
-                        "type": "string",
-                        "enum": [
-                            "car1",
-                            "car2",
-                            "tie"
-                        ],
-                        "description": "Which car wins this category",
-                        "example": "car1"
-                    }
-                }
-            },
-            "CompareResponse": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "comparison": {
-                        "type": "object",
-                        "properties": {
-                            "comparison": {
-                                "type": "string",
-                                "description": "Introduction to the comparison",
-                                "example": "Comparing two excellent family cars..."
-                            },
-                            "categories": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ComparisonCategory"
-                                },
-                                "description": "Comparison across different categories"
-                            },
-                            "conclusion": {
-                                "type": "string",
-                                "description": "Final comparison conclusion",
-                                "example": "Overall, Car 1 is better for performance while Car 2 excels in fuel economy"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
-                        }
-                    }
-                }
-            },
-            "AskResponse": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "car": {
-                        "type": "string",
-                        "description": "Car that was asked about",
-                        "example": "Skoda Octavia Wagon"
-                    },
-                    "question": {
-                        "type": "string",
-                        "description": "Question that was asked",
-                        "example": "How much does annual maintenance cost?"
-                    },
-                    "answer": {
-                        "type": "string",
-                        "description": "AI-generated answer",
-                        "example": "The annual maintenance cost for a Skoda Octavia Wagon typically ranges from €400-600..."
-                    }
-                }
-            },
-            "Alternative": {
-                "type": "object",
-                "properties": {
-                    "make": {
-                        "type": "string",
-                        "example": "Volkswagen"
-                    },
-                    "model": {
-                        "type": "string",
-                        "example": "Golf Variant"
-                    },
-                    "reason": {
-                        "type": "string",
-                        "description": "Why this is a good alternative",
-                        "example": "Same philosophy, slightly more compact"
-                    },
-                    "advantages": {
-                        "type": "string",
-                        "description": "Advantages over the original car",
-                        "example": "Lower price, easier to park"
-                    }
-                }
-            },
-            "AlternativesResponse": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "alternatives": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Alternative"
                         },
-                        "minItems": 3,
-                        "maxItems": 3,
-                        "description": "Array of 3 alternative cars"
+                        "description": "Properties to include in car details with proposed units",
+                        "example": [{"trunk_volume": "liters"}, {"fuel_consumption": "l/100km"}]
                     }
                 }
             },
