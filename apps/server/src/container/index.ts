@@ -13,7 +13,8 @@ import {
   ITranslationService,
   IEnrichmentService,
   IImageSearchService,
-  IConversationService
+  IConversationService,
+  IJudgeService
 } from './interfaces.js';
 
 // Export SERVICE_IDENTIFIERS for use in tests
@@ -30,6 +31,7 @@ import { ElaborationService } from '../services/ai/elaborationService.js';
 import { TranslationService } from '../services/ai/translationService.js';
 import { EnrichmentService } from '../services/ai/enrichmentService.js';
 import { ConversationService } from '../services/conversationService.js';
+import { JudgeService } from '../services/judgeService.js';
 
 // Create and export DI container
 export const container = new Container();
@@ -48,6 +50,7 @@ export function registerDependencies(): void {
   container.bind<IElaborationService>(SERVICE_IDENTIFIERS.ELABORATION_SERVICE).to(ElaborationService).inSingletonScope();
   container.bind<ITranslationService>(SERVICE_IDENTIFIERS.TRANSLATION_SERVICE).to(TranslationService).inSingletonScope();
   container.bind<IEnrichmentService>(SERVICE_IDENTIFIERS.ENRICHMENT_SERVICE).to(EnrichmentService).inSingletonScope();
+  container.bind<IJudgeService>(SERVICE_IDENTIFIERS.JUDGE_SERVICE).to(JudgeService).inSingletonScope();
   
   // Register main AI Service
   container.bind<IAIService>(SERVICE_IDENTIFIERS.AI_SERVICE).to(AIService).inSingletonScope();
