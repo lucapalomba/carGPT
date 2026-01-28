@@ -151,9 +151,16 @@ async callOllama(messages: Message[], trace?: any, operationName?: string, model
       }
 
 // Debug: log the exact request being sent
+      const sanitizedHeaders = { ...headers };
+      if (sanitizedHeaders.Authorization) {
+        sanitizedHeaders.Authorization = '[REDACTED]';
+      }
+      if (sanitizedHeaders.authorization) {
+        sanitizedHeaders.authorization = '[REDACTED]';
+      }
       logger.debug('Ollama API Request', {
         url: apiUrl,
-        headers: headers,
+        headers: sanitizedHeaders,
         body: requestBody,
         isCloud: isCloud,
         model: model
