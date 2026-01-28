@@ -67,11 +67,21 @@ export class OllamaService implements IOllamaService {
     @inject(SERVICE_IDENTIFIERS.PROMPT_SERVICE) private promptService: IPromptService
   ) {}
 
-  private getModelForOperation(operationName?: string): string {
+private getModelForOperation(operationName?: string): string {
     if (operationName?.includes('vision') || operationName?.includes('image')) {
       return config.ollama.models.vision;
     }
+    
+    // For cloud, you might want to use different models
+    // This allows future customization for cloud-specific models
     return config.ollama.model;
+  }
+
+  private isCloudModel(modelName?: string): boolean {
+    // Logic to determine if a model is cloud-specific
+    // This can be extended with pattern matching or explicit lists
+    const cloudPrefixes = ['cloud:', 'remote:', 'api:'];
+    return cloudPrefixes.some(prefix => modelName?.startsWith(prefix)) || config.ollama.cloudEnabled;
   }
 
   private getOperationType(operationName?: string): string {
@@ -83,37 +93,105 @@ export class OllamaService implements IOllamaService {
     return 'general';
   }
 
-  async callOllama(messages: Message[], trace?: any, operationName?: string, modelOverride?: string): Promise<string> {
+async callOllama(messages: Message[], trace?: any, operationName?: string, modelOverride?: string): Promise<string> {
     const model = modelOverride || this.getModelForOperation(operationName);
     const opName = operationName || `ollama_call_${Date.now()}`;
+    
+    // Determine if using cloud or local Ollama
+    const isCloud = config.ollama.cloudEnabled;
+    const apiUrl = isCloud ? `${config.ollama.cloudUrl}/api/chat` : `${config.ollama.url}/api/chat`;
 
     // Simplified fetch for DI demo
     try {
-      logger.debug(`Calling Ollama API (${opName})`, { model, messageCount: messages.length });
+      logger.debug(`Calling Ollama API (${opName})`, { model, messageCount: messages.length, isCloud });
       const start = performance.now();
       const controller = await this.connectionPool.getConnection(opName);
 
-      const response = await fetch(`${config.ollama.url}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: model,
-          messages: messages,
+      const headers: Record<string, string> = { 'Content-Type': 'text/plain' };
+      if (isCloud && config.ollama.cloudApiKey) {
+        headers['Authorization'] = `Bearer ${config.ollama.cloudApiKey}`;
+      }
+
+// Parse options from config, fall back to defaults if parsing fails
+      let options: any;
+      try {
+        options = config.ollama.options ? JSON.parse(config.ollama.options) : {
+          temperature: 0,
+          num_predict: 100000,
+          top_p: 1,
+          top_k: 5,
+        };
+      } catch (error) {
+        logger.warn('Failed to parse OLLAMA_OPTIONS, using defaults', { 
+          error: String(error),
+          optionsString: config.ollama.options 
+        });
+        options = {
+          temperature: 0,
+          num_predict: 100000,
+          top_p: 1,
+          top_k: 5,
+        };
+      }
+
+      let requestBody: any = {
+        model: model,
+        messages: messages,
+        options: options,
+        stream: false
+      };
+
+      // Add additional parameters only for local Ollama
+      if (!isCloud) {
+        requestBody = {
+          ...requestBody,
           think: false,
-          stream: false,
-          options: {
-            temperature: 0,
-            num_predict: -1,
-            top_p: 0.1,
-            top_k: 5,
-          },
           format: "json"
-        }),
+        };
+      }
+
+// Debug: log the exact request being sent
+      const sanitizedHeaders = { ...headers };
+      if (sanitizedHeaders.Authorization) {
+        sanitizedHeaders.Authorization = '[REDACTED]';
+      }
+      if (sanitizedHeaders.authorization) {
+        sanitizedHeaders.authorization = '[REDACTED]';
+      }
+      logger.debug('Ollama API Request', {
+        url: apiUrl,
+        headers: sanitizedHeaders,
+        body: requestBody,
+        isCloud: isCloud,
+        model: model
+      });
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(requestBody),
         signal: controller.signal
       });
 
-      if (!response.ok) {
-        throw new OllamaError(`Ollama API error: ${response.statusText}`);
+if (!response.ok) {
+        // Try to get detailed error message from response body
+        let errorDetails = '';
+        try {
+          const errorData = await response.text();
+          errorDetails = errorData;
+        } catch (e) {
+          errorDetails = 'Unable to read error response body';
+        }
+        
+        logger.error('Ollama API error details', {
+          status: response.status,
+          statusText: response.statusText,
+          url: apiUrl,
+          requestBody: requestBody,
+          responseBody: errorDetails
+        });
+        
+        throw new OllamaError(`Ollama API error: ${response.status} ${response.statusText}. Details: ${errorDetails}`);
       }
 
       const data: any = await response.json();
@@ -184,14 +262,76 @@ export class OllamaService implements IOllamaService {
     }
   }
 
-  async verifyOllama(): Promise<boolean> {
+async verifyOllama(): Promise<boolean> {
     try {
-      const response = await fetch(`${config.ollama.url}/api/tags`);
+      const isCloud = config.ollama.cloudEnabled;
+      const apiUrl = isCloud ? `${config.ollama.cloudUrl}/api/tags` : `${config.ollama.url}/api/tags`;
+      
+      const headers: Record<string, string> = {};
+      if (isCloud && config.ollama.cloudApiKey) {
+        headers['Authorization'] = `Bearer ${config.ollama.cloudApiKey}`;
+      }
+
+      logger.debug(`Verifying Ollama connection`, { isCloud, apiUrl, model: config.ollama.model });
+
+      const response = await fetch(apiUrl, { headers });
+      
+      if (!response.ok) {
+        logger.error(`Ollama API returned ${response.status}`, { apiUrl, isCloud });
+        return false;
+      }
+
       const data: any = await response.json();
-      const modelExists = data.models?.some((m: any) => m.name.includes(config.ollama.model));
-      return !!modelExists;
+      const models = data.models || [];
+      
+      logger.debug(`Available models:`, { count: models.length, models: models.map((m: any) => m.name) });
+
+      // Try exact match first, then partial match
+      const modelExists = models.some((m: any) => {
+        const modelName = m.name || m.model;
+        return modelName === config.ollama.model || modelName.includes(config.ollama.model);
+      });
+
+      if (!modelExists) {
+        logger.warn(`Model ${config.ollama.model} not found in available models`, {
+          availableModels: models.map((m: any) => m.name || m.model),
+          requestedModel: config.ollama.model
+        });
+      }
+
+      return modelExists;
     } catch (error) {
-      logger.error('Ollama verification failed', { error });
+      logger.error('Ollama verification failed', { 
+        error: error instanceof Error ? error.message : String(error),
+        isCloud: config.ollama.cloudEnabled,
+        url: config.ollama.cloudEnabled ? config.ollama.cloudUrl : config.ollama.url
+      });
+      return false;
+    }
+  }
+
+  async verifyCloudConfiguration(): Promise<boolean> {
+    if (!config.ollama.cloudEnabled) {
+      return true; // Cloud not enabled, no need to verify
+    }
+
+    if (!config.ollama.cloudApiKey) {
+      logger.warn('Ollama Cloud is enabled but API key is missing');
+      return false;
+    }
+
+    if (!config.ollama.cloudUrl) {
+      logger.warn('Ollama Cloud is enabled but URL is missing');
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${config.ollama.cloudUrl}/api/tags`, {
+        headers: { 'Authorization': `Bearer ${config.ollama.cloudApiKey}` }
+      });
+      return response.ok;
+    } catch (error) {
+      logger.error('Ollama Cloud configuration verification failed', { error });
       return false;
     }
   }

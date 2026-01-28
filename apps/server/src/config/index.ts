@@ -6,6 +6,10 @@ dotenv.config();
 interface OllamaConfig {
   url: string;
   model: string;
+  cloudEnabled: boolean;
+  cloudUrl?: string;
+  cloudApiKey?: string;
+  options?: string; // JSON string of options object
   models: {
     translation: string;
     suggestion: string;
@@ -76,9 +80,13 @@ const loadEnvironmentConfig = (): Partial<AppConfig> => {
 export const config: AppConfig = {
   // Environment variables take precedence over defaults
   port: Number(process.env.PORT) || 3000,
-  ollama: {
+ollama: {
     url: process.env.OLLAMA_URL || 'http://localhost:11434',
     model: process.env.OLLAMA_MODEL || 'ministral-3:3b',
+    cloudEnabled: process.env.OLLAMA_CLOUD_ENABLED === 'true',
+    cloudUrl: process.env.OLLAMA_CLOUD_URL,
+    cloudApiKey: process.env.OLLAMA_CLOUD_API_KEY,
+    options: process.env.OLLAMA_OPTIONS || '{"temperature": 0, "num_predict": 100000, "top_p": 1, "top_k": 5}',
     models: {
       translation: process.env.OLLAMA_MODEL_TRANSLATION || 'ministral-3:3b',
       suggestion: process.env.OLLAMA_MODEL_SUGGESTION || 'ministral-3:3b', 
@@ -120,6 +128,16 @@ export const validateConfig = (): void => {
   
   if (!config.ollama.url) {
     requiredEnvVars.push('OLLAMA_URL');
+  }
+  
+  // Validate cloud configuration if enabled
+  if (config.ollama.cloudEnabled) {
+    if (!config.ollama.cloudApiKey) {
+      requiredEnvVars.push('OLLAMA_CLOUD_API_KEY (required when OLLAMA_CLOUD_ENABLED=true)');
+    }
+    if (!config.ollama.cloudUrl) {
+      requiredEnvVars.push('OLLAMA_CLOUD_URL (required when OLLAMA_CLOUD_ENABLED=true)');
+    }
   }
   
   if (requiredEnvVars.length > 0) {

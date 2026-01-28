@@ -44,9 +44,7 @@ Shopping for a car is overwhelming:
 CarGPT uses AI to:
 1. **Understand** your needs in natural language
 2. **Analyze** the entire car market
-3. **Suggest** 3 personalized recommendations
-4. **Compare** them in an easy-to-read table
-5. **Answer** your specific questions
+4. **Suggest** 3 personalized recommendations
 
 ### 💡 Project Philosophy
 
@@ -99,10 +97,6 @@ The AI analyzes your needs and suggests 3 ideal cars:
 - **Peugeot 5008** - Best for versatility and tech
 - **Renault Scenic** - Best value for money
 
-### 3. Compare & Decide
-
-See all specs in a clear comparison table, ask questions, compare details, and make your choice!
-
 ---
 
 ## 🚀 Quick Start
@@ -144,10 +138,10 @@ npm run dev
 
 # 7. Open your browser
 # Visit Frontend: http://localhost:5173
-# Visit Backend API: http://localhost:3000
+# Visit Backend API: http://localhost:3001
 
 # 8. (Optional) View API Documentation
-# Visit: http://localhost:3000/api-docs
+# Visit: http://localhost:3001/api-docs
 ```
 
 ### 🛠️ Advanced Configuration

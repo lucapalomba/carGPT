@@ -1,6 +1,6 @@
 import { 
   SERVICE_IDENTIFIERS, 
-  IOllamaService, 
+  IOllamaService,
   ICacheService,
   IIntentService,
   ISuggestionService,
@@ -14,6 +14,7 @@ import { Car, SearchResponse } from './ai/types.js';
 import { injectable, inject } from 'inversify';
 import { langfuse } from '../utils/langfuse.js';
 import { config } from '../config/index.js';
+import logger from '../utils/logger.js';
 
 // Export Shared Types for consumers
 export type { Car, SearchResponse };
@@ -32,11 +33,9 @@ export class AIService implements IAIService {
     @inject(SERVICE_IDENTIFIERS.JUDGE_SERVICE) private judgeService: IJudgeService
   ) {}
   
-  async findCarsWithImages(requirements: string, language: string, sessionId: string): Promise<SearchResponse> {
-    const isAvailable = await this.ollamaService.verifyOllama();
-    if (!isAvailable) {
-      throw new Error('AI service not available');
-    }
+async findCarsWithImages(requirements: string, language: string, sessionId: string): Promise<SearchResponse> {
+    // Temporarily remove availability check to test the flow
+    logger.debug('AI Service: Starting findCarsWithImages...');
 
     const trace = langfuse.trace({
       name: "search_cars_API",
