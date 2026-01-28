@@ -9,7 +9,7 @@ CarGPT provides a RESTful API for interacting with the AI-powered car recommenda
 **🚀 Swagger UI**: For interactive API documentation with the ability to test endpoints directly in your browser (Development Only), visit:
 
 ```
-http://localhost:3000/api-docs
+http://localhost:3001/api-docs
 ```
 
 The Swagger UI provides:
@@ -21,7 +21,7 @@ The Swagger UI provides:
 ## Base URL
 
 ```
-http://localhost:3000/api
+http://localhost:3001/api
 ```
 
 ## Localization
@@ -67,7 +67,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
   },
   "ui_suggestions": {
     "trunk_volume": "bar",
-    "fuel_consumption": "text",
+    "fuel_consumption": "text_highlight",
     "ncap_rating": "stars"
   },
   "analysis": "Analysis of user requirements...",
@@ -227,7 +227,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 
 ---
 
-### 6. Reset Conversation
+### 3. Reset Conversation
 
 **Endpoint**: `POST /api/reset-conversation`
 
@@ -245,7 +245,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
 
 ---
 
-### 7. Health Check
+### 4. Health Check
 
 **Endpoint**: `GET /api/health`
 
