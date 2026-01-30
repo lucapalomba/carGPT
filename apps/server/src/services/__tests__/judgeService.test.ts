@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { JudgeService } from '../judgeService.js';
 import { SearchResponse } from '../ai/types.js';
+import { JudgeVerdictSchema } from '../../utils/schemas.js';
 
 describe('JudgeService', () => {
   let judgeService: JudgeService;
@@ -9,7 +10,7 @@ describe('JudgeService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOllamaService = { callOllama: vi.fn() };
+    mockOllamaService = { callOllamaStructured: vi.fn() };
     mockPromptService = { loadTemplate: vi.fn() };
     judgeService = new JudgeService(mockOllamaService, mockPromptService);
   });
@@ -22,40 +23,30 @@ describe('JudgeService', () => {
         analysis: 'Good car'
       };
       const language = 'en';
-      const mockVerdict = '{"verdict": "Great match", "vote": 90}';
+      const mockVerdict = { verdict: 'Great match', vote: 90 };
 
       mockPromptService.loadTemplate.mockReturnValue('{{requirements}} {{responseContext}}');
-      mockOllamaService.callOllama.mockResolvedValue(mockVerdict);
+      mockOllamaService.callOllamaStructured.mockResolvedValue(mockVerdict);
 
       const result = await judgeService.evaluateResponse(requirements, mockResponse, language);
 
       expect(mockPromptService.loadTemplate).toHaveBeenCalledWith('judge.md');
       
-      // Verify prompt construction
-      expect(mockOllamaService.callOllama).toHaveBeenCalledWith(
+      // Verify prompt construction and context inclusion
+      expect(mockOllamaService.callOllamaStructured).toHaveBeenCalledWith(
         expect.arrayContaining([
             expect.objectContaining({
                 role: 'user',
-                content: expect.stringContaining(requirements)
+                content: expect.stringContaining(requirements && 'Toyota')
             })
         ]),
-        undefined,
-        'judge_evaluation'
-      );
-      
-      // Verify context inclusion
-      expect(mockOllamaService.callOllama).toHaveBeenCalledWith(
-        expect.arrayContaining([
-            expect.objectContaining({
-                role: 'user',
-                content: expect.stringContaining('Toyota')
-            })
-        ]),
+        JudgeVerdictSchema,
+        "Judge evaluation returning a verdict and score",
         undefined,
         'judge_evaluation'
       );
 
-      expect(result).toBe(mockVerdict);
+      expect(result).toBe(JSON.stringify(mockVerdict));
     });
 
     it('should handle evaluation errors gracefully', async () => {
@@ -64,7 +55,7 @@ describe('JudgeService', () => {
       const language = 'en';
 
       mockPromptService.loadTemplate.mockReturnValue('template');
-      mockOllamaService.callOllama.mockRejectedValue(new Error('Ollama failed'));
+      mockOllamaService.callOllamaStructured.mockRejectedValue(new Error('Ollama failed'));
 
       // Should ensure console.error is called but not throw
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

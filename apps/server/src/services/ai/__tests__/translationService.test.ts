@@ -8,7 +8,7 @@ describe('TranslationService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOllamaService = { callOllama: vi.fn(), parseJsonResponse: vi.fn() };
+    mockOllamaService = { callOllamaStructured: vi.fn() };
     mockPromptService = { loadTemplate: vi.fn() };
     translationService = new TranslationService(mockOllamaService, mockPromptService);
   });
@@ -16,7 +16,7 @@ describe('TranslationService', () => {
   describe('translateResults', () => {
     it('should return original results if translation fails', async () => {
       const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn(), update: vi.fn(), id: '1' }) };
-      mockOllamaService.callOllama.mockRejectedValue(new Error('Translation error'));
+      mockOllamaService.callOllamaStructured.mockRejectedValue(new Error('Translation error'));
       
       const results = { analysis: 'original', cars: [] };
       const result = await translationService.translateResults(results, 'it', mockTrace);
@@ -26,8 +26,7 @@ describe('TranslationService', () => {
 
     it('should skip analysis translation if missing', async () => {
       const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn(), id: '1' }) };
-      mockOllamaService.callOllama.mockResolvedValue('{}');
-      mockOllamaService.parseJsonResponse.mockReturnValue({});
+      mockOllamaService.callOllamaStructured.mockResolvedValue({});
       
       const results = { cars: [] };
       const result = await translationService.translateResults(results, 'it', mockTrace);
@@ -41,8 +40,7 @@ describe('TranslationService', () => {
       const car = { make: 'Toyota', model: 'Corolla', year: 2020 };
       
       mockPromptService.loadTemplate.mockReturnValue('template ${targetLanguage}');
-      mockOllamaService.callOllama.mockResolvedValue('{"make": "Toyota", "model": "Corolla", "year": 2020, "description": "descrizione"}');
-      mockOllamaService.parseJsonResponse.mockReturnValue({ make: 'Toyota', model: 'Corolla', year: 2020, description: 'descrizione' });
+      mockOllamaService.callOllamaStructured.mockResolvedValue({ make: 'Toyota', model: 'Corolla', year: 2020, description: 'descrizione' });
       
       const result = await translationService.translateSingleCar(car, 'it', mockTrace, 0);
       
@@ -57,8 +55,7 @@ describe('TranslationService', () => {
       const car = { make: 'Toyota', model: 'Corolla', year: 2020, pinned: true };
       
       mockPromptService.loadTemplate.mockReturnValue('template ${targetLanguage}');
-      mockOllamaService.callOllama.mockResolvedValue('{"make": "Toyota", "model": "Corolla", "year": 2020}');
-      mockOllamaService.parseJsonResponse.mockReturnValue({ make: 'Toyota', model: 'Corolla', year: 2020 });
+      mockOllamaService.callOllamaStructured.mockResolvedValue({ make: 'Toyota', model: 'Corolla', year: 2020 });
       
       const result = await translationService.translateSingleCar(car, 'it', mockTrace, 0);
       
@@ -70,8 +67,7 @@ describe('TranslationService', () => {
       const car = { make: 'Toyota', model: 'Corolla', year: 2020 };
       
       mockPromptService.loadTemplate.mockReturnValue('template ${targetLanguage}');
-      mockOllamaService.callOllama.mockResolvedValue('{"make": "Honda", "model": "Corolla", "year": 2020}'); // Wrong make
-      mockOllamaService.parseJsonResponse.mockReturnValue({ make: 'Honda', model: 'Corolla', year: 2020 });
+      mockOllamaService.callOllamaStructured.mockResolvedValue({ make: 'Honda', model: 'Corolla', year: 2020 }); // Wrong make
       
       const result = await translationService.translateSingleCar(car, 'it', mockTrace, 0);
       
@@ -83,7 +79,7 @@ describe('TranslationService', () => {
       const car = { make: 'Toyota', model: 'Corolla', year: 2020 };
       
       mockPromptService.loadTemplate.mockReturnValue('template ${targetLanguage}');
-      mockOllamaService.callOllama.mockRejectedValue(new Error('Translation failed'));
+      mockOllamaService.callOllamaStructured.mockRejectedValue(new Error('Translation failed'));
       
       const result = await translationService.translateSingleCar(car, 'it', mockTrace, 0);
       
@@ -97,8 +93,7 @@ describe('TranslationService', () => {
       const analysis = 'This is the original analysis';
       
       mockPromptService.loadTemplate.mockReturnValue('template ${targetLanguage}');
-      mockOllamaService.callOllama.mockResolvedValue('{"analysis": "Questa è l\'analisi tradotta"}');
-      mockOllamaService.parseJsonResponse.mockReturnValue({ analysis: 'Questa è l\'analisi tradotta' });
+      mockOllamaService.callOllamaStructured.mockResolvedValue({ analysis: 'Questa è l\'analisi tradotta' });
       
       const result = await translationService.translateAnalysis(analysis, 'it', mockTrace);
       
@@ -110,8 +105,7 @@ describe('TranslationService', () => {
       const analysis = 'This is the original analysis';
       
       mockPromptService.loadTemplate.mockReturnValue('template ${targetLanguage}');
-      mockOllamaService.callOllama.mockResolvedValue('{"analysis": "short"}');
-      mockOllamaService.parseJsonResponse.mockReturnValue({ analysis: 'short' });
+      mockOllamaService.callOllamaStructured.mockResolvedValue({ analysis: 'short' });
       
       const result = await translationService.translateAnalysis(analysis, 'it', mockTrace);
       
@@ -123,7 +117,7 @@ describe('TranslationService', () => {
       const analysis = 'This is the original analysis';
       
       mockPromptService.loadTemplate.mockReturnValue('template ${targetLanguage}');
-      mockOllamaService.callOllama.mockRejectedValue(new Error('Translation failed'));
+      mockOllamaService.callOllamaStructured.mockRejectedValue(new Error('Translation failed'));
       
       const result = await translationService.translateAnalysis(analysis, 'it', mockTrace);
       

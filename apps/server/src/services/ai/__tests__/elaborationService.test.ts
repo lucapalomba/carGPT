@@ -8,7 +8,7 @@ describe('ElaborationService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOllamaService = { callOllama: vi.fn(), parseJsonResponse: vi.fn() };
+    mockOllamaService = { callOllamaStructured: vi.fn() };
     mockPromptService = { loadTemplate: vi.fn() };
     elaborationService = new ElaborationService(mockOllamaService, mockPromptService);
   });
@@ -21,13 +21,12 @@ describe('ElaborationService', () => {
       const mockResult = { description: "elaborated" };
 
       mockPromptService.loadTemplate.mockReturnValue('template');
-      mockOllamaService.callOllama.mockResolvedValue('{}');
-      mockOllamaService.parseJsonResponse.mockReturnValue(mockResult);
+      mockOllamaService.callOllamaStructured.mockResolvedValue(mockResult);
 
       const result = await elaborationService.elaborateCars(carChoices, searchIntent, mockTrace);
 
       expect(result[0].description).toBe("elaborated");
-      expect(mockOllamaService.callOllama).toHaveBeenCalled();
+      expect(mockOllamaService.callOllamaStructured).toHaveBeenCalled();
     });
   });
 });

@@ -8,7 +8,7 @@ describe('IntentService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOllamaService = { callOllama: vi.fn(), parseJsonResponse: vi.fn() };
+    mockOllamaService = { callOllamaStructured: vi.fn() };
     mockPromptService = { loadTemplate: vi.fn() };
     intentService = new IntentService(mockOllamaService, mockPromptService);
   });
@@ -21,13 +21,12 @@ describe('IntentService', () => {
       const mockResult = { intent: "search" };
       
       mockPromptService.loadTemplate.mockReturnValue('template');
-      mockOllamaService.callOllama.mockResolvedValue('{"intent": "search"}');
-      mockOllamaService.parseJsonResponse.mockReturnValue(mockResult);
+      mockOllamaService.callOllamaStructured.mockResolvedValue(mockResult);
 
       const result = await intentService.determineSearchIntent(requirements, language, mockTrace);
 
       expect(mockPromptService.loadTemplate).toHaveBeenCalledWith('search_intent.md');
-      expect(mockOllamaService.callOllama).toHaveBeenCalled();
+      expect(mockOllamaService.callOllamaStructured).toHaveBeenCalled();
       expect(result).toEqual(mockResult);
     });
   });

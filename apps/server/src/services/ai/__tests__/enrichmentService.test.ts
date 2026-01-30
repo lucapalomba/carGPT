@@ -14,6 +14,18 @@ describe('EnrichmentService', () => {
   });
 
   describe('enrichCarsWithImages', () => {
+    beforeEach(() => {
+      vi.mock('../../../config/index.js', async () => {
+        const originalConfig = await vi.importActual('../../../config/index.js') as any;
+        return {
+          ...originalConfig,
+          config: {
+            ...originalConfig.config,
+            carouselImageLength: 5,
+          },
+        };
+      });
+    });
     it('should enrich cars with images successfully', async () => {
       const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn() }) };
       const cars = [

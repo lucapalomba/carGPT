@@ -43,7 +43,7 @@ describe('OllamaService', () => {
       const messages = [{ role: 'user', content: 'test' }];
       const result = await ollamaService.callOllamaStructured(messages, TestSchema, "Test schema", undefined, 'test-operation');
 
-      expect(result).toBe('{"test": true}');
+      expect(result).toEqual({ test: true });
       expect(fetch).toHaveBeenCalled();
     });
 
@@ -55,20 +55,20 @@ describe('OllamaService', () => {
       } as any);
 
       const messages = [{ role: 'user', content: 'test' }];
-      await expect(ollamaService.callOllamaStructured(messages)).rejects.toThrow(OllamaError);
+      await expect(ollamaService.callOllamaStructured(messages, TestSchema, "Test schema")).rejects.toThrow(OllamaError);
     });
 
     it('should throw OllamaError if connection fails', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
 
       const messages = [{ role: 'user', content: 'test' }];
-      await expect(ollamaService.callOllamaStructured(messages, TestSchema, "Test schema")).rejects.toThrow('Unable to connect to Ollama');
+      await expect(ollamaService.callOllamaStructured(messages, TestSchema, "Test schema")).rejects.toThrow('Ollama Problem. Network error');
     });
 
     it('should handle non-Error objects in catch block', async () => {
         vi.mocked(fetch).mockRejectedValue('String error');
         const messages = [{ role: 'user', content: 'test' }];
-await expect(ollamaService.callOllamaStructured(messages)).rejects.toThrow('Unable to connect to Ollama');
+        await expect(ollamaService.callOllamaStructured(messages, TestSchema, "Test schema")).rejects.toThrow('Ollama Problem. String error');
         expect(logger.error).not.toHaveBeenCalled(); // Generation handles it now
     });
   });
@@ -138,15 +138,13 @@ await expect(ollamaService.callOllamaStructured(messages)).rejects.toThrow('Unab
         arrayBuffer: async () => new ArrayBuffer(8)
       } as any);
       
-      const spyCall = vi.spyOn(ollamaService, 'callOllama').mockResolvedValue('{"modelConfidence": 0.9, "textConfidence": 0.1}');
-      const spyParse = vi.spyOn(ollamaService, 'parseJsonResponse').mockReturnValue({ modelConfidence: 0.9, textConfidence: 0.1 });
+      const spyCall = vi.spyOn(ollamaService, 'callOllamaStructured').mockResolvedValue({ modelConfidence: 0.9, textConfidence: 0.1 });
       vi.mocked(mockPromptService.loadTemplate).mockReturnValue('template');
 
       const result = await ollamaService.verifyImageContainsCar('Toyota', 2020, 'http://img.jpg', {});
       expect(result).toBe(true);
       
       spyCall.mockRestore();
-      spyParse.mockRestore();
     });
 
     it('should return false if model confidence is low', async () => {
@@ -155,8 +153,7 @@ await expect(ollamaService.callOllamaStructured(messages)).rejects.toThrow('Unab
           arrayBuffer: async () => new ArrayBuffer(8)
         } as any);
         
-        vi.spyOn(ollamaService, 'callOllama').mockResolvedValue('{"modelConfidence": 0.1, "textConfidence": 0.1}');
-        vi.spyOn(ollamaService, 'parseJsonResponse').mockReturnValue({ modelConfidence: 0.1, textConfidence: 0.1 });
+        vi.spyOn(ollamaService, 'callOllamaStructured').mockResolvedValue({ modelConfidence: 0.1, textConfidence: 0.1 });
         vi.mocked(mockPromptService.loadTemplate).mockReturnValue('template');
   
         const result = await ollamaService.verifyImageContainsCar('Toyota', 2020, 'http://img.jpg', {});
@@ -169,8 +166,7 @@ await expect(ollamaService.callOllamaStructured(messages)).rejects.toThrow('Unab
           arrayBuffer: async () => new ArrayBuffer(8)
         } as any);
         
-        vi.spyOn(ollamaService, 'callOllama').mockResolvedValue('{"modelConfidence": 0.9, "textConfidence": 0.9}');
-        vi.spyOn(ollamaService, 'parseJsonResponse').mockReturnValue({ modelConfidence: 0.9, textConfidence: 0.9 });
+        vi.spyOn(ollamaService, 'callOllamaStructured').mockResolvedValue({ modelConfidence: 0.9, textConfidence: 0.9 });
         vi.mocked(mockPromptService.loadTemplate).mockReturnValue('template');
   
         const result = await ollamaService.verifyImageContainsCar('Toyota', 2020, 'http://img.jpg', {});
@@ -202,8 +198,7 @@ await expect(ollamaService.callOllamaStructured(messages)).rejects.toThrow('Unab
             arrayBuffer: async () => new ArrayBuffer(8)
         } as any);
         
-        vi.spyOn(ollamaService, 'callOllama').mockResolvedValue('{}');
-        vi.spyOn(ollamaService, 'parseJsonResponse').mockReturnValue({});
+        vi.spyOn(ollamaService, 'callOllamaStructured').mockResolvedValue({});
         vi.mocked(mockPromptService.loadTemplate).mockReturnValue('template');
   
         const result = await ollamaService.verifyImageContainsCar('Toyota', 2020, 'http://img.jpg', {});
