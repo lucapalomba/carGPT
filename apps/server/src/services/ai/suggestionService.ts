@@ -3,6 +3,9 @@ import { injectable, inject } from 'inversify';
 import { ISuggestionService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import { getDateSystemMessage } from '../../utils/dateUtils.js';
 
+
+import { CarSuggestionsSchema } from '../../utils/schemas.js';
+
 @injectable()
 export class SuggestionService implements ISuggestionService {
   constructor(
@@ -16,7 +19,7 @@ export class SuggestionService implements ISuggestionService {
   async getCarSuggestions(searchIntent: any, context: string, pinnedCarsPrompt: string, trace: any): Promise<any> {
     const span = trace.span({ name: "get_car_suggestions" });
     try {
-      const carsSuggestionTemplates = this.promptService.loadTemplate('cars_suggestions.md');
+const carsSuggestionTemplates = this.promptService.loadTemplate('cars_suggestions.md');
       const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
 const messages: OllamaMessage[] = [
@@ -28,8 +31,14 @@ const messages: OllamaMessage[] = [
         { role: "user", content: context }
       ];
 
-      const response = await this.ollamaService.callOllama(messages, trace, 'car_suggestions');
-      const result = this.ollamaService.parseJsonResponse(response);
+      const result = await this.ollamaService.callOllamaStructured(
+        messages, 
+        CarSuggestionsSchema,
+        "Car suggestions",
+        trace, 
+        'car_suggestions'
+      );
+      
       span.end({ output: result });
       return result;
     } catch (error) {

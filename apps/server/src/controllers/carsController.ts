@@ -6,7 +6,7 @@ import { config } from '../config/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ValidationError } from '../utils/AppError.js';
 import logger from '../utils/logger.js';
-import { langfuse } from '../utils/langfuse.js';
+
 
 /**
  * Controller for car search operations

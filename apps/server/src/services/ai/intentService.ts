@@ -2,6 +2,9 @@ import { Message as OllamaMessage } from '../ollamaService.js';
 import { injectable, inject } from 'inversify';
 import { IIntentService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import { getDateSystemMessage } from '../../utils/dateUtils.js';
+import { config } from '../../config/index.js';
+
+import { SearchIntentSchema } from '../../utils/schemas.js';
 
 @injectable()
 export class IntentService implements IIntentService {
@@ -19,15 +22,24 @@ export class IntentService implements IIntentService {
       const intentPromptTemplate = this.promptService.loadTemplate('search_intent.md');
       const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
-const messages: OllamaMessage[] = [
+      const messages: OllamaMessage[] = [
         { role: "system", content: "Today is: " + getDateSystemMessage() },
-        { role: "system", content: intentPromptTemplate.replace(/\${language}/g, language) },
+        { role: "system", content: intentPromptTemplate
+          .replace(/\${language}/g, language)
+          .replace(/\${maxInterestingPropertiesCount}/g, config.maxInterestingPropertiesCount.toString())
+        },
         { role: "system", content: jsonGuard },
         { role: "user", content: context }
       ];
 
-      const response = await this.ollamaService.callOllama(messages, trace, 'search_intent');
-      const result = this.ollamaService.parseJsonResponse(response);
+      const result = await this.ollamaService.callOllamaStructured(
+        messages, 
+        SearchIntentSchema,
+        "User intent analysis",
+        trace, 
+        'search_intent'
+      );
+      
       span.end({ output: result });
       return result;
     } catch (error) {

@@ -3,9 +3,13 @@ import { injectable, inject } from 'inversify';
 import { IOllamaService, SERVICE_IDENTIFIERS } from '../container/interfaces.js';
 import { IPromptService } from '../container/interfaces.js';
 import langfuse from '../utils/langfuse.js';
+import { forceFlushLangfuse } from '../utils/langfuseUtils.js';
 import { config } from '../config/index.js';
 import logger from '../utils/logger.js';
 import { OllamaError } from '../utils/AppError.js';
+import { StructuredOutputValidator, SCHEMA_DESCRIPTIONS } from '../utils/structuredOutput.js';
+import * as z from 'zod';
+import { CarSuggestionsSchema, ElaborationSchema, JudgeVerdictSchema, SearchIntentSchema, VerifyCarSchema } from '../utils/schemas.js';
 
 export interface Message {
   role: string;
@@ -93,155 +97,9 @@ private getModelForOperation(operationName?: string): string {
     return 'general';
   }
 
-async callOllama(messages: Message[], trace?: any, operationName?: string, modelOverride?: string): Promise<string> {
-    const model = modelOverride || this.getModelForOperation(operationName);
-    const opName = operationName || `ollama_call_${Date.now()}`;
-    
-    // Determine if using cloud or local Ollama
-    const isCloud = config.ollama.cloudEnabled;
-    const apiUrl = isCloud ? `${config.ollama.cloudUrl}/api/chat` : `${config.ollama.url}/api/chat`;
 
-    // Simplified fetch for DI demo
-    try {
-      logger.debug(`Calling Ollama API (${opName})`, { model, messageCount: messages.length, isCloud });
-      const start = performance.now();
-      const controller = await this.connectionPool.getConnection(opName);
 
-      const headers: Record<string, string> = { 'Content-Type': 'text/plain' };
-      if (isCloud && config.ollama.cloudApiKey) {
-        headers['Authorization'] = `Bearer ${config.ollama.cloudApiKey}`;
-      }
-
-// Parse options from config, fall back to defaults if parsing fails
-      let options: any;
-      try {
-        options = config.ollama.options ? JSON.parse(config.ollama.options) : {
-          temperature: 0,
-          num_predict: 100000,
-          top_p: 1,
-          top_k: 5,
-        };
-      } catch (error) {
-        logger.warn('Failed to parse OLLAMA_OPTIONS, using defaults', { 
-          error: String(error),
-          optionsString: config.ollama.options 
-        });
-        options = {
-          temperature: 0,
-          num_predict: 100000,
-          top_p: 1,
-          top_k: 5,
-        };
-      }
-
-      let requestBody: any = {
-        model: model,
-        messages: messages,
-        options: options,
-        stream: false
-      };
-
-      // Add additional parameters only for local Ollama
-      if (!isCloud) {
-        requestBody = {
-          ...requestBody,
-          think: false,
-          format: "json"
-        };
-      }
-
-// Debug: log the exact request being sent
-      const sanitizedHeaders = { ...headers };
-      if (sanitizedHeaders.Authorization) {
-        sanitizedHeaders.Authorization = '[REDACTED]';
-      }
-      if (sanitizedHeaders.authorization) {
-        sanitizedHeaders.authorization = '[REDACTED]';
-      }
-      logger.debug('Ollama API Request', {
-        url: apiUrl,
-        headers: sanitizedHeaders,
-        body: requestBody,
-        isCloud: isCloud,
-        model: model
-      });
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-
-if (!response.ok) {
-        // Try to get detailed error message from response body
-        let errorDetails = '';
-        try {
-          const errorData = await response.text();
-          errorDetails = errorData;
-        } catch (e) {
-          errorDetails = 'Unable to read error response body';
-        }
-        
-        logger.error('Ollama API error details', {
-          status: response.status,
-          statusText: response.statusText,
-          url: apiUrl,
-          requestBody: requestBody,
-          responseBody: errorDetails
-        });
-        
-        throw new OllamaError(`Ollama API error: ${response.status} ${response.statusText}. Details: ${errorDetails}`);
-      }
-
-      const data: any = await response.json();
-      const durationMs = performance.now() - start;
-      const result = data.message?.content || '';
-
-      langfuse.generation({
-        input: messages,
-        output: result,
-        traceId: trace?.id,
-        name: operationName || 'ollama_call',
-        model: model,
-        startTime: new Date(Date.now() - durationMs),
-        endTime: new Date(),
-        usage: data.usage ? {
-          input: data.usage.prompt_tokens || 0,
-          output: data.usage.completion_tokens || 0,
-          total: data.usage.total_tokens || 0,
-        } : {
-          input: data.prompt_eval_count || 0,
-          output: data.eval_count || 0,
-          total: (data.prompt_eval_count || 0) + (data.eval_count || 0)
-        },
-        metadata: {
-          operationType: this.getOperationType(operationName),
-          durationMs: Math.round(durationMs),
-        }
-      });
-
-      return result;
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      langfuse.generation({
-        traceId: trace?.id,
-        name: opName,
-        model: model,
-        level: "ERROR",
-        statusMessage: errorMessage
-      });
-
-      if (error instanceof OllamaError) throw error;
-      throw new OllamaError(`Unable to connect to Ollama. ${errorMessage}`);
-    } finally {
-      this.connectionPool.releaseConnection(opName);
-    }
-  }
-
-  parseJsonResponse(text: string): any {
+parseJsonResponse(text: string): any {
     try {
       let cleaned = text.trim();
       if (cleaned.includes('```json')) {
@@ -261,6 +119,199 @@ if (!response.ok) {
       throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+
+  /**
+   * Calls Ollama with structured output validation
+   */
+  async callOllamaStructured<T>(
+    messages: Message[], 
+    schema: z.ZodType<T>, 
+    schemaDescription: string,
+    trace?: any,
+    operationName?: string,
+    modelOverride?: string
+  ): Promise<T> {
+    const model = modelOverride || this.getModelForOperation(operationName);
+    const opName = operationName || `ollama_structured_${Date.now()}`;
+    
+    // Determine if using cloud or local Ollama
+    const isCloud = config.ollama.cloudEnabled;
+    const apiUrl = isCloud ? `${config.ollama.cloudUrl}/api/chat` : `${config.ollama.url}/api/chat`;
+
+    try {
+      logger.debug(`Calling Ollama API with structured output (${opName})`, { model, messageCount: messages.length, isCloud });
+      const start = performance.now();
+      const controller = await this.connectionPool.getConnection(opName);
+
+      
+
+      const headers: Record<string, string> = { 'Content-Type': 'text/plain' };
+      if (isCloud && config.ollama.cloudApiKey) {
+        headers['Authorization'] = `Bearer ${config.ollama.cloudApiKey}`;
+      }
+
+      // Parse options from config
+      let options: any;
+      try {
+        options = JSON.parse(config.ollama.options);
+      } catch (error) {
+        logger.error('Failed to parse OLLAMA_OPTIONS, using defaults', { 
+          error: String(error),
+          optionsString: config.ollama.options 
+        });
+       throw new OllamaError(`Ollama API no configuration`);
+      }
+
+      // Convert Zod schema to JSON schema for Ollama
+      const jsonSchema = StructuredOutputValidator.convertSchema(schema);
+      
+      // Log the schema for debugging
+      logger.debug('Generated JSON Schema', { 
+        schema: jsonSchema,
+        schemaType: schema.constructor.name
+      });
+
+      const requestBody = {
+        model: model,
+        messages: messages,
+        options: options,
+        stream: false,
+        format: jsonSchema // Use the JSON schema as the format parameter
+      };
+
+      const sanitizedHeaders = { ...headers };
+      if (sanitizedHeaders.Authorization) sanitizedHeaders.Authorization = '[REDACTED]';
+
+      logger.debug('Ollama API Request (Structured)', {
+        url: apiUrl,
+        headers: sanitizedHeaders,
+        body: { ...requestBody }, // Don't log full schema to keep logs clean
+        isCloud: isCloud,
+        model: model
+      });
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        let errorDetails = '';
+        try {
+          const errorData = await response.text();
+          errorDetails = errorData;
+        } catch (_e) {
+          errorDetails = 'Unable to read error response body';
+        }
+        
+        logger.error('Ollama API error details (Structured)', {
+          status: response.status,
+          statusText: response.statusText,
+          url: apiUrl,
+          error: errorDetails
+        });
+        
+        throw new OllamaError(`Ollama API error: ${response.status} ${response.statusText}. Details: ${errorDetails}`);
+      }
+
+      const data: any = await response.json();
+      const durationMs = performance.now() - start;
+      const rawResult = data.message?.content || '';
+      
+      // Parse the JSON response since we're relying on Ollama's format property
+      const result = this.parseJsonResponse(rawResult);
+
+      logger.debug('Ollama API Response (Structured)', {
+        operationName: opName,
+        status: response.status,
+        statusText: response.statusText,
+        url: apiUrl,
+        result: rawResult,
+        parsedResult: result,
+        schema: schema
+      });
+       
+
+langfuse.generation({
+        input: messages,
+        output: result,
+        traceId: trace?.id,
+        name: operationName || 'ollama_structured_call',
+        model: model,
+        startTime: new Date(Date.now() - durationMs),
+        endTime: new Date(),
+        usage: data.usage ? {
+          input: data.usage.prompt_tokens || 0,
+          output: data.usage.completion_tokens || 0,
+          total: data.usage.total_tokens || 0,
+        } : {
+          input: data.prompt_eval_count || 0,
+          output: data.eval_count || 0,
+          total: (data.prompt_eval_count || 0) + (data.eval_count || 0)
+        },
+        metadata: {
+          operationType: this.getOperationType(operationName),
+          durationMs: Math.round(durationMs),
+          structuredOutput: true,
+          schemaValidation: 'passed'
+        }
+      });
+
+      // Force flush for immediate visibility in Langfuse
+      try {
+        await forceFlushLangfuse();
+      } catch (flushError) {
+        logger.warn('Failed to force flush Langfuse traces:', flushError);
+      }
+
+      return result as T;
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      langfuse.generation({
+        traceId: trace?.id,
+        name: opName,
+        model: model,
+        level: "ERROR",
+        statusMessage: errorMessage
+      });
+
+      if (error instanceof OllamaError) throw error;
+      throw new OllamaError(`Ollama Problem. ${errorMessage}`);
+    } finally {
+      this.connectionPool.releaseConnection(opName);
+    }
+  }
+
+
+
+  /**
+   * Convenience method for intent analysis with structured output
+   */
+  async analyzeIntent(
+    query: string,
+    trace?: any,
+    modelOverride?: string
+  ): Promise<any> {
+    const messages: Message[] = [{
+      role: 'user',
+      content: `Analyze the user intent: ${query}`
+    }];
+
+    return this.callOllamaStructured(
+      messages,
+      SearchIntentSchema,
+      SCHEMA_DESCRIPTIONS.SEARCH_INTENT,
+      trace,
+      'intent_analysis',
+      modelOverride
+    );
+  }
+
+  
 
 async verifyOllama(): Promise<boolean> {
     try {
@@ -359,8 +410,7 @@ async verifyOllama(): Promise<boolean> {
         }
       ];
 
-      const llmResponse = await this.callOllama(messages, trace, 'vision_verification');
-      const result = this.parseJsonResponse(llmResponse);
+      const result = await this.callOllamaStructured(messages, VerifyCarSchema, "Vision verification", trace, 'vision_verification');
       
       const isValid = (result.modelConfidence > 0.8) && (result.textConfidence < 0.2);
       
@@ -375,5 +425,83 @@ async verifyOllama(): Promise<boolean> {
 
   closeConnections(): void {
     this.connectionPool.closeAll();
+  }
+
+
+
+  /**
+   * Analyze user intent with structured output
+   */
+
+
+  /**
+   * Generate suggestions with structured output
+   */
+  async generateSuggestions(
+    context: string, 
+    trace?: any, 
+    modelOverride?: string
+  ): Promise<any> {
+    const messages: Message[] = [{
+      role: 'user',
+      content: `Generate suggestions based on: ${context}`
+    }];
+
+    return this.callOllamaStructured(
+      messages,
+      CarSuggestionsSchema,
+      'Car suggestions based on user context and previous interactions',
+      trace,
+      'suggestion_generation',
+      modelOverride
+    );
+  }
+
+  /**
+   * Elaborate content with structured output
+   */
+  async elaborateContent(
+    summary: string, 
+    context: string, 
+    trace?: any, 
+    modelOverride?: string
+  ): Promise<any> {
+    const messages: Message[] = [{
+      role: 'user',
+      content: `Elaborate on this content with context: ${summary}. Context: ${context}`
+    }];
+
+    return this.callOllamaStructured(
+      messages,
+      ElaborationSchema,
+      'Detailed elaboration of car information with technical specifications and use cases',
+      trace,
+      'content_elaboration',
+      modelOverride
+    );
+  }
+
+  /**
+   * Evaluate decision with structured output
+   */
+  async evaluateDecision(
+    options: any, 
+    criteria: any, 
+    trace?: any, 
+    modelOverride?: string
+  ): Promise<any> {
+    const messages: Message[] = [{
+      role: 'user',
+      content: `Evaluate this decision. Options: ${JSON.stringify(options)}. Criteria: ${JSON.stringify(criteria)}`
+    }];
+
+    return this.callOllamaStructured(
+      messages,
+      JudgeVerdictSchema,
+      'Comprehensive evaluation with scoring and justification',
+      trace,
+      'decision_evaluation',
+      modelOverride
+    );
   }
 }

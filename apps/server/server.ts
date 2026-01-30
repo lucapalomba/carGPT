@@ -4,7 +4,7 @@ import cors from 'cors';
 
 import { config, validateConfig } from './src/config/index.js';
 // Services will be injected via DI container
-import logger from './src/utils/logger.js';
+
 import { 
   unhandledRejectionHandler,
   uncaughtExceptionHandler 

@@ -2,6 +2,7 @@ import { Message as OllamaMessage } from '../ollamaService.js';
 import { injectable, inject } from 'inversify';
 import { ITranslationService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import logger from '../../utils/logger.js';
+import { CarTranslationSchema, AnalysisTranslationSchema } from '../../utils/schemas.js';
 
 @injectable()
 export class TranslationService implements ITranslationService {
@@ -65,7 +66,7 @@ export class TranslationService implements ITranslationService {
   ): Promise<any> {
     try {
       const translateCarTemplate = this.promptService.loadTemplate('translate-car.md');
-      const jsonGuard = this.promptService.loadTemplate('json-guard.md');
+       const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
       const messages: OllamaMessage[] = [
         {
@@ -82,8 +83,13 @@ export class TranslationService implements ITranslationService {
         }
       ];
 
-      const response = await this.ollamaService.callOllama(messages, trace, `translate_car_${car.make}_${car.model}`);
-      const translatedCar = this.ollamaService.parseJsonResponse(response);
+      const translatedCar = await this.ollamaService.callOllamaStructured(
+        messages, 
+        CarTranslationSchema,
+        "Translated car details",
+        trace, 
+        `translate_car_${car.make}_${car.model}`
+      );
       
       // Validate the translated car maintains critical fields
       if (!this.validateCarTranslation(car, translatedCar)) {
@@ -97,7 +103,8 @@ export class TranslationService implements ITranslationService {
 
       // Preserve pinned status from original
       if (car.pinned !== undefined) {
-        translatedCar.pinned = car.pinned;
+        // We need to cast because the schema might not include pinned, but we want to carry it over
+        (translatedCar as any).pinned = car.pinned;
       }
 
       return translatedCar;
@@ -139,11 +146,15 @@ export class TranslationService implements ITranslationService {
         }
       ];
 
-      const response = await this.ollamaService.callOllama(messages, trace, 'translate_analysis');
+      const result = await this.ollamaService.callOllamaStructured(
+        messages, 
+        AnalysisTranslationSchema,
+        "Translated analysis text",
+        trace, 
+        'translate_analysis'
+      );
       
-      // Parse JSON response and extract analysis
-      const parsed = this.ollamaService.parseJsonResponse(response);
-      const translatedText = parsed.analysis;
+      const translatedText = (result as any).analysis;
       
       if (!translatedText || translatedText.length < 10) {
         logger.warn('Analysis translation seems invalid, using original');

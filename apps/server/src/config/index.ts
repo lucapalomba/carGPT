@@ -43,6 +43,20 @@ interface AppConfig {
   session: SessionConfig;
   googleSearch: GoogleSearchConfig;
   carouselImageLength: number;
+  maxInterestingPropertiesCount: number;
+  vision: VisionConfig;
+}
+
+interface AppConfig {
+  port: number;
+  ollama: OllamaConfig;
+  aiProvider: string;
+  mode: string;
+  isProduction: boolean;
+  session: SessionConfig;
+  googleSearch: GoogleSearchConfig;
+  carouselImageLength: number;
+  maxInterestingPropertiesCount: number;
   vision: VisionConfig;
 }
 
@@ -106,7 +120,8 @@ ollama: {
     apiKey: process.env.GOOGLE_API_KEY,
     cx: process.env.GOOGLE_CX
   },
-  carouselImageLength: Number(process.env.CAROUSEL_IMAGES_LENGHT) || 1,
+carouselImageLength: process.env.CAROUSEL_IMAGES_LENGTH !== undefined ? Number(process.env.CAROUSEL_IMAGES_LENGTH) : 1,
+  maxInterestingPropertiesCount: Number(process.env.MAX_INTERESTING_PROPERTIES_COUNT) || 2,
   vision: {
     modelConfidenceThreshold: Number(process.env.VISION_MODEL_CONFIDENCE_THRESHOLD) || 0.8,
     textConfidenceThreshold: Number(process.env.VISION_TEXT_CONFIDENCE_THRESHOLD) || 0.2

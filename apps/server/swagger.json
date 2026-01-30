@@ -1,616 +1,439 @@
 {
-    "openapi": "3.0.0",
-    "info": {
-        "title": "CarGPT API",
-        "version": "1.0.0",
-        "description": "AI-powered car recommendation system using Ollama. Find your perfect car by describing your needs in natural language.",
-        "contact": {
-            "name": "CarGPT Support",
-            "url": "https://github.com/lucapalomba/CarGPT"
-        },
-        "license": {
-            "name": "MIT",
-            "url": "https://opensource.org/licenses/MIT"
-        }
+  "openapi": "3.0.0",
+  "info": {
+    "title": "CarGPT API",
+    "version": "1.0.0",
+    "description": "AI-powered car recommendation system using Ollama with structured output validation. Find your perfect car by describing your needs in natural language.",
+    "contact": {
+      "name": "CarGPT Support",
+      "url": "https://github.com/lucapalomba/CarGPT"
     },
-    "servers": [
-        {
-            "url": "http://localhost:3001",
-            "description": "Local development server"
-        }
-    ],
-    "tags": [
-        {
-            "name": "Cars",
-            "description": "Car recommendation and search operations"
-        },
-
-        {
-            "name": "System",
-            "description": "System health and session management"
-        }
-    ],
-    "paths": {
-        "/api/find-cars": {
-            "post": {
-                "tags": [
-                    "Cars"
-                ],
-                "summary": "Find cars based on requirements",
-                "description": "Analyzes user requirements and returns 3 personalized car recommendations using AI",
-                "operationId": "findCars",
-                "parameters": [
-                    {
-                        "name": "Accept-Language",
-                        "in": "header",
-                        "description": "Preferred language for the response and market restriction (e.g., 'es-ES' for Spain)",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "default": "en"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "requirements"
-                                ],
-                                "properties": {
-                                    "requirements": {
-                                        "type": "string",
-                                        "minLength": 10,
-                                        "description": "Detailed description of car requirements",
-                                        "example": "Looking for a spacious family car with large trunk for 3 suitcases, low fuel consumption, max budget €25,000"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful response with car recommendations",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/FindCarsResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request - Invalid or missing parameters",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "example": {
-                                    "success": false,
-                                    "status": "fail",
-                                    "message": "Describe your needs in more detail (at least 10 characters)"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error - Ollama connection issue",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "example": {
-                                    "success": false,
-                                    "status": "error",
-                                    "message": "Unable to connect to Ollama. Make sure it is running (ollama serve)"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-
-
-        "/api/get-conversations": {
-            "get": {
-                "tags": [
-                    "Q&A"
-                ],
-                "summary": "Get all active conversations (Development Only)",
-                "description": "Retrieves internal state of all active user conversations. Access is restricted to non-production environments.",
-                "operationId": "getConversations",
-                "responses": {
-                    "200": {
-                        "description": "List of active conversations",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "count": {
-                                            "type": "integer",
-                                            "example": 5
-                                        },
-                                        "conversations": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-
-        "/api/refine-search": {
-            "post": {
-                "tags": [
-                    "Cars"
-                ],
-                "summary": "Refine existing suggestions",
-                "description": "Updates the list of car suggestions based on user feedback. Pinned cars are included in the process and re-elaborated to ensure contextual consistency.",
-                "operationId": "refineSearch",
-                "parameters": [
-                    {
-                        "name": "Accept-Language",
-                        "in": "header",
-                        "description": "Preferred language for the response and market restriction",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "default": "en"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": [
-                                    "feedback"
-                                ],
-                                "properties": {
-                                    "feedback": {
-                                        "type": "string",
-                                        "description": "User feedback to refine results",
-                                        "example": "Too expensive, I want something under €20k"
-                                    },
-                                    "pinnedCars": {
-                                        "type": "array",
-                                        "items": {
-                                        "$ref": "#/components/schemas/Car"
-                                        },
-                                        "description": "List of cars to keep in the results. These cars will be re-elaborated by the AI during the refinement process."
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successfully refined suggestions",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/FindCarsResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/reset-conversation": {
-            "post": {
-                "tags": [
-                    "System"
-                ],
-                "summary": "Reset conversation",
-                "description": "Clears the current session's conversation history",
-                "operationId": "resetConversation",
-                "responses": {
-                    "200": {
-                        "description": "Conversation reset successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Conversation reset"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/health": {
-            "get": {
-                "tags": [
-                    "System"
-                ],
-                "summary": "Health check",
-                "description": "Check if the server and Ollama are running correctly",
-                "operationId": "healthCheck",
-                "responses": {
-                    "200": {
-                        "description": "Health status",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/HealthResponse"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
     },
-    "components": {
-        "schemas": {
-            "Car": {
-                "type": "object",
-                "properties": {
-                    "make": {
-                        "type": "string",
-                        "description": "Car manufacturer",
-                        "example": "Skoda"
+    {
+      "url": "https://api.cargpt.app",
+      "description": "Production server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Cars",
+      "description": "Car recommendation and search operations with structured output"
+    },
+    {
+      "name": "System",
+      "description": "System health and session management"
+    },
+    {
+      "name": "AI Services",
+      "description": "AI-powered services with structured output validation"
+    }
+  ],
+  "paths": {
+    "/api/find-cars": {
+      "post": {
+        "tags": ["Cars"],
+        "summary": "Find cars based on requirements with structured AI analysis",
+        "description": "Analyzes user requirements and returns personalized car recommendations using structured AI output validation",
+        "operationId": "findCarsStructured",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "description": "Preferred language for response and market restriction (e.g., 'es-ES' for Spain)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          },
+          {
+            "name": "X-Use-Structured-Output",
+            "in": "header",
+            "description": "Enable structured output with Zod schema validation",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "requirements",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "query": {
+                  "type": "string",
+                  "description": "Natural language car requirements",
+                  "example": "I need a family SUV with good fuel economy under $30,000, preferably hybrid"
+                },
+                "preferences": {
+                  "type": "object",
+                  "description": "Specific preferences and constraints",
+                  "properties": {
+                    "max_price": {
+                      "type": "number",
+                      "description": "Maximum price budget",
+                      "example": 30000
                     },
-                    "model": {
-                        "type": "string",
-                        "description": "Car model",
-                        "example": "Octavia Wagon"
+                    "min_price": {
+                      "type": "number", 
+                      "description": "Minimum price budget",
+                      "example": 20000
                     },
-                    "year": {
-                        "type": "integer",
-                        "description": "Production year",
-                        "example": 2023
+                    "fuel_type": {
+                      "type": "string",
+                      "enum": ["gasoline", "hybrid", "electric", "diesel"],
+                      "description": "Preferred fuel type"
                     },
-                    "body_type": {
-                        "type": "string",
-                        "description": "Body type (Hatchback, Sedan, SUV, Station Wagon, etc.)",
-                        "example": "Station Wagon"
+                    "transmission": {
+                      "type": "string",
+                      "enum": ["manual", "automatic", "cvt"],
+                      "description": "Transmission preference"
                     },
-                    "configuration": {
-                        "type": "string",
-                        "description": "Trim level or engine designation",
-                        "example": "2.0 TDI Style"
+                    "seats": {
+                      "type": "integer",
+                      "minimum": 2,
+                      "maximum": 8,
+                      "description": "Required number of seats"
                     },
-                    "precise_model": {
-                        "type": "string",
-                        "description": "Precise brand, model, year, and equipment level",
-                        "example": "Skoda Octavia Wagon 2.0 TDI 2023 Style"
-                    },
-                    "price": {
-                        "type": "string",
-                        "description": "Price range when new",
-                        "example": "25,000-30,000€"
-                    },
-                    "price_when_new": {
-                        "type": "string",
-                        "description": "Base price when new",
-                        "example": "28,000€"
-                    },
-                    "type": {
-                        "type": "string",
-                        "description": "Car type/category",
-                        "example": "Station Wagon"
-                    },
-                    "market_availability": {
-                        "type": "string",
-                        "description": "Availability in the user's market",
-                        "example": "Available in the US market"
-                    },
-                    "vehicle_properties": {
-                        "type": "object",
-                        "description": "Dynamic properties of the car",
-                        "additionalProperties": {
-                            "type": "object",
-                            "properties": {
-                                "translatedLabel": {
-                                    "type": "string"
-                                },
-                                "value": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "example": {
-                            "trunk_size": {
-                                "translatedLabel": "Trunk Size",
-                                "value": "640 liters"
-                            },
-                            "fuel_consumption": {
-                                "translatedLabel": "Fuel Consumption",
-                                "value": "5.2 l/100km"
-                            }
-                        }
-                    },
-                    "strengths": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "description": "List of strengths",
-                        "example": [
-                            "Huge trunk",
-                            "Reliable",
-                            "Spacious"
-                        ]
-                    },
-                    "weaknesses": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "description": "List of weaknesses",
-                        "example": [
-                            "Conservative design",
-                            "Average resale value"
-                        ]
-                    },
-                    "reason": {
-                        "type": "string",
-                        "description": "Why this car is suitable",
-                        "example": "Perfect for families thanks to the space and reliability"
-                    },
-                    "percentage": {
-                        "type": "string",
-                        "description": "Match percentage (0-100)",
-                        "example": "95"
-                    },
-                    "constraints_satisfaction": {
-                        "type": "object",
-                        "description": "Satisfaction percentages for each constraint",
-                        "additionalProperties": {
-                            "type": "string"
-                        },
-                        "example": {
-                            "budget": "90, fits well within budget",
-                            "trunk_space": "85, large trunk but slightly less than requested",
-                            "fuel_efficiency": "80, average consumption"
-                        }
-                    },
-                    "reasoning": {
-                        "type": "string",
-                        "description": "Detailed reasoning behind the selection",
-                        "example": "This car matches your need for space and efficiency perfectly."
-                    },
-                    "pinned": {
-                        "type": "boolean",
-                        "description": "Whether this car is pinned by the user",
-                        "example": false
-                    },
-                    "images": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "url": { "type": "string" },
-                                "thumbnail": { "type": "string" },
-                                "title": { "type": "string" }
-                            }
-                        }
-                    }
-                }
-            },
-            "FindCarsResponse": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "conversationId": {
-                        "type": "string",
-                        "description": "Session ID for this conversation",
-                        "example": "sess_abc123"
-                    },
-                    "analysis": {
-                        "type": "string",
-                        "description": "AI analysis of user requirements",
-                        "example": "Based on your needs for a spacious family car..."
-                    },
-                    "user_market": {
-                        "type": "string",
-                        "description": "The market inferred from the user's language",
-                        "example": "United States"
-                    },
-                    "cars": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Car"
-                        },
-                        "minItems": 3,
-                        "maxItems": 3,
-                        "description": "Array of 3 recommended cars"
-                    },
-                    "provider": {
-                        "type": "string",
-                        "description": "AI provider used",
-                        "example": "ollama"
-                    },
-                    "searchIntent": {
-                        "$ref": "#/components/schemas/SearchIntent"
-                    },
-                    "suggestions": {
-                        "type": "object",
-                        "description": "Raw car suggestions before elaboration",
-                        "properties": {
-                            "analysis": {
-                                "type": "string"
-                            },
-                            "choices": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object"
-                                }
-                            },
-                            "pinned_cars": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "ui_suggestions": {
-                      "type": "object",
-                      "description": "Suggestions for UI presentation of vehicle properties",
-                      "additionalProperties": {
+                    "brands": {
+                      "type": "array",
+                      "items": {
                         "type": "string"
                       },
-                      "example": {
-                        "trunk_space": "bar",
-                        "fuel_efficiency": "text"
-                      }
+                      "description": "Preferred car brands",
+                      "example": ["Toyota", "Honda", "Ford"]
+                    },
+                    "exclude_brands": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Brands to exclude from results"
                     }
+                  }
                 }
-            },
-            "SearchIntent": {
-                "type": "object",
-                "description": "Parsed user search intent",
-                "properties": {
-                    "user_country": {
-                        "type": "string",
-                        "description": "ISO-3166-1 alpha-3 country code",
-                        "example": "ITA"
-                    },
-                    "primary_focus": {
-                        "type": "string",
-                        "description": "Main focus of user request (3 adjectives max)",
-                        "example": "spacious, reliable, economical"
-                    },
-                    "constraints": {
-                        "type": "object",
-                        "description": "Search constraints",
-                        "additionalProperties": true,
-                        "example": {
-                            "budget": "20000 - 30000",
-                            "must_have": ["large trunk", "low consumption"]
-                        }
-                    },
-                    "interesting_properties": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        },
-                        "description": "Properties to include in car details with proposed units",
-                        "example": [{"trunk_volume": "liters"}, {"fuel_consumption": "l/100km"}]
-                    }
-                }
-            },
-            "HealthResponse": {
-                "type": "object",
-                "properties": {
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "ok",
-                            "degraded"
-                        ],
-                        "description": "Overall system status",
-                        "example": "ok"
-                    },
-                    "ollama": {
-                        "type": "string",
-                        "enum": [
-                            "connected",
-                            "disconnected"
-                        ],
-                        "description": "Ollama connection status",
-                        "example": "connected"
-                    },
-                    "model": {
-                        "type": "string",
-                        "description": "AI model being used",
-                        "example": "ministral"
-                    },
-                    "active_conversations": {
-                        "type": "integer",
-                        "description": "Number of active conversations",
-                        "example": 3
-                    }
-                }
-            },
-            "ErrorResponse": {
-                "type": "object",
-                "properties": {
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Car recommendations retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
                     "success": {
-                        "type": "boolean",
-                        "example": false
+                      "type": "boolean",
+                      "example": true
                     },
-                    "status": {
-                        "type": "string",
-                        "description": "Short error status ('fail' for 4xx, 'error' for 5xx)",
-                        "example": "fail"
+                    "data": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "description": "Structured car recommendations with validation",
+                          "properties": {
+                            "response": {
+                              "type": "string",
+                              "description": "Natural language explanation of the recommendations"
+                            },
+                            "cars": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "description": "Unique car identifier"
+                                  },
+                                  "make": {
+                                    "type": "string",
+                                    "description": "Car manufacturer"
+                                  },
+                                  "model": {
+                                    "type": "string",
+                                    "description": "Car model name"
+                                  },
+                                  "year": {
+                                    "type": "integer",
+                                    "description": "Model year"
+                                  },
+                                  "price": {
+                                    "type": "number",
+                                    "description": "Vehicle price in USD"
+                                  },
+                                  "fuel_type": {
+                                    "type": "string",
+                                    "description": "Fuel type: gasoline, hybrid, electric, or diesel"
+                                  },
+                                  "transmission": {
+                                    "type": "string",
+                                    "description": "Transmission type"
+                                  },
+                                  "seats": {
+                                    "type": "integer",
+                                    "description": "Number of seats"
+                                  },
+                                  "image_url": {
+                                    "type": "string",
+                                    "description": "URL to car image"
+                                  },
+                                  "confidence_score": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1,
+                                    "description": "AI confidence in match accuracy"
+                                  },
+                                  "match_reasons": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "description": "Reasons why this car matches the criteria"
+                                  },
+                                  "specifications": {
+                                    "type": "object",
+                                    "description": "Additional technical specifications"
+                                  }
+                                }
+                              }
+                            },
+                            "search_criteria": {
+                              "type": "object",
+                              "description": "Extracted search criteria used",
+                              "properties": {
+                                "budget_range": {
+                                  "type": "object",
+                                  "properties": {
+                                    "min": {"type": "number"},
+                                    "max": {"type": "number"}
+                                  }
+                                },
+                                "fuel_preference": {"type": "string"},
+                                "transmission_preference": {"type": "string"},
+                                "seats_required": {"type": "integer"},
+                                "primary_use_case": {"type": "string"}
+                              }
+                            },
+                            "confidence_score": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1,
+                              "description": "Overall confidence in search results"
+                            },
+                            "total_results": {
+                              "type": "integer",
+                              "description": "Total number of cars found"
+                            },
+                            "search_metadata": {
+                              "type": "object",
+                              "properties": {
+                                "total_searched": {"type": "integer"},
+                                "filtered_count": {"type": "integer"},
+                                "search_time_ms": {"type": "integer"},
+                                "model_used": {"type": "string"}
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "structured_output_validation": {
+                      "type": "object",
+                      "properties": {
+                        "schema_version": {
+                          "type": "string",
+                          "description": "Version of the structured output schema used"
+                        },
+                        "validation_passed": {
+                          "type": "boolean",
+                          "description": "Whether the structured output passed Zod validation"
+                        },
+                        "validation_errors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Any validation errors encountered"
+                        }
+                      }
                     },
                     "message": {
-                        "type": "string",
-                        "description": "Detailed error message",
-                        "example": "Error description"
+                      "type": "string",
+                      "description": "Natural language summary",
+                      "example": "Found 3 cars matching your criteria, with confidence score of 0.92"
                     },
-                    "stack": {
-                        "type": "string",
-                        "description": "Stack trace (only returned in development mode)"
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "processing_time_ms": {
+                          "type": "integer",
+                          "description": "Total processing time in milliseconds"
+                        },
+                        "ai_model_used": {
+                          "type": "string",
+                          "description": "AI model used for analysis"
+                        },
+                        "structured_output_enabled": {
+                          "type": "boolean",
+                          "description": "Whether structured output validation was enabled"
+                        }
+                      }
                     }
+                  }
                 },
-                "required": [
-                    "success",
-                    "status",
-                    "message"
+                "examples": [
+                  {
+                    "success": true,
+                    "data": {
+                      "response": "I found 3 excellent family SUVs that match your criteria. All options offer great fuel economy with hybrid powertrains.",
+                      "cars": [
+                        {
+                          "id": "toyota_highlander_2024",
+                          "make": "Toyota",
+                          "model": "Highlander",
+                          "year": 2024,
+                          "price": 28450,
+                          "fuel_type": "hybrid",
+                          "transmission": "cvt",
+                          "seats": 8,
+                          "image_url": "https://example.com/toyota-highlander.jpg",
+                          "confidence_score": 0.95,
+                          "match_reasons": ["matches_budget", "hybrid_fuel_type", "family_sized"],
+                          "specifications": {
+                            "engine": "2.5L 4-cylinder hybrid",
+                            "horsepower": 243,
+                            "mpg_combined": 36
+                          }
+                        }
+                      ],
+                      "search_criteria": {
+                        "budget_range": {"min": 20000, "max": 30000},
+                        "fuel_preference": "hybrid",
+                        "transmission_preference": "automatic",
+                        "seats_required": 7,
+                        "primary_use_case": "family_commuting"
+                      },
+                      "confidence_score": 0.92,
+                      "total_results": 3,
+                      "search_metadata": {
+                        "total_searched": 150,
+                        "filtered_count": 3,
+                        "search_time_ms": 2500,
+                        "model_used": "mistral-large-3"
+                      }
+                    },
+                    "structured_output_validation": {
+                      "schema_version": "1.0.0",
+                      "validation_passed": true,
+                      "validation_errors": []
+                    },
+                    "message": "Found 3 cars matching your criteria with 92% confidence",
+                    "metadata": {
+                      "processing_time_ms": 2500,
+                      "ai_model_used": "mistral-large-3",
+                      "structured_output_enabled": true
+                    }
+                  }
                 ]
+              }
             }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Error message explaining what went wrong"
+                    },
+                    "structured_output_errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of structured output validation errors"
+                    },
+                    "validation_details": {
+                      "type": "object",
+                      "properties": {
+                        "schema_failed_at": {
+                          "type": "string",
+                          "description": "Which validation step failed"
+                        },
+                        "validation_time_ms": {
+                          "type": "integer",
+                          "description": "Time taken for validation in milliseconds"
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": [
+                  {
+                    "success": false,
+                    "error": "Invalid structured output format: missing required field 'cars'",
+                    "structured_output_errors": ["MISSING_REQUIRED_FIELD"],
+                    "validation_details": {
+                      "schema_failed_at": "REQUIRED_FIELDS_CHECK",
+                      "validation_time_ms": 15
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Internal server error message"
+                    },
+                    "request_id": {
+                      "type": "string",
+                      "description": "Unique request identifier for troubleshooting"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Error timestamp"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
+      }
     }
+  }
 }

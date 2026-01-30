@@ -1,5 +1,5 @@
-import { ICacheService, SERVICE_IDENTIFIERS } from '../container/interfaces.js';
-import { injectable, inject } from 'inversify';
+import { ICacheService } from '../container/interfaces.js';
+import { injectable } from 'inversify';
 import logger from '../utils/logger.js';
 
 export interface CacheEntry<T> {

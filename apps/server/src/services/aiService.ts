@@ -33,7 +33,7 @@ export class AIService implements IAIService {
     @inject(SERVICE_IDENTIFIERS.JUDGE_SERVICE) private judgeService: IJudgeService
   ) {}
   
-async findCarsWithImages(requirements: string, language: string, sessionId: string): Promise<SearchResponse> {
+  async findCarsWithImages(requirements: string, language: string, sessionId: string): Promise<SearchResponse> {
     // Temporarily remove availability check to test the flow
     logger.debug('AI Service: Starting findCarsWithImages...');
 
@@ -48,9 +48,10 @@ async findCarsWithImages(requirements: string, language: string, sessionId: stri
       const searchIntent = await this.intentService.determineSearchIntent(requirements, language, trace);
       const suggestions = await this.suggestionService.getCarSuggestions(searchIntent, requirements, '', trace);
       const elaboratedCars = await this.elaborationService.elaborateCars(suggestions.choices, searchIntent, trace);
+      
       const translatedResults = await this.translationService.translateResults(
         { analysis: suggestions.analysis, cars: elaboratedCars }, 
-        language, 
+        language,
         trace
       );
       const enrichedCars = await this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);

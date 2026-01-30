@@ -3,6 +3,8 @@ import { injectable, inject } from 'inversify';
 import { SERVICE_IDENTIFIERS, IOllamaService, IJudgeService, IPromptService } from '../container/interfaces.js';
 import { SearchResponse } from './ai/types.js';
 
+import { JudgeVerdictSchema } from '../utils/schemas.js';
+
 @injectable()
 export class JudgeService implements IJudgeService {
   constructor(
@@ -31,13 +33,15 @@ export class JudgeService implements IJudgeService {
 
 
     try {
-      const verdict = await this.ollamaService.callOllama(
+      const result = await this.ollamaService.callOllamaStructured(
         [{ role: 'user', content: prompt }],
-        trace, // Pass parent trace directly so OllamaService creates a GENERATION trace
+        JudgeVerdictSchema,
+        "Judge evaluation returning a verdict and score",
+        trace,
         'judge_evaluation'
       );
 
-      return verdict;
+      return JSON.stringify(result);
     } catch (error) {
       console.error('Judge evaluation failed:', error);
       // Fail gracefully - return empty string or a fallback

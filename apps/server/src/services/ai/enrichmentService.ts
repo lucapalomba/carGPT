@@ -2,6 +2,7 @@ import { injectable, inject } from 'inversify';
 import { IEnrichmentService, IOllamaService, IImageSearchService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import logger from '../../utils/logger.js';
 import { Car } from './types.js';
+import { config } from '../../config/index.js';
 
 @injectable()
 export class EnrichmentService implements IEnrichmentService {
@@ -13,7 +14,7 @@ export class EnrichmentService implements IEnrichmentService {
   /**
    * Enrich cars with images
    */
-  async enrichCarsWithImages(cars: Car[] = [], trace: any): Promise<Car[]> {
+async enrichCarsWithImages(cars: Car[] = [], trace: any): Promise<Car[]> {
     const carList = Array.isArray(cars) ? cars : [];
     const span = trace.span({ name: "enrich_with_images", input: { count: carList.length } });
     try {
@@ -21,6 +22,14 @@ export class EnrichmentService implements IEnrichmentService {
         span.end({ output: { count: 0 } });
         return [];
       }
+      
+      // Check if image search is disabled
+      if (config.carouselImageLength === 0) {
+        logger.info('Image search is disabled (CAROUSEL_IMAGES_LENGTH=0), skipping image enrichment');
+        span.end({ output: { count: carList.length, imagesSkipped: true } });
+        return carList;
+      }
+      
       logger.info(`Searching images for ${carList.length} cars`);
       const imageMap = await this.imageSearchService.searchMultipleCars(
         carList.map(c => ({ make: c.make, model: c.model, year: c.year?.toString() }))

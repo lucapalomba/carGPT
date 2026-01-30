@@ -5,8 +5,7 @@ import { config } from '../config/index.js';
  */
 export const setupDevelopmentFeatures = () => {
   if (!config.isProduction) {
-    console.log(`
-🛠️  Development mode detected:
+    console.info(`
    - Swagger docs available at /api-docs
    - Debug logging enabled
    - Hot reload active
@@ -19,7 +18,7 @@ export const setupDevelopmentFeatures = () => {
  */
 export const setupProductionFeatures = () => {
   if (config.isProduction) {
-    console.log(`
+    console.info(`
 🏭 Production mode detected:
    - Optimizations enabled
    - Debug features disabled

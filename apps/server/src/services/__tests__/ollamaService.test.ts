@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { OllamaService } from '../ollamaService.js';
 import { OllamaError } from '../../utils/AppError.js';
 import logger from '../../utils/logger.js';
+import { z } from 'zod';
+
+const TestSchema = z.object({
+  test: z.boolean()
+});
 import { config } from '../../config/index.js';
 import { PromptService } from '../promptService.js';
 
@@ -22,7 +27,7 @@ describe('OllamaService', () => {
     ollamaService = new OllamaService(mockPromptService);
   });
 
-  describe('callOllama', () => {
+  describe('callOllamaStructured', () => {
     it('should return content on successful call', async () => {
       const mockResponse = {
         message: { content: '{"test": true}' },
@@ -36,7 +41,7 @@ describe('OllamaService', () => {
       } as any);
 
       const messages = [{ role: 'user', content: 'test' }];
-      const result = await ollamaService.callOllama(messages);
+      const result = await ollamaService.callOllamaStructured(messages, TestSchema, "Test schema", undefined, 'test-operation');
 
       expect(result).toBe('{"test": true}');
       expect(fetch).toHaveBeenCalled();
@@ -50,20 +55,20 @@ describe('OllamaService', () => {
       } as any);
 
       const messages = [{ role: 'user', content: 'test' }];
-      await expect(ollamaService.callOllama(messages)).rejects.toThrow(OllamaError);
+      await expect(ollamaService.callOllamaStructured(messages)).rejects.toThrow(OllamaError);
     });
 
     it('should throw OllamaError if connection fails', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
 
       const messages = [{ role: 'user', content: 'test' }];
-      await expect(ollamaService.callOllama(messages)).rejects.toThrow('Unable to connect to Ollama');
+      await expect(ollamaService.callOllamaStructured(messages, TestSchema, "Test schema")).rejects.toThrow('Unable to connect to Ollama');
     });
 
     it('should handle non-Error objects in catch block', async () => {
         vi.mocked(fetch).mockRejectedValue('String error');
         const messages = [{ role: 'user', content: 'test' }];
-        await expect(ollamaService.callOllama(messages)).rejects.toThrow('Unable to connect to Ollama');
+await expect(ollamaService.callOllamaStructured(messages)).rejects.toThrow('Unable to connect to Ollama');
         expect(logger.error).not.toHaveBeenCalled(); // Generation handles it now
     });
   });

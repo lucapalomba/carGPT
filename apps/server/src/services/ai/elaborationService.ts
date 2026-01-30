@@ -5,6 +5,8 @@ import logger from '../../utils/logger.js';
 import { Car } from './types.js';
 import { getDateSystemMessage } from '../../utils/dateUtils.js';
 
+import { ElaborationSchema } from '../../utils/schemas.js';
+
 @injectable()
 export class ElaborationService implements IElaborationService {
   constructor(
@@ -23,7 +25,7 @@ export class ElaborationService implements IElaborationService {
 
       const elaboratedCars = await Promise.all(carChoices.map(async (carChoice: any) => {
         try {
-const messages: OllamaMessage[] = [
+          const messages: OllamaMessage[] = [
             { role: "system", content: "Today is: " + getDateSystemMessage() },
             { role: "system", content: carsElaborationTemplates },
             { role: "system", content: "Current car to elaborate: " + JSON.stringify(carChoice) },
@@ -31,15 +33,20 @@ const messages: OllamaMessage[] = [
             { role: "system", content: jsonGuard }
           ];
 
-          const response = await this.ollamaService.callOllama(messages, trace, `elaborate_${carChoice.make}_${carChoice.model}`);
-          const result = this.ollamaService.parseJsonResponse(response);
-          
+const result = await this.ollamaService.callOllamaStructured(
+            messages, 
+            ElaborationSchema,
+            "Elaborated car details",
+            trace, 
+            `elaborate_${carChoice.make}_${carChoice.model}`
+          );
+                   
           // Simplified logic: Assume flat structure as per new prompt
           let elaborationData = result;
 
-          // Legacy fallback: if the model still wraps in "car", unwrap it
-          if (result.car && typeof result.car === 'object') {
-             elaborationData = result.car;
+          // Legacy fallback: if model still wraps in "car", unwrap it
+          if ((result as any).car && typeof (result as any).car === 'object') {
+             elaborationData = (result as any).car;
           }
 
           // Basic validation

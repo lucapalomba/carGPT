@@ -99,7 +99,7 @@ export const useCarSearch = () => {
       pendingRequestsRef.current.delete(requestId);
       setIsSearching(false);
     }
-  }, []);
+  }, [analysisHistory]);
 
   const resetSearch = useCallback(async () => {
     // Cancel all pending requests
@@ -121,8 +121,9 @@ export const useCarSearch = () => {
 
   // Cleanup function to cancel pending requests on unmount
   useEffect(() => {
+    const currentPendingRequests = pendingRequestsRef.current;
     return () => {
-      pendingRequestsRef.current.clear();
+      currentPendingRequests.clear();
     };
   }, []);
 

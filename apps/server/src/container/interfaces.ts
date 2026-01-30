@@ -24,11 +24,16 @@ export interface IImageSearchService {
 }
 
 export interface IOllamaService {
-  callOllama(messages: any[], trace?: any, operationName?: string, modelOverride?: string): Promise<string>;
   parseJsonResponse(text: string): any;
   verifyOllama(): Promise<boolean>;
   verifyImageContainsCar(carInfo: string, year: string | number, imageUrl: string, trace: any): Promise<boolean>;
   closeConnections(): void;
+  callOllamaStructured<T>(messages: any[], schema: any, schemaDescription: string, trace?: any, operationName?: string, modelOverride?: string): Promise<T>;
+  // Structured output methods
+  analyzeIntent(query: string, trace?: any, modelOverride?: string): Promise<any>;
+  generateSuggestions(context: string, trace?: any, modelOverride?: string): Promise<any>;
+  elaborateContent(summary: string, context: string, trace?: any, modelOverride?: string): Promise<any>;
+  evaluateDecision(options: any, criteria: any, trace?: any, modelOverride?: string): Promise<any>;
 }
 
 export interface IIntentService {
