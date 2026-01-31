@@ -81,6 +81,7 @@ SESSION_SECRET=$(openssl rand -base64 32)
 OLLAMA_URL=http://localhost:11434
 OLLAMA_MODEL=ministral
 NODE_ENV=production
+SEQUENTIAL_PROMISE_EXECUTION=false
 EOF
 ```
 
@@ -228,6 +229,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - SESSION_SECRET=${SESSION_SECRET}
+      - SEQUENTIAL_PROMISE_EXECUTION=false
       - SEQ_URL=http://seq:5341
   
   seq:

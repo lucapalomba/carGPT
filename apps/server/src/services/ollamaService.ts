@@ -176,6 +176,7 @@ parseJsonResponse(text: string): any {
         messages: messages,
         options: options,
         stream: false,
+        think: false,
         format: jsonSchema // Use the JSON schema as the format parameter
       };
 

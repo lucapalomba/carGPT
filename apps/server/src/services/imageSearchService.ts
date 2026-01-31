@@ -107,26 +107,49 @@ export class ImageSearchService implements IImageSearchService {
   }
 
   /**
+   * Sequentially search images for multiple cars
+   */
+  private async sequentialSearch(
+    cars: Array<{ make: string; model:string; year?: string }>
+  ): Promise<Record<string, CarImage[]>> {
+    const imageMap: Record<string, CarImage[]> = {};
+    for (const car of cars) {
+      const images = await this.searchCarImages(
+        car.make,
+        car.model,
+        car.year?.toString() || '',
+        config.carouselImageLength,
+      );
+      const carKey = `${car.make}-${car.model}`;
+      imageMap[carKey] = images;
+    }
+    return imageMap;
+  }
+
+  /**
    * Search images for multiple cars in parallel
    */
   async searchMultipleCars(
-    cars: Array<{ make: string; model: string; year?: string }>
+    cars: Array<{ make: string; model: string; year?: string }>,
   ): Promise<Record<string, CarImage[]>> {
+    if (config.sequentialPromiseExecution) {
+      return this.sequentialSearch(cars);
+    }
     const promises = cars.map(async (car) => {
       const images = await this.searchCarImages(
-        car.make, 
-        car.model, 
-        car.year?.toString() || '', 
-        config.carouselImageLength
+        car.make,
+        car.model,
+        car.year?.toString() || '',
+        config.carouselImageLength,
       );
-      
+
       const carKey = `${car.make}-${car.model}`;
       return { carKey, images };
     });
 
     const results = await Promise.allSettled(promises);
     const imageMap: Record<string, CarImage[]> = {};
-    
+
     results.forEach((result, index) => {
       if (result.status === 'fulfilled') {
         imageMap[result.value.carKey] = result.value.images;

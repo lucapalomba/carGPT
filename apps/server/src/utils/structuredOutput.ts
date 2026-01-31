@@ -42,6 +42,10 @@ export class StructuredOutputValidator {
       return schema;
     }
     
+    if (Array.isArray(schema)) {
+      return schema.map(item => this.cleanSchema(item));
+    }
+    
     const cleaned: any = {};
     
     for (const [key, value] of Object.entries(schema)) {
@@ -50,11 +54,7 @@ export class StructuredOutputValidator {
         continue;
       }
       
-      if (typeof value === 'object' && value !== null) {
-        cleaned[key] = this.cleanSchema(value);
-      } else {
-        cleaned[key] = value;
-      }
+      cleaned[key] = this.cleanSchema(value);
     }
     
     return cleaned;
@@ -267,7 +267,7 @@ Analysis translation response with the following structure:
 Judge verdict response with the following structure:
 {
   "verdict": "string",
-  "vote": number
+  "vote": "number"
 }`
 };
 
