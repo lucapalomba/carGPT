@@ -29,3 +29,4 @@ Return ONLY valid JSON (no markdown) representing the translated car object.
 - Translate the meaning where appropriate (e.g. Sedan -> Berlina).
 - If a localized term exists in ${targetLanguage}, use it. Otherwise, keep the original.
 - Never invent descriptive translations for acronyms.
+

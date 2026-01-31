@@ -31,10 +31,14 @@ export class JudgeService implements IJudgeService {
       .replace('{{requirements}}', requirements)
       .replace('{{responseContext}}', context);
 
+    const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
     try {
       const result = await this.ollamaService.callOllamaStructured(
-        [{ role: 'user', content: prompt }],
+        [
+          { role: 'user', content: prompt },
+          { role: 'system', content: jsonGuard }
+        ],
         JudgeVerdictSchema,
         "Judge evaluation returning a verdict and score",
         trace,
