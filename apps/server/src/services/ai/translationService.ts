@@ -134,11 +134,16 @@ export class TranslationService implements ITranslationService {
 
     try {
       const translateAnalysisTemplate = this.promptService.loadTemplate('translate-analysis.md');
+      const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
       const messages: OllamaMessage[] = [
         {
           role: "system",
           content: translateAnalysisTemplate.replace(/\${targetLanguage}/g, targetLanguage)
+        },
+        {
+          role: "system",
+          content: jsonGuard
         },
         {
           role: "user",
