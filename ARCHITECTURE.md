@@ -83,6 +83,16 @@ The backend is built with **TypeScript** and follows the **MVC** and **Service L
 
 ---
 
+## ⚡ Execution Mode
+
+To optimize performance, especially when using smaller, local LLMs, the application supports two execution modes for concurrent operations:
+
+1.  **Parallel Execution (Default)**: Multiple promises (e.g., API calls to the LLM for enriching car data) are executed in parallel using `Promise.all`. This is generally faster when the underlying services can handle concurrent requests efficiently.
+
+2.  **Sequential Execution**: By setting the `SEQUENTIAL_PROMISE_EXECUTION=true` environment variable, all concurrent promise-based operations will be executed sequentially. This mode can be more precise and even faster with smaller local LLMs, as it prevents resource contention and allows the model to process one request at a time with full focus. This is particularly useful for debugging and for environments with limited resources.
+
+---
+
 ## ✅ Best Practices Implemented
 
 -   **Separation of Concerns**: Business logic is separated from HTTP handling.

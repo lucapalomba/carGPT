@@ -3,6 +3,7 @@ import { injectable, inject } from 'inversify';
 import { ITranslationService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import logger from '../../utils/logger.js';
 import { CarTranslationSchema, AnalysisTranslationSchema } from '../../utils/schemas.js';
+import { config } from '../../config/index.js';
 
 @injectable()
 export class TranslationService implements ITranslationService {
@@ -32,11 +33,24 @@ export class TranslationService implements ITranslationService {
         ? await this.translateAnalysis(results.analysis, targetLanguage, trace)
         : results.analysis;
 
-      // Translate each car individually (in parallel)
+      // Translate each car individually
       const originalCars = Array.isArray(results.cars) ? results.cars : [];
-      const translatedCars = await Promise.all(
-        originalCars.map((car: unknown, index: number) => this.translateSingleCar(car, targetLanguage, trace, index))
-      );
+      let translatedCars: any[];
+
+      if (config.sequentialPromiseExecution) {
+        // Sequential execution
+        translatedCars = [];
+        for (let i = 0; i < originalCars.length; i++) {
+          const car = originalCars[i];
+          const translatedCar = await this.translateSingleCar(car, targetLanguage, trace, i);
+          translatedCars.push(translatedCar);
+        }
+      } else {
+        // Parallel execution
+        translatedCars = await Promise.all(
+          originalCars.map((car: unknown, index: number) => this.translateSingleCar(car, targetLanguage, trace, index))
+        );
+      }
 
       const translatedResult = {
         ...results,

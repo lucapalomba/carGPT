@@ -90,7 +90,7 @@ export const JudgeVerdictSchema = z.object({
 // Since we want to preserve unknown fields, using passthrough or a loose object might be best
 // But for structured output, we need a concrete schema.
 // Let's define a schema that covers the critical fields we expect to translate or preserve.
-export const CarTranslationSchema =  z.any();
+export const CarTranslationSchema = z.record(z.string(), z.any());
 
 
 

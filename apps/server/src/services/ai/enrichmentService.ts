@@ -35,12 +35,23 @@ async enrichCarsWithImages(cars: Car[] = [], trace: any): Promise<Car[]> {
         carList.map(c => ({ make: c.make, model: c.model, year: c.year?.toString() }))
       );
 
-      const carsWithImages = await Promise.all(carList.map(async (car: Car) => {
-        const key = `${car.make}-${car.model}`;
-        const rawImages = imageMap[key] || [];
-        const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages, trace);
-        return { ...car, images: verifiedImages };
-      }));
+      let carsWithImages: Car[];
+      if (config.sequentialPromiseExecution) {
+        carsWithImages = [];
+        for (const car of carList) {
+          const key = `${car.make}-${car.model}`;
+          const rawImages = imageMap[key] || [];
+          const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages, trace);
+          carsWithImages.push({ ...car, images: verifiedImages });
+        }
+      } else {
+        carsWithImages = await Promise.all(carList.map(async (car: Car) => {
+          const key = `${car.make}-${car.model}`;
+          const rawImages = imageMap[key] || [];
+          const verifiedImages = await this.filterImages(car.make, car.model, car.year, rawImages, trace);
+          return { ...car, images: verifiedImages };
+        }));
+      }
 
       span.end({ output: { count: carsWithImages.length } });
       return carsWithImages;

@@ -45,6 +45,7 @@ interface AppConfig {
   carouselImageLength: number;
   maxInterestingPropertiesCount: number;
   vision: VisionConfig;
+  sequentialPromiseExecution: boolean;
 }
 
 interface AppConfig {
@@ -58,6 +59,7 @@ interface AppConfig {
   carouselImageLength: number;
   maxInterestingPropertiesCount: number;
   vision: VisionConfig;
+  sequentialPromiseExecution: boolean;
 }
 
 /**
@@ -126,6 +128,7 @@ carouselImageLength: process.env.CAROUSEL_IMAGES_LENGTH !== undefined ? Number(p
     modelConfidenceThreshold: Number(process.env.VISION_MODEL_CONFIDENCE_THRESHOLD) || 0.8,
     textConfidenceThreshold: Number(process.env.VISION_TEXT_CONFIDENCE_THRESHOLD) || 0.2
   },
+  sequentialPromiseExecution: process.env.SEQUENTIAL_PROMISE_EXECUTION === 'true',
   
   // Environment-specific overrides
   ...loadEnvironmentConfig()
