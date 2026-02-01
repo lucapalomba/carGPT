@@ -277,35 +277,7 @@ describe('Schemas', () => {
     });
   });
 
-  describe('CarTranslationSchema', () => {
-    it('should accept object values', () => {
-      const validValues = [
-        { make: 'Toyota', model: 'Camry' },
-        { nested: { object: 'with values' } },
-        {}
-      ];
 
-      validValues.forEach(value => {
-        const result = CarTranslationSchema.safeParse(value);
-        expect(result.success).toBe(true);
-      });
-    });
-
-    it('should reject non-object values', () => {
-      const invalidValues = [
-        'simple string',
-        123,
-        null,
-        undefined,
-        [1, 2, 3]
-      ];
-
-      invalidValues.forEach(value => {
-        const result = CarTranslationSchema.safeParse(value);
-        expect(result.success).toBe(false);
-      });
-    });
-  });
 
   describe('OllamaStructuredOutputSchema', () => {
     it('should accept valid car suggestions', () => {
@@ -376,12 +348,7 @@ describe('Schemas', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should accept any car translation', () => {
-      const carTranslation = { make: 'Toyota', model: 'Camry' };
 
-      const result = OllamaStructuredOutputSchema.safeParse(carTranslation);
-      expect(result.success).toBe(true);
-    });
 
     it('should reject completely invalid data', () => {
       // Zod union schemas with any accept many valid types, so undefined actually passes

@@ -85,15 +85,6 @@ export const JudgeVerdictSchema = z.object({
 });
 
 
-
-// Single car translation output typically maintains the car structure but we can be loose or strict
-// Since we want to preserve unknown fields, using passthrough or a loose object might be best
-// But for structured output, we need a concrete schema.
-// Let's define a schema that covers the critical fields we expect to translate or preserve.
-export const CarTranslationSchema = z.record(z.string(), z.any());
-
-
-
 // Union of all possible structured outputs
 export const OllamaStructuredOutputSchema = z.union([
   CarSuggestionsSchema,
@@ -102,7 +93,7 @@ export const OllamaStructuredOutputSchema = z.union([
   SearchIntentSchema,
   VerifyCarSchema,
   AnalysisTranslationSchema,
-  CarTranslationSchema
+  // CarTranslationSchema is removed
 ]);
 
 // Type exports
@@ -112,5 +103,50 @@ export type JudgeVerdict = z.infer<typeof JudgeVerdictSchema>;
 export type SearchIntent = z.infer<typeof SearchIntentSchema>;
 export type VerifyCar = z.infer<typeof VerifyCarSchema>;
 export type AnalysisTranslation = z.infer<typeof AnalysisTranslationSchema>;
-export type CarTranslation = z.infer<typeof CarTranslationSchema>;
+// export type CarTranslation = z.infer<typeof CarTranslationSchema>; // Removed
 export type OllamaStructuredOutput = z.infer<typeof OllamaStructuredOutputSchema>;
+
+// Car schema based on apps/server/src/services/ai/types.ts Car interface
+export const CarSchema = z.object({
+  make: z.string(),
+  model: z.string(),
+  year: z.union([z.number(), z.string()]),
+  type: z.string(),
+  price: z.string(),
+  strengths: z.array(z.string()),
+  weaknesses: z.array(z.string()),
+  reason: z.string(),
+  pinned: z.boolean(),
+  precise_model: z.string(),
+  vehicle_properties: z.record(z.string(), z.object({
+    translatedLabel: z.string(),
+    value: z.string(),
+  }).strict()).optional(), 
+  images: z.array(z.object({
+    url: z.string(),
+    thumbnailUrl: z.string().optional(),
+    source: z.string().optional(),
+    sourceUrl: z.string().optional(),
+  })).optional(),
+}).passthrough(); // Allow unknown keys, as the interface has `[key: string]: unknown;`
+
+// SearchResponse schema based on apps/server/src/services/ai/types.ts SearchResponse interface
+export const SearchResponseSchema = z.object({
+  cars: z.array(CarSchema),
+  analysis: z.string().optional(),
+  ui_suggestions: z.any().optional(), 
+  userLanguage: z.string().optional(),
+  user_market: z.string().optional(),
+}).passthrough(); // Allow unknown keys, as the interface has `[key: string]: unknown;`
+
+// Schema for the input to ITranslationService.translateResults
+// This corresponds to { analysis: suggestions.analysis, cars: elaboratedCars } from AIService.findCarsWithImages
+export const TranslationServiceInputSchema = z.object({
+  analysis: z.string(),
+  cars: z.array(CarSchema),
+});
+
+// New Type exports for the new schemas
+export type Car = z.infer<typeof CarSchema>;
+export type SearchResponse = z.infer<typeof SearchResponseSchema>;
+export type TranslationServiceInput = z.infer<typeof TranslationServiceInputSchema>;
