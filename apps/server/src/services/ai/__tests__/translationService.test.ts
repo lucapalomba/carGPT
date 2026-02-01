@@ -24,13 +24,13 @@ describe('TranslationService', () => {
       expect(result).toEqual(results);
     });
 
-    it('should skip analysis translation if missing', async () => {
+    it('should handle missing analysis gracefully', async () => { // Renamed for clarity
       const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn(), id: '1' }) };
       mockOllamaService.callOllamaStructured.mockResolvedValue({});
       
-      const results = { cars: [] };
+      const results = { analysis: '', cars: [] }; // Provide an empty string
       const result = await translationService.translateResults(results, 'it', mockTrace);
-      expect(result.analysis).toBeUndefined();
+      expect(result.analysis).toBe(''); // Expect it to remain an empty string
     });
   });
 

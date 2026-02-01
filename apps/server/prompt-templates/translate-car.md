@@ -1,27 +1,25 @@
 Translate the User input JSON (a single car object) into ${targetLanguage}.
 
-Your task is to translate the JSON **string values only** while preserving the **exact JSON structure**.
+Your task is to translate the JSON **string values only**. **ABSOLUTELY PRESERVE THE EXACT JSON STRUCTURE, INCLUDING ALL KEYS AND NESTING**. Any deviation in the structure will lead to the rejection of your response.
 
 Return ONLY valid JSON (no markdown) representing the translated car object.
 
 ## FIELDS THAT MUST REMAIN UNCHANGED (copy exactly):
 - "make" (brand name)
 - "model" (model name)
-- "year" (number)
-- "percentage" (number)
+- "year" (number or string)
+- "percentage" (number or string)
 - "precise_model" (model variant name)
 - "configuration" (engine/trim specification)
 - "price" (string)
 - "price_when_new" (string)
-- Any numeric values
-- Any boolean values
-- Any null values
+- **ALL numeric values, boolean values, and null values MUST be copied verbatim, without any change.**
 
-## FIELDS TO TRANSLATE:
+## FIELDS TO TRANSLATE (string values only):
 - "reason" → translate the text
-- "properties" array → translate the "property" and "value" text fields
 - "strengths" array → translate value text fields
 - "weaknesses" array → translate value text fields
+- "vehicle_properties" object: translate "translatedLabel" and "value" text fields for each property.
 - Any other descriptive text fields
 
 ## TECHNICAL TERMINOLOGY RULES:

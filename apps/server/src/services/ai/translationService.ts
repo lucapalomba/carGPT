@@ -2,7 +2,8 @@ import { Message as OllamaMessage } from '../ollamaService.js';
 import { injectable, inject } from 'inversify';
 import { ITranslationService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import logger from '../../utils/logger.js';
-import { CarTranslationSchema, AnalysisTranslationSchema } from '../../utils/schemas.js';
+import { z } from 'zod'; // Added import for Zod
+import { CarSchema, AnalysisTranslationSchema, TranslationServiceInputSchema, SearchResponseSchema, Car } from '../../utils/schemas.js'; // Modified import to use CarSchema and include new schemas and Car type
 import { config } from '../../config/index.js';
 
 @injectable()
@@ -16,11 +17,11 @@ export class TranslationService implements ITranslationService {
    * Translates the search response to the target language
    */
   async translateResults(
-    results: any,
+    results: any, // This 'any' will be validated against TranslationServiceInputSchema
     targetLanguage: string,
     trace: any
-  ): Promise<any> {
-    const span = trace.span({ 
+  ): Promise<SearchResponse> { // Changed return type to SearchResponse
+    const span = trace.span({
       name: "translate_results",
       metadata: { targetLanguage, carsCount: results.cars?.length }
     });
@@ -28,14 +29,19 @@ export class TranslationService implements ITranslationService {
     logger.info(`Translating results to ${targetLanguage}`, { carsCount: results.cars?.length });
 
     try {
+      // --- Input Validation ---
+      logger.debug('Validating TranslationService input...');
+      const validatedInput = TranslationServiceInputSchema.parse(results); // Zod will throw if invalid
+      logger.debug('TranslationService input validated.');
+
       // Translate analysis separately
-      const translatedAnalysis = results.analysis 
-        ? await this.translateAnalysis(results.analysis, targetLanguage, trace)
-        : results.analysis;
+      const translatedAnalysis = validatedInput.analysis 
+        ? await this.translateAnalysis(validatedInput.analysis, targetLanguage, trace)
+        : validatedInput.analysis;
 
       // Translate each car individually
-      const originalCars = Array.isArray(results.cars) ? results.cars : [];
-      let translatedCars: any[];
+      const originalCars = validatedInput.cars; // Use validated input cars
+      let translatedCars: Car[]; // Specify type as Car[]
 
       if (config.sequentialPromiseExecution) {
         // Sequential execution
@@ -48,24 +54,30 @@ export class TranslationService implements ITranslationService {
       } else {
         // Parallel execution
         translatedCars = await Promise.all(
-          originalCars.map((car: unknown, index: number) => this.translateSingleCar(car, targetLanguage, trace, index))
+          originalCars.map((car: Car, index: number) => this.translateSingleCar(car, targetLanguage, trace, index)) // Specify type as Car
         );
       }
 
       const translatedResult = {
-        ...results,
+        ...validatedInput, // Use validated input for other fields
         analysis: translatedAnalysis,
         cars: translatedCars
       };
       
+      // --- Output Validation ---
+      logger.debug('Validating TranslationService output...');
+      const validatedOutput = SearchResponseSchema.parse(translatedResult); // Zod will throw if invalid
+      logger.debug('TranslationService output validated.');
+
       span.end({ output: { carsTranslated: translatedCars.length } });
-      return translatedResult;
+      return validatedOutput; // Return validated output
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Translation failed, returning original results', { error: errorMessage });
+      logger.error('Translation failed due to validation error or other issue.', { error: errorMessage });
       
       span.end({ level: "ERROR", statusMessage: errorMessage });
-      return results; // Return original results if translation fails
+      // Re-throw the error as requested by "block it"
+      throw error; 
     }
   }
 
@@ -99,12 +111,11 @@ export class TranslationService implements ITranslationService {
 
       const translatedCar = await this.ollamaService.callOllamaStructured(
         messages, 
-        CarTranslationSchema,
+        CarSchema, // Used CarSchema here
         "Translated car details",
         trace, 
         `translate_car_${car.make}_${car.model}`
-      );
-      
+      );      
       // Validate the translated car maintains critical fields
       if (!this.validateCarTranslation(car, translatedCar)) {
         logger.warn('Car translation validation failed, using original', { 
