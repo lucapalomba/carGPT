@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Box, Stack, Flex, Heading, Text, Button, Field, Input } from '@chakra-ui/react';
+import { toast } from 'react-hot-toast';
 import type { Car } from '../hooks/useCarSearch';
 import ComparisonTable from './ComparisonTable';
 
@@ -31,9 +32,9 @@ function ResultsContainer({
     resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  const handleRefine = () => {
+const handleRefine = () => {
     if (!refineInput.trim()) {
-      alert('Please enter some feedback to refine the search.');
+      toast.error('Please enter some feedback to refine the search.');
       return;
     }
     onRefine(refineInput.trim());
@@ -72,7 +73,7 @@ function ResultsContainer({
           <Field.Root>
             <Field.Label fontSize="sm" fontWeight="bold" color="fg" mb={2}>💬 Refine these results:</Field.Label>
             <Flex gap={4} width="full">
-                <Input
+<Input
                 flex={1}
                 p={4}
                 variant="outline"
@@ -82,9 +83,11 @@ function ResultsContainer({
                 onChange={(e) => setRefineInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleRefine()}
                 color="fg"
+                aria-label="Enter feedback to refine search results"
+                aria-required="false"
                 css={{ "--focus-color": "colors.brand.focus", _focus: { ring: "2px", ringColor: "brand.focus" } }}
                 />
-                <Button
+<Button
                 onClick={handleRefine}
                 disabled={isSearching}
                 px={8}
@@ -93,6 +96,7 @@ function ResultsContainer({
                 fontWeight="bold"
                 _disabled={{ bg: 'brand.muted', cursor: 'not-allowed' }}
                 rounded="lg"
+                aria-label="Submit feedback to refine search results"
                 >
                 Update
                 </Button>
@@ -102,11 +106,19 @@ function ResultsContainer({
         </Box>
       </Box>
 
-      <ComparisonTable 
-        cars={cars} 
-        pinnedIndices={pinnedIndices} 
-        onTogglePin={onTogglePin} 
-      />
+<ComparisonTable.Provider cars={cars} pinnedIndices={pinnedIndices} onTogglePin={onTogglePin}>
+        <ComparisonTable.Root>
+          <ComparisonTable.Header />
+          <ComparisonTable.Body>
+            <ComparisonTable.ReasonRow />
+            <ComparisonTable.TypeRow />
+            <ComparisonTable.PriceRow />
+            <ComparisonTable.StrengthsRow />
+            <ComparisonTable.WeaknessesRow />
+            <ComparisonTable.PropertiesRows />
+          </ComparisonTable.Body>
+        </ComparisonTable.Root>
+      </ComparisonTable.Provider>
     </Stack>
   );
 }

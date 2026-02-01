@@ -131,11 +131,11 @@ function DetailedComparison({ cars, onClose }: DetailedComparisonProps) {
                     ))}
                 </Stack>
 
-                <Box p={6} bg="gray.900" color="white" borderRadius="xl">
-                    <Heading as="h4" size="md" mb={2} display="flex" alignItems="center" gap={2}>
+<Box p={6} bg="bg.canvas" color="fg.contrast" borderRadius="xl">
+                    <Heading as="h4" size="md" mb={2} display="flex" alignItems="center" gap={2} color="fg.contrast">
                     <span>🏆</span> Conclusion
                     </Heading>
-                    <Text color="gray.300" lineHeight="relaxed">{result.conclusion}</Text>
+                    <Text color="fg.muted" lineHeight="relaxed">{result.conclusion}</Text>
                 </Box>
                 </Stack>
             )}
