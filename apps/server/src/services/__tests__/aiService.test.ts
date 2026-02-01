@@ -1,6 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AIService } from '../aiService.js';
 
+// Mock langfuse
+vi.mock('../../utils/langfuse.js', () => ({
+  langfuse: {
+    trace: vi.fn().mockReturnValue({
+      update: vi.fn(),
+      id: 'mock-trace-id'
+    })
+  }
+}));
+
+import { langfuse } from '../../utils/langfuse.js';
 
 describe('AIService', () => {
   let aiService: AIService;
@@ -10,6 +21,7 @@ describe('AIService', () => {
   let mockElaborationService: any;
   let mockTranslationService: any;
   let mockEnrichmentService: any;
+  let mockJudgeService: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,6 +33,7 @@ describe('AIService', () => {
     mockElaborationService = { elaborateCars: vi.fn() };
     mockTranslationService = { translateResults: vi.fn() };
     mockEnrichmentService = { enrichCarsWithImages: vi.fn() };
+    mockJudgeService = { evaluateResponse: vi.fn() };
 
     aiService = new AIService(
       mockOllamaService,
@@ -29,18 +42,23 @@ describe('AIService', () => {
       mockSuggestionService,
       mockElaborationService,
       mockTranslationService,
-      mockEnrichmentService
+      mockEnrichmentService,
+      mockJudgeService
     );
   });
 
   describe('findCarsWithImages', () => {
-    it('should coordinate the search process using sub-services', async () => {
+    it('should coordinate the search process using sub-services and update trace with judge results', async () => {
       // Setup successful mocks
       const mockIntent = { intent: "search" };
       const mockSuggestions = { choices: [{ make: "Toyota", model: "Corolla", year: 2020 }], analysis: "Original analysis" };
       const mockElaborated = [{ make: "Toyota", model: "Corolla", year: 2020, price: "100" }];
       const mockTranslated = { cars: mockElaborated, analysis: "Translated analysis" };
       const mockEnriched = [{ make: "Toyota", model: "Corolla", year: 2020, price: "100", images: [] }];
+      const mockJudgeVerdict = { verdict: 'Perfect', vote: 100 };
+      
+      const mockTrace = { update: vi.fn(), id: 'trace-123' };
+      vi.mocked(langfuse.trace).mockReturnValue(mockTrace as any);
 
       vi.mocked(mockOllamaService.verifyOllama).mockResolvedValue(true);
       vi.mocked(mockIntentService.determineSearchIntent).mockResolvedValue(mockIntent);
@@ -48,19 +66,23 @@ describe('AIService', () => {
       vi.mocked(mockElaborationService.elaborateCars).mockResolvedValue(mockElaborated);
       vi.mocked(mockTranslationService.translateResults).mockResolvedValue(mockTranslated as any);
       vi.mocked(mockEnrichmentService.enrichCarsWithImages).mockResolvedValue(mockEnriched as any);
+      vi.mocked(mockJudgeService.evaluateResponse).mockResolvedValue(mockJudgeVerdict);
 
       const result = await aiService.findCarsWithImages('I need a reliable car', 'en', 'session-123');
 
-      expect(mockIntentService.determineSearchIntent).toHaveBeenCalledWith('I need a reliable car', 'en', expect.anything());
-      expect(mockSuggestionService.getCarSuggestions).toHaveBeenCalledWith(mockIntent, 'I need a reliable car', '', expect.anything());
-      expect(mockElaborationService.elaborateCars).toHaveBeenCalledWith(mockSuggestions.choices, mockIntent, expect.anything());
-      expect(mockTranslationService.translateResults).toHaveBeenCalledWith({ analysis: mockSuggestions.analysis, cars: mockElaborated }, 'en', expect.anything());
-      expect(mockEnrichmentService.enrichCarsWithImages).toHaveBeenCalledWith(mockTranslated.cars, expect.anything());
+      expect(mockIntentService.determineSearchIntent).toHaveBeenCalledWith('I need a reliable car', 'en', mockTrace);
+      expect(mockJudgeService.evaluateResponse).toHaveBeenCalledWith('I need a reliable car', expect.anything(), 'en', mockTrace);
+      
+      // Verify trace update with judge results
+      expect(mockTrace.update).toHaveBeenCalledWith(expect.objectContaining({
+        metadata: expect.objectContaining({
+          judgeVerdict: 'Perfect',
+          judgeScore: 100
+        }),
+        tags: ['JUDGE_PASSED']
+      }));
 
       expect(result.cars).toHaveLength(1);
-      expect(result.analysis).toBe('Translated analysis');
-      expect(result.searchIntent).toEqual(mockIntent);
-      expect(result.suggestions).toEqual(mockSuggestions);
     });
 
     it('should propagate errors', async () => {

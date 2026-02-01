@@ -65,19 +65,30 @@ export class AIService implements IAIService {
       };
 
       // Execute Judge Evaluation on the complete result
+      let judgeResult = null;
       try {
-        await this.judgeService.evaluateResponse(
+        judgeResult = await this.judgeService.evaluateResponse(
             requirements,
             result, 
             language,
             trace
         );
-        // Judge result is now internal-only (traced), not added to response
       } catch (judgeError) {
         console.warn('Judge evaluation failed silently:', judgeError);
       }
 
-      trace.update({ output: result });
+      trace.update({ 
+        output: result,
+        metadata: {
+          model: config.ollama.model,
+          environment: config.mode,
+          ...(judgeResult ? {
+            judgeVerdict: judgeResult.verdict,
+            judgeScore: judgeResult.vote
+          } : {})
+        },
+        tags: judgeResult ? [judgeResult.vote >= 70 ? 'JUDGE_PASSED' : 'JUDGE_FAILED'] : []
+      });
 
       return result;
     } catch (error) {
@@ -131,23 +142,34 @@ export class AIService implements IAIService {
       };
 
       // Execute Judge Evaluation on the complete result
+      let judgeResult = null;
       try {
         // User requested that refinement evaluation includes initial request and all refinements
         // fullContext contains the conversation history
         const judgeContext = `Current Feedback: ${feedback}\n\nConversation History:\n${fullContext}`;
         
-        await this.judgeService.evaluateResponse(
+        judgeResult = await this.judgeService.evaluateResponse(
             judgeContext,
             result,
             language,
             trace
         );
-        // Judge result is now internal-only (traced), not added to response
       } catch (judgeError) {
          console.warn('Judge evaluation failed silently during refinement:', judgeError);
       }
 
-      trace.update({ output: result });
+      trace.update({ 
+        output: result,
+        metadata: {
+          model: config.ollama.model,
+          environment: config.mode,
+          ...(judgeResult ? {
+            judgeVerdict: judgeResult.verdict,
+            judgeScore: judgeResult.vote
+          } : {})
+        },
+        tags: judgeResult ? [judgeResult.vote >= 70 ? 'JUDGE_PASSED' : 'JUDGE_FAILED'] : []
+      });
 
       return result;
     } catch (error) {

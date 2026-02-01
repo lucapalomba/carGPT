@@ -21,7 +21,7 @@ describe('JudgeService', () => {
       const mockResponse: SearchResponse = {
         cars: [{ make: 'Toyota', model: 'Corolla', year: 2020 }],
         analysis: 'Good car'
-      };
+      } as any;
       const language = 'en';
       const mockVerdict = { verdict: 'Great match', vote: 90 };
 
@@ -46,12 +46,35 @@ describe('JudgeService', () => {
         'judge_evaluation'
       );
 
-      expect(result).toBe(JSON.stringify(mockVerdict));
+      expect(result).toEqual(mockVerdict);
+    });
+
+    it('should update trace score if trace is provided', async () => {
+      const requirements = 'cheap fast car';
+      const mockResponse: SearchResponse = { cars: [] } as any;
+      const language = 'en';
+      const mockVerdict = { verdict: 'Great match', vote: 90 };
+      const mockTrace = { 
+        update: vi.fn(), 
+        score: vi.fn(),
+        id: 'trace-1' 
+      };
+
+      mockPromptService.loadTemplate.mockReturnValue('template');
+      mockOllamaService.callOllamaStructured.mockResolvedValue(mockVerdict);
+
+      await judgeService.evaluateResponse(requirements, mockResponse, language, mockTrace);
+
+      expect(mockTrace.score).toHaveBeenCalledWith({
+        name: 'judge-score',
+        value: 0.9,
+        comment: 'Great match'
+      });
     });
 
     it('should handle evaluation errors gracefully', async () => {
       const requirements = 'cheap fast car';
-      const mockResponse: SearchResponse = { cars: [] };
+      const mockResponse: SearchResponse = { cars: [] } as any;
       const language = 'en';
 
       mockPromptService.loadTemplate.mockReturnValue('template');
@@ -62,7 +85,7 @@ describe('JudgeService', () => {
 
       const result = await judgeService.evaluateResponse(requirements, mockResponse, language);
 
-      expect(result).toBe('');
+      expect(result).toBeNull();
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
