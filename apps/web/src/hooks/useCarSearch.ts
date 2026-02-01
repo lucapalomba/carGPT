@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { carSearchService } from '../services/CarSearchService';
+import { confirm } from '../components/ui/confirm-dialog';
 import type { Car, SearchResponse as SharedSearchResponse } from '../../../server/src/services/ai/types';
 
 // Legacy export for backward compatibility
@@ -101,11 +103,20 @@ export const useCarSearch = () => {
     }
   }, [analysisHistory]);
 
-  const resetSearch = useCallback(async () => {
+const resetSearch = useCallback(async () => {
     // Cancel all pending requests
     pendingRequestsRef.current.clear();
     
-    if (!confirm('Do you want to start a new search? Current results will be lost.')) return;
+    const confirmed = await confirm(
+      'Do you want to start a new search? Current results will be lost.',
+      {
+        title: 'Start New Search',
+        confirmText: 'Yes, Start Over',
+        cancelText: 'Cancel'
+      }
+    );
+    
+    if (!confirmed) return;
 
     try {
       await carSearchService.resetConversation();
@@ -114,8 +125,11 @@ export const useCarSearch = () => {
       setView('form');
       setCurrentCars([]);
       setAnalysisHistory([]);
+      
+      toast.success('Search reset successfully');
     } catch (error) {
       console.error('Reset error:', error);
+      toast.error('Failed to reset search');
     }
   }, []);
 

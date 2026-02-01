@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Box, Stack, Heading, Text, Textarea, Button, Image, Field } from '@chakra-ui/react';
+import { toast } from 'react-hot-toast';
 import { EXAMPLES } from '../constants/examples';
 
 interface InitialFormProps {
@@ -10,10 +11,10 @@ interface InitialFormProps {
 function InitialForm({ onSearch, isSearching }: InitialFormProps) {
   const [requirements, setRequirements] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (requirements.trim().length < 10) {
-      alert('Please describe your requirements in more detail (at least 10 characters)');
+      toast.error('Please describe your requirements in more detail (at least 10 characters)');
       return;
     }
     onSearch(requirements.trim());
@@ -34,8 +35,9 @@ function InitialForm({ onSearch, isSearching }: InitialFormProps) {
           <Field.Label htmlFor="requirements" fontSize="sm" fontWeight="medium" color="fg" mb={1}>
             Describe your requirements
           </Field.Label>
-          <Textarea
+<Textarea
             id="requirements"
+            name="requirements"
             rows={6}
             p={4}
             borderColor="border.emphasized"
@@ -45,12 +47,15 @@ function InitialForm({ onSearch, isSearching }: InitialFormProps) {
             onChange={(e) => setRequirements(e.target.value)}
             color="fg"
             required
+            aria-describedby="requirements-help"
+            aria-required="true"
+            aria-invalid={requirements.trim().length < 10}
             css={{
                 "--focus-color": "colors.brand.focus",
                 _focus: { ring: "2px", ringColor: "brand.focus" }
             }}
           />
-          <Text mt={2} fontSize="sm" color="fg.muted">The more specific you are, the better the suggestions! 💡</Text>
+          <Text mt={2} fontSize="sm" color="fg.muted" id="requirements-help">The more specific you are, the better the suggestions! 💡</Text>
         </Field.Root>
 
         <Stack gap={4} align="stretch">
@@ -76,7 +81,7 @@ function InitialForm({ onSearch, isSearching }: InitialFormProps) {
           ))}
         </Stack>
 
-        <Button
+<Button
           type="submit"
           disabled={isSearching}
           loading={isSearching}
@@ -86,6 +91,7 @@ function InitialForm({ onSearch, isSearching }: InitialFormProps) {
           fontWeight="bold"
           shadow="md"
           rounded="lg"
+          aria-describedby="requirements-help"
         >
           {isSearching ? "Analyzing your requirements..." : "Find my perfect cars"}
         </Button>
