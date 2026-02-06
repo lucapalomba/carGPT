@@ -88,5 +88,5 @@ export const SERVICE_IDENTIFIERS = {
 } as const;
 
 export interface IJudgeService {
-  evaluateResponse(requirements: string, fullResponse: SearchResponse, language: string, trace?: any): Promise<string>;
+  evaluateResponse(requirements: string, fullResponse: SearchResponse, language: string, trace?: any): Promise<any>;
 }

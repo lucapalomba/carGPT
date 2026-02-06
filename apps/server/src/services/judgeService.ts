@@ -12,13 +12,8 @@ export class JudgeService implements IJudgeService {
     @inject(SERVICE_IDENTIFIERS.PROMPT_SERVICE) private promptService: IPromptService
   ) {}
 
-  async evaluateResponse(requirements: string, fullResponse: SearchResponse, language: string, trace?: any): Promise<string> {
+  async evaluateResponse(requirements: string, fullResponse: SearchResponse, language: string, trace?: any): Promise<any> {
     const template = this.promptService.loadTemplate('judge.md');
-    
-    // Create a simplified version of the response context to avoid hitting token limits if the response is huge
-    // We strictly follow the user request to provide the "complete response", but we might need to be careful with images arrays which can be verbose.
-    // However, the prompt asks for "System Response (Analysis + Cars)".
-    // Let's pass the full response but maybe strip out base64 images if they existed (they are URLs here so it is fine).
     
     const filteredResponse = {
       analysis: fullResponse.analysis,
@@ -34,7 +29,7 @@ export class JudgeService implements IJudgeService {
     const jsonGuard = this.promptService.loadTemplate('json-guard.md');
 
     try {
-      const result = await this.ollamaService.callOllamaStructured(
+      const result: any = await this.ollamaService.callOllamaStructured(
         [
           { role: 'user', content: prompt },
           { role: 'system', content: jsonGuard }
@@ -45,11 +40,20 @@ export class JudgeService implements IJudgeService {
         'judge_evaluation'
       );
 
-      return JSON.stringify(result);
+      // Add Langfuse score for numerical tracking (safe and additive)
+      if (trace && typeof trace.score === 'function') {
+        trace.score({
+          name: 'judge-score',
+          value: result.vote / 100,
+          comment: result.verdict
+        });
+      }
+
+      return result;
     } catch (error) {
       console.error('Judge evaluation failed:', error);
-      // Fail gracefully - return empty string or a fallback
-      return "";
+      // Fail gracefully - return null
+      return null;
     }
   }
 }
