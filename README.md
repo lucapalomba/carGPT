@@ -211,63 +211,61 @@ CarGPT follows a modern **Monorepo** architecture using **NPM Workspaces**.
 flowchart TD
     User([User Request]) --> Router{Endpoint?}
     
-    subgraph "AI Orchestration with Retry System (Max 3 Attempts)"
+    subgraph "Resilient AI Orchestration (aiService)"
         direction TB
         Router -->|/find-cars| Intent["Determine Intent<br/>(LLM: search_intent)"]
+        
+        %% Explicit Retry Example for the first step
+        Intent --> IntentRetry{Error?}
+        IntentRetry -- "Yes (Attempts < 3)" --> Intent
+        IntentRetry -- "No / Success" --> Suggestions
+        
         Router -->|/refine-search| Refine[Context & History]
         Refine --> Intent
         
-        Intent --> Suggestions["Generate Suggestions<br/>(LLM: car_suggestions)"]
-        Intent --> UISuggestions["UI Suggestions<br/>(LLM: ui_suggestions)"]
+        Suggestions["Generate Suggestions<br/>(LLM: car_suggestions)"]
+        IntentRetry -- "No / Success" --> UISuggestions["UI Suggestions<br/>(LLM: ui_suggestions)"]
         
-        subgraph "Elaboration Phase (Parallel)"
-            Suggestions --> Elab1["Elaborate Car 1<br/>(LLM: elaborate_car)"]
-            Suggestions --> Elab2["Elaborate Car 2<br/>(LLM: elaborate_car)"]
-            Suggestions --> Elab3["Elaborate Car 3<br/>(LLM: elaborate_car)"]
+        subgraph "Elaboration Phase (Parallel + Retries)"
+            Suggestions --> Elab1["Elaborate Car 1"]
+            Suggestions --> Elab2["Elaborate Car 2"]
+            Suggestions --> Elab3["Elaborate Car 3"]
         end
         
         Elab1 & Elab2 & Elab3 --> PrepareTrans[Prepare Intermediate Result]
         
-        subgraph "Translation & Validation Phase"
-            PrepareTrans --> TransAnalysis["Translate Analysis<br/>(LLM: translate_analysis)"]
+        subgraph "Translation & Validation Phase (with Retries)"
+            PrepareTrans --> TransAnalysis["Translate Analysis"]
             PrepareTrans --> TransCars
             
             subgraph "Parallel Car Translation"
-                TransCars[Map Cars] --> TC1["Translate Car 1<br/>(LLM: translate_car)"]
-                TransCars --> TC2["Translate Car 2<br/>(LLM: translate_car)"]
-                TransCars --> TC3["Translate Car 3<br/>(LLM: translate_car)"]
+                TransCars[Map Cars] --> TC1["Translate Car 1"]
+                TransCars --> TC2["Translate Car 2"]
+                TransCars --> TC3["Translate Car 3"]
                 
-                TC1 --> Val1{"Validate<br/>Structure"}
-                TC2 --> Val2{"Validate<br/>Structure"}
-                TC3 --> Val3{"Validate<br/>Structure"}
-                
-                Val1 -->|Valid| OK1[Use Translated]
-                Val1 -->|Invalid| Fallback1[Use Original]
-                
-                Val2 -->|Valid| OK2[Use Translated]
-                Val2 -->|Invalid| Fallback2[Use Original]
-                
-                Val3 -->|Valid| OK3[Use Translated]
-                Val3 -->|Invalid| Fallback3[Use Original]
+                TC1 & TC2 & TC3 --> Val{"Validate<br/>Structure"}
+                Val -->|Valid| OK[Use Translated]
+                Val -->|Invalid| Fallback[Use Original]
             end
         end
         
-        OK1 & Fallback1 & OK2 & Fallback2 & OK3 & Fallback3 --> ImageSearch
+        OK & Fallback --> ImageSearch["Image Search & Enrichment<br/>(with Retries)"]
         
         subgraph "Visual Verification Phase"
-            ImageSearch[Google Image Search] --> Verify[Verify Images]
-            Verify --> Vision1["Check Image 1<br/>(Vision LLM)"]
-            Verify --> Vision2["Check Image 2<br/>(Vision LLM)"]
+            ImageSearch --> Verify[Verify Images]
+            Verify --> Vision1["Check Image 1"]
+            Verify --> Vision2["Check Image 2"]
             
-            Vision1 -->|Confidence > Threshold| Keep1[Keep Image]
-            Vision1 -->|Low Confidence| Drop1[Discard]
+            Vision1 & Vision2 --> Keep{Confidence > Threshold?}
+            Keep -->|Yes| KeepImg[Keep]
+            Keep -->|No| DropImg[Discard]
         end
 
         subgraph "Quality Assurance"
-            TransAnalysis & Keep1 & Drop1 & UISuggestions --> Judge["Self-Reflection / Judge<br/>(LLM: judge)"]
+            TransAnalysis & KeepImg & UISuggestions --> Judge["Self-Reflection / Judge<br/>(LLM: judge)"]
         end
         
-        %% Retry Logic Hint
+        %% Retry Logic Styling
         style Intent stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
         style Suggestions stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
         style Elab1 stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
@@ -278,6 +276,7 @@ flowchart TD
         style TC2 stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
         style TC3 stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
         style ImageSearch stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style IntentRetry fill:#fff,stroke-dasharray: 5 5
     end
     
     Judge --> FinalResponse([Final JSON Response])
