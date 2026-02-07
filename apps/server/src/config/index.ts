@@ -145,6 +145,10 @@ export const validateConfig = (): void => {
     }
   }
   
+  if (config.aiRetryCount < 0) {
+    requiredEnvVars.push('AI_RETRY_COUNT (must be a non-negative number)');
+  }
+  
   if (requiredEnvVars.length > 0) {
     throw new Error(`Missing required environment variables: ${requiredEnvVars.join(', ')}`);
   }

@@ -157,6 +157,7 @@ You can fine-tune the AI's behavior by modifying the `.env` file:
 | `LANGFUSE_PUBLIC_KEY` | Public key for Langfuse tracing | `pk-lf-...` |
 | `LANGFUSE_SECRET_KEY` | Secret key for Langfuse tracing | `sk-lf-...` |
 | `LANGFUSE_BASE_URL` | Langfuse Host (Cloud or Local) | `https://cloud.langfuse.com` |
+| `AI_RETRY_COUNT` | Number of retries for AI processing steps | `2` |
 
 That's it! 🎉
 
@@ -210,7 +211,7 @@ CarGPT follows a modern **Monorepo** architecture using **NPM Workspaces**.
 flowchart TD
     User([User Request]) --> Router{Endpoint?}
     
-    subgraph "AI Orchestration (aiService & sub-services)"
+    subgraph "AI Orchestration with Retry System (Max 3 Attempts)"
         direction TB
         Router -->|/find-cars| Intent["Determine Intent<br/>(LLM: search_intent)"]
         Router -->|/refine-search| Refine[Context & History]
@@ -265,6 +266,18 @@ flowchart TD
         subgraph "Quality Assurance"
             TransAnalysis & Keep1 & Drop1 & UISuggestions --> Judge["Self-Reflection / Judge<br/>(LLM: judge)"]
         end
+        
+        %% Retry Logic Hint
+        style Intent stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style Suggestions stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style Elab1 stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style Elab2 stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style Elab3 stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style TransAnalysis stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style TC1 stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style TC2 stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style TC3 stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
+        style ImageSearch stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
     end
     
     Judge --> FinalResponse([Final JSON Response])
