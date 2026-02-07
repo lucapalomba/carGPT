@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { JudgeService } from '../judgeService.js';
-import { SearchResponse } from '../ai/types.js';
-import { JudgeVerdictSchema } from '../../utils/schemas.js';
+import { SearchResponse } from '../types.js';
+import { JudgeVerdictSchema } from '../../../utils/schemas.js';
 
 describe('JudgeService', () => {
   let judgeService: JudgeService;

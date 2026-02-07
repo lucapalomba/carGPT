@@ -31,7 +31,7 @@ import { ElaborationService } from '../services/ai/elaborationService.js';
 import { TranslationService } from '../services/ai/translationService.js';
 import { EnrichmentService } from '../services/ai/enrichmentService.js';
 import { ConversationService } from '../services/conversationService.js';
-import { JudgeService } from '../services/judgeService.js';
+import { JudgeService } from '../services/ai/judgeService.js';
 
 // Create and export DI container
 export const container = new Container();

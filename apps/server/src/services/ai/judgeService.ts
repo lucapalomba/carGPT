@@ -1,9 +1,8 @@
-
 import { injectable, inject } from 'inversify';
-import { SERVICE_IDENTIFIERS, IOllamaService, IJudgeService, IPromptService } from '../container/interfaces.js';
-import { SearchResponse } from './ai/types.js';
+import { SERVICE_IDENTIFIERS, IOllamaService, IJudgeService, IPromptService } from '../../container/interfaces.js';
+import { SearchResponse } from './types.js';
 
-import { JudgeVerdictSchema } from '../utils/schemas.js';
+import { JudgeVerdictSchema } from '../../utils/schemas.js';
 
 @injectable()
 export class JudgeService implements IJudgeService {

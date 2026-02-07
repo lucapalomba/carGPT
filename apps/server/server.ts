@@ -1,5 +1,5 @@
 import express from 'express';
-import session from 'express-session';
+
 import cors from 'cors';
 
 import { config, validateConfig } from './src/config/index.js';
@@ -23,7 +23,7 @@ import {
 import { 
   setupDevelopmentFeatures,
   setupProductionFeatures,
-  getSessionConfig,
+
   getCorsConfig
 } from './src/config/environment.js';
 import { container, registerDependencies } from './src/container/index.js';
@@ -46,24 +46,13 @@ setupDevelopmentFeatures();
 setupProductionFeatures();
 
 // Apply middleware with environment-specific configuration
-const sessionConfig = getSessionConfig();
-
 // Core middleware stack
 app.use([
   requestIdMiddleware,
   responseTimeMiddleware,
   requestLogger,
   cors(getCorsConfig()),
-  express.json(),
-  session({
-    secret: sessionConfig.secret,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      ...sessionConfig.cookie,
-      secure: config.isProduction
-    }
-  })
+  express.json()
 ]);
 
 // Setup environment-specific features
