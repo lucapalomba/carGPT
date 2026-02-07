@@ -146,7 +146,20 @@ export const TranslationServiceInputSchema = z.object({
   cars: z.array(CarSchema),
 });
 
+// Configuration schema
+export const ConfigSchema = z.object({
+  port: z.number(),
+  aiProvider: z.string(),
+  mode: z.string(),
+  isProduction: z.boolean(),
+  aiRetryCount: z.number().min(0).max(10),
+  sequentialPromiseExecution: z.boolean(),
+  carouselImageLength: z.number().min(1).max(10),
+  maxInterestingPropertiesCount: z.number().min(1).max(5),
+});
+
 // New Type exports for the new schemas
 export type Car = z.infer<typeof CarSchema>;
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;
 export type TranslationServiceInput = z.infer<typeof TranslationServiceInputSchema>;
+export type Config = z.infer<typeof ConfigSchema>;

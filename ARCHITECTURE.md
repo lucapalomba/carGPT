@@ -93,6 +93,17 @@ To optimize performance, especially when using smaller, local LLMs, the applicat
 
 ---
 
+### 🛡️ Resilience and Retries
+
+To improve robustness against transient failures (network issues, LLM timeouts, or resource contention), the **`aiService`** implements a **retry system** for its core processing steps:
+
+- **Steps covered**: Intent extraction, car suggestions, car elaboration, translation, and image enrichment.
+- **Mechanism**: Each step is wrapped in a `withRetry` helper that attempts the operation multiple times before failing.
+- **Configuration**: The number of retries is controlled by the `AI_RETRY_COUNT` environment variable (default: 2 retries, total 3 attempts).
+- **Graceful Failure**: If all attempts fail, the error is logged and propagated to the user.
+
+---
+
 ## ✅ Best Practices Implemented
 
 -   **Separation of Concerns**: Business logic is separated from HTTP handling.

@@ -46,20 +46,7 @@ interface AppConfig {
   maxInterestingPropertiesCount: number;
   vision: VisionConfig;
   sequentialPromiseExecution: boolean;
-}
-
-interface AppConfig {
-  port: number;
-  ollama: OllamaConfig;
-  aiProvider: string;
-  mode: string;
-  isProduction: boolean;
-  session: SessionConfig;
-  googleSearch: GoogleSearchConfig;
-  carouselImageLength: number;
-  maxInterestingPropertiesCount: number;
-  vision: VisionConfig;
-  sequentialPromiseExecution: boolean;
+  aiRetryCount: number;
 }
 
 /**
@@ -129,9 +116,9 @@ carouselImageLength: process.env.CAROUSEL_IMAGES_LENGTH !== undefined ? Number(p
     textConfidenceThreshold: Number(process.env.VISION_TEXT_CONFIDENCE_THRESHOLD) || 0.2
   },
   sequentialPromiseExecution: process.env.SEQUENTIAL_PROMISE_EXECUTION === 'true',
-  
   // Environment-specific overrides
-  ...loadEnvironmentConfig()
+  ...loadEnvironmentConfig(),
+  aiRetryCount: Number(process.env.AI_RETRY_COUNT) || 2,
 };
 
 /**
@@ -156,6 +143,10 @@ export const validateConfig = (): void => {
     if (!config.ollama.cloudUrl) {
       requiredEnvVars.push('OLLAMA_CLOUD_URL (required when OLLAMA_CLOUD_ENABLED=true)');
     }
+  }
+  
+  if (config.aiRetryCount < 0) {
+    requiredEnvVars.push('AI_RETRY_COUNT (must be a non-negative number)');
   }
   
   if (requiredEnvVars.length > 0) {
