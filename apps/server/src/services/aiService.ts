@@ -45,16 +45,26 @@ export class AIService implements IAIService {
     });
     
     try {
-      const searchIntent = await this.intentService.determineSearchIntent(requirements, language, trace);
-      const suggestions = await this.suggestionService.getCarSuggestions(searchIntent, requirements, '', trace);
-      const elaboratedCars = await this.elaborationService.elaborateCars(suggestions.choices, searchIntent, trace);
-      
-      const translatedResults = await this.translationService.translateResults(
-        { analysis: suggestions.analysis, cars: elaboratedCars }, 
-        language,
-        trace
+      const searchIntent = await this.withRetry('determineSearchIntent', () => 
+        this.intentService.determineSearchIntent(requirements, language, trace)
       );
-      const enrichedCars = await this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
+      const suggestions = await this.withRetry('getCarSuggestions', () => 
+        this.suggestionService.getCarSuggestions(searchIntent, requirements, '', trace)
+      );
+      const elaboratedCars = await this.withRetry('elaborateCars', () => 
+        this.elaborationService.elaborateCars(suggestions.choices, searchIntent, trace)
+      );
+      
+      const translatedResults = await this.withRetry('translateResults', () => 
+        this.translationService.translateResults(
+          { analysis: suggestions.analysis, cars: elaboratedCars }, 
+          language,
+          trace
+        )
+      );
+      const enrichedCars = await this.withRetry('enrichCarsWithImages', () => 
+        this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace)
+      );
 
       const result: SearchResponse = {
         success: true,
@@ -108,7 +118,9 @@ export class AIService implements IAIService {
     });
     
     try {
-      const searchIntent = await this.intentService.determineSearchIntent(feedback, language, trace);
+      const searchIntent = await this.withRetry('determineSearchIntent', () => 
+        this.intentService.determineSearchIntent(feedback, language, trace)
+      );
       
       // Incorporate pinned cars into the context
       const pinnedCarsPrompt = pinnedCars.length > 0 
@@ -117,7 +129,9 @@ export class AIService implements IAIService {
       
       const combinedContext = [fullContext, pinnedCarsPrompt].filter(Boolean).join('\n\n');
       
-      const suggestions = await this.suggestionService.getCarSuggestions(searchIntent, feedback, combinedContext, trace);
+      const suggestions = await this.withRetry('getCarSuggestions', () => 
+        this.suggestionService.getCarSuggestions(searchIntent, feedback, combinedContext, trace)
+      );
       
       // Combine pinned cars with new suggestions for elaboration
       const combinedCars = [
@@ -125,13 +139,19 @@ export class AIService implements IAIService {
         ...suggestions.choices
       ];
       
-      const elaboratedCars = await this.elaborationService.elaborateCars(combinedCars, searchIntent, trace);
-      const translatedResults = await this.translationService.translateResults(
-        { analysis: suggestions.analysis, cars: elaboratedCars }, 
-        language, 
-        trace
+      const elaboratedCars = await this.withRetry('elaborateCars', () => 
+        this.elaborationService.elaborateCars(combinedCars, searchIntent, trace)
       );
-      const enrichedCars = await this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace);
+      const translatedResults = await this.withRetry('translateResults', () => 
+        this.translationService.translateResults(
+          { analysis: suggestions.analysis, cars: elaboratedCars }, 
+          language, 
+          trace
+        )
+      );
+      const enrichedCars = await this.withRetry('enrichCarsWithImages', () => 
+        this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace)
+      );
 
       const result: SearchResponse = {
         success: true,
@@ -180,6 +200,27 @@ export class AIService implements IAIService {
     }
   }
   
+  private async withRetry<T>(taskName: string, operation: () => Promise<T>): Promise<T> {
+    const maxRetries = config.aiRetryCount;
+    let lastError: any;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        if (attempt < maxRetries) {
+          logger.warn(`AI Service: Step "${taskName}" failed (attempt ${attempt + 1}/${maxRetries + 1}). Retrying...`, {
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+    }
+
+    logger.error(`AI Service: Step "${taskName}" failed after ${maxRetries + 1} attempts.`);
+    throw lastError;
+  }
+
   async verify(): Promise<boolean> {
     return await this.ollamaService.verifyOllama();
   }

@@ -159,4 +159,34 @@ describe('AIService', () => {
       await expect(aiService.refineCarsWithImages('feedback', 'en', 'sess', 'ctx')).rejects.toThrow('Refine error');
     });
   });
+
+  describe('retry logic', () => {
+    it('should succeed if a step fails once but succeeds on retry', async () => {
+      const mockIntent = { intent: "search" };
+      
+      // First call fails, second succeeds
+      vi.mocked(mockIntentService.determineSearchIntent)
+        .mockRejectedValueOnce(new Error('Transient error'))
+        .mockResolvedValueOnce(mockIntent);
+      
+      // Mock other services to succeed
+      vi.mocked(mockSuggestionService.getCarSuggestions).mockResolvedValue({ choices: [], analysis: "" });
+      vi.mocked(mockElaborationService.elaborateCars).mockResolvedValue([]);
+      vi.mocked(mockTranslationService.translateResults).mockResolvedValue({ cars: [], analysis: "" } as any);
+      vi.mocked(mockEnrichmentService.enrichCarsWithImages).mockResolvedValue([] as any);
+
+      const result = await aiService.findCarsWithImages('req', 'en', 'sess');
+      
+      expect(result.success).toBe(true);
+      expect(mockIntentService.determineSearchIntent).toHaveBeenCalledTimes(2);
+    });
+
+    it('should fail after max retries', async () => {
+      vi.mocked(mockIntentService.determineSearchIntent).mockRejectedValue(new Error('Permanent error'));
+      
+      // Default retry count is 2, so 3 attempts total
+      await expect(aiService.findCarsWithImages('req', 'en', 'sess')).rejects.toThrow('Permanent error');
+      expect(mockIntentService.determineSearchIntent).toHaveBeenCalledTimes(3);
+    });
+  });
 });
