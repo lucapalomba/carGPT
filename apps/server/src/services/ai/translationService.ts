@@ -111,8 +111,7 @@ export class TranslationService implements ITranslationService {
 
       const translatedCar = await this.ollamaService.callOllamaStructured(
         messages, 
-        CarSchema, // Used CarSchema here
-        "Translated car details",
+        CarSchema, 
         trace, 
         `translate_car_${car.make}_${car.model}`
       );      
@@ -179,7 +178,6 @@ export class TranslationService implements ITranslationService {
       const result = await this.ollamaService.callOllamaStructured(
         messages, 
         AnalysisTranslationSchema,
-        "Translated analysis text",
         trace, 
         'translate_analysis'
       );

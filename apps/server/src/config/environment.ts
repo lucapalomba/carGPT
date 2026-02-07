@@ -35,25 +35,7 @@ export const configureLogging = () => {
   return { level: logLevel };
 };
 
-/**
- * Session configuration based on environment
- */
-export const getSessionConfig = () => {
-  const baseConfig = config.session;
-  
-  if (config.isProduction) {
-    return {
-      secret: baseConfig.secret,
-      cookie: {
-        ...baseConfig.cookie,
-        secure: true,
-        httpOnly: true
-      }
-    };
-  }
-  
-  return baseConfig;
-};
+
 
 /**
  * CORS configuration based on environment

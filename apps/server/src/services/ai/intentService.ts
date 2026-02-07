@@ -35,7 +35,6 @@ export class IntentService implements IIntentService {
       const result = await this.ollamaService.callOllamaStructured(
         messages, 
         SearchIntentSchema,
-        "User intent analysis",
         trace, 
         'search_intent'
       );

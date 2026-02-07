@@ -7,7 +7,7 @@ import { forceFlushLangfuse } from '../utils/langfuseUtils.js';
 import { config } from '../config/index.js';
 import logger from '../utils/logger.js';
 import { OllamaError } from '../utils/AppError.js';
-import { StructuredOutputValidator, SCHEMA_DESCRIPTIONS } from '../utils/structuredOutput.js';
+import { StructuredOutputValidator } from '../utils/structuredOutput.js';
 import * as z from 'zod';
 import { CarSuggestionsSchema, ElaborationSchema, JudgeVerdictSchema, SearchIntentSchema, VerifyCarSchema } from '../utils/schemas.js';
 
@@ -126,7 +126,6 @@ parseJsonResponse(text: string): any {
   async callOllamaStructured<T>(
     messages: Message[], 
     schema: z.ZodType<T>, 
-    schemaDescription: string,
     trace?: any,
     operationName?: string,
     modelOverride?: string
@@ -305,7 +304,6 @@ langfuse.generation({
     return this.callOllamaStructured(
       messages,
       SearchIntentSchema,
-      SCHEMA_DESCRIPTIONS.SEARCH_INTENT,
       trace,
       'intent_analysis',
       modelOverride
@@ -411,7 +409,7 @@ async verifyOllama(): Promise<boolean> {
         }
       ];
 
-      const result = await this.callOllamaStructured(messages, VerifyCarSchema, "Vision verification", trace, 'vision_verification');
+      const result = await this.callOllamaStructured(messages, VerifyCarSchema, trace, 'vision_verification');
       
       const isValid = (result.modelConfidence > 0.8) && (result.textConfidence < 0.2);
       
@@ -451,7 +449,6 @@ async verifyOllama(): Promise<boolean> {
     return this.callOllamaStructured(
       messages,
       CarSuggestionsSchema,
-      'Car suggestions based on user context and previous interactions',
       trace,
       'suggestion_generation',
       modelOverride
@@ -475,7 +472,6 @@ async verifyOllama(): Promise<boolean> {
     return this.callOllamaStructured(
       messages,
       ElaborationSchema,
-      'Detailed elaboration of car information with technical specifications and use cases',
       trace,
       'content_elaboration',
       modelOverride
@@ -499,7 +495,6 @@ async verifyOllama(): Promise<boolean> {
     return this.callOllamaStructured(
       messages,
       JudgeVerdictSchema,
-      'Comprehensive evaluation with scoring and justification',
       trace,
       'decision_evaluation',
       modelOverride

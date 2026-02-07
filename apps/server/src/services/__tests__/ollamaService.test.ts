@@ -41,7 +41,7 @@ describe('OllamaService', () => {
       } as any);
 
       const messages = [{ role: 'user', content: 'test' }];
-      const result = await ollamaService.callOllamaStructured(messages, TestSchema, "Test schema", undefined, 'test-operation');
+      const result = await ollamaService.callOllamaStructured(messages, TestSchema, undefined, 'test-operation');
 
       expect(result).toEqual({ test: true });
       expect(fetch).toHaveBeenCalled();
@@ -55,20 +55,20 @@ describe('OllamaService', () => {
       } as any);
 
       const messages = [{ role: 'user', content: 'test' }];
-      await expect(ollamaService.callOllamaStructured(messages, TestSchema, "Test schema")).rejects.toThrow(OllamaError);
+      await expect(ollamaService.callOllamaStructured(messages, TestSchema)).rejects.toThrow(OllamaError);
     });
 
     it('should throw OllamaError if connection fails', async () => {
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
 
       const messages = [{ role: 'user', content: 'test' }];
-      await expect(ollamaService.callOllamaStructured(messages, TestSchema, "Test schema")).rejects.toThrow('Ollama Problem. Network error');
+      await expect(ollamaService.callOllamaStructured(messages, TestSchema)).rejects.toThrow('Ollama Problem. Network error');
     });
 
     it('should handle non-Error objects in catch block', async () => {
         vi.mocked(fetch).mockRejectedValue('String error');
         const messages = [{ role: 'user', content: 'test' }];
-        await expect(ollamaService.callOllamaStructured(messages, TestSchema, "Test schema")).rejects.toThrow('Ollama Problem. String error');
+        await expect(ollamaService.callOllamaStructured(messages, TestSchema)).rejects.toThrow('Ollama Problem. String error');
         expect(logger.error).not.toHaveBeenCalled(); // Generation handles it now
     });
   });

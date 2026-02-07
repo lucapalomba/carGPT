@@ -42,20 +42,7 @@ describe('ConversationService', () => {
     expect(conversationService.get(sessionId)).toBeUndefined();
   });
 
-  it('should return all conversations', () => {
-    const session1 = 's1';
-    const session2 = 's2';
-    conversationService.getOrInitialize(session1);
-    conversationService.getOrInitialize(session2);
-    
-    const all = conversationService.getAll();
-    expect(all.length).toBeGreaterThanOrEqual(2);
-    expect(all.some(([id]: [string, any]) => id === session1)).toBe(true);
-    expect(all.some(([id]: [string, any]) => id === session2)).toBe(true);
-    
-    conversationService.delete(session1);
-    conversationService.delete(session2);
-  });
+
 
   it('should return the correct count', () => {
     const initialCount = conversationService.count();

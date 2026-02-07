@@ -41,7 +41,6 @@ describe('JudgeService', () => {
             })
         ]),
         JudgeVerdictSchema,
-        "Judge evaluation returning a verdict and score",
         undefined,
         'judge_evaluation'
       );

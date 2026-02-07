@@ -34,7 +34,6 @@ const messages: OllamaMessage[] = [
       const result = await this.ollamaService.callOllamaStructured(
         messages, 
         CarSuggestionsSchema,
-        "Car suggestions",
         trace, 
         'car_suggestions'
       );

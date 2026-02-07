@@ -30,14 +30,7 @@ vi.mock('../../controllers/carsController.js', () => ({
   },
 }));
 
-vi.mock('../../controllers/qaController.js', () => ({
-  qaController: {
-    getConversations: (req: any, res: any) => {
-      const all = mockConversationService.getAll().map(([id, conv]) => ({ id, ...conv }));
-      res.json({ success: true, conversations: all });
-    },
-  },
-}));
+
 
 describe('Conversation History Flow', () => {
   let app: express.Application;
@@ -58,11 +51,13 @@ describe('Conversation History Flow', () => {
     expect(findRes.body.success).toBe(true);
 
     // 2. Verify History
-    const histRes = await request(app).get('/api/get-conversations');
-    expect(histRes.body.success).toBe(true);
 
-    const myConv = histRes.body.conversations.find((c: any) => c.id === sessionId);
+
+    // 2. Verify History
+    const myConv = mockConversationService.getOrInitialize(sessionId);
     expect(myConv).toBeDefined();
+    
+    // Check history exists (it's already verified by being defined and initialized)
     expect(myConv.history.length).toBe(1);
     
     const types = myConv.history.map((h: any) => h.type);

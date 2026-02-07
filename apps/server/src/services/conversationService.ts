@@ -84,9 +84,7 @@ export class ConversationService implements IConversationService {
    * 
    * @returns {Array<[string, Conversation]>} Array of [sessionId, conversation] entries
    */
-  getAll(): [string, Conversation][] {
-    return Array.from(this.conversations.entries());
-  }
+
 
   /**
    * Returns the count of active conversations.

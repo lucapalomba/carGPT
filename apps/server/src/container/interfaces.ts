@@ -14,7 +14,7 @@ export interface IConversationService {
   get(sessionId: string): Conversation | undefined;
   getOrInitialize(sessionId: string): Conversation;
   delete(sessionId: string): void;
-  getAll(): [string, Conversation][];
+
   count(): number;
 }
 
@@ -28,7 +28,7 @@ export interface IOllamaService {
   verifyOllama(): Promise<boolean>;
   verifyImageContainsCar(carInfo: string, year: string | number, imageUrl: string, trace: any): Promise<boolean>;
   closeConnections(): void;
-  callOllamaStructured<T>(messages: any[], schema: any, schemaDescription: string, trace?: any, operationName?: string, modelOverride?: string): Promise<T>;
+  callOllamaStructured<T>(messages: any[], schema: any, trace?: any, operationName?: string, modelOverride?: string): Promise<T>;
   // Structured output methods
   analyzeIntent(query: string, trace?: any, modelOverride?: string): Promise<any>;
   generateSuggestions(context: string, trace?: any, modelOverride?: string): Promise<any>;

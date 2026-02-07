@@ -19,10 +19,7 @@ interface OllamaConfig {
   };
 }
 
-interface SessionConfig {
-  secret: string;
-  cookie: { maxAge: number };
-}
+
 
 interface GoogleSearchConfig {
   apiKey?: string;
@@ -40,7 +37,7 @@ interface AppConfig {
   aiProvider: string;
   mode: string;
   isProduction: boolean;
-  session: SessionConfig;
+
   googleSearch: GoogleSearchConfig;
   carouselImageLength: number;
   maxInterestingPropertiesCount: number;
@@ -101,10 +98,7 @@ ollama: {
   aiProvider: process.env.AI_PROVIDER || 'ollama',
   mode: process.env.APP_ENV || process.env.NODE_ENV || 'development',
   isProduction: (process.env.APP_ENV || process.env.NODE_ENV) === 'production',
-  session: {
-    secret: process.env.SESSION_SECRET || 'cargpt-secret-key-change-in-production',
-    cookie: { maxAge: 3600000 }
-  },
+
   googleSearch: {
     apiKey: process.env.GOOGLE_API_KEY,
     cx: process.env.GOOGLE_CX
@@ -127,9 +121,7 @@ carouselImageLength: process.env.CAROUSEL_IMAGES_LENGTH !== undefined ? Number(p
 export const validateConfig = (): void => {
   const requiredEnvVars = [];
   
-  if (config.isProduction && config.session.secret === 'cargpt-secret-key-change-in-production') {
-    requiredEnvVars.push('SESSION_SECRET');
-  }
+
   
   if (!config.ollama.url) {
     requiredEnvVars.push('OLLAMA_URL');

@@ -35,7 +35,6 @@ export class JudgeService implements IJudgeService {
           { role: 'system', content: jsonGuard }
         ],
         JudgeVerdictSchema,
-        "Judge evaluation returning a verdict and score",
         trace,
         'judge_evaluation'
       );

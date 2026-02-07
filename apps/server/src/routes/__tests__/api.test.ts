@@ -18,11 +18,7 @@ vi.mock('../../controllers/healthController.js', () => ({
   },
 }));
 
-vi.mock('../../controllers/qaController.js', () => ({
-  qaController: {
-    getConversations: (req: any, res: any) => res.json({ success: true, conversations: [] }),
-  },
-}));
+
 
 describe('API Integration Tests', () => {
   let app: express.Application;
@@ -65,9 +61,5 @@ describe('API Integration Tests', () => {
     expect(response.body.success).toBe(true);
   });
 
-  it('GET /api/get-conversations (dev only) should return success', async () => {
-    const response = await request(app).get('/api/get-conversations');
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-  });
+
 });

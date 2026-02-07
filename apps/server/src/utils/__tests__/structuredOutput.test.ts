@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { StructuredOutputValidator, SCHEMA_DESCRIPTIONS, DEFAULT_VALIDATION_OPTIONS } from '../structuredOutput.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { StructuredOutputValidator, DEFAULT_VALIDATION_OPTIONS } from '../structuredOutput.js';
 import * as z_module from 'zod';
 const { z } = z_module as any;
 
@@ -84,46 +84,7 @@ describe('StructuredOutputValidator', () => {
   });
 });
 
-describe('SCHEMA_DESCRIPTIONS', () => {
-  it('should contain all expected schema descriptions', () => {
-    const expectedKeys = [
-      'CAR_SUGGESTIONS',
-      'ELABORATION',
-      'SEARCH_INTENT',
-      'VERIFY_CAR',
-      'ANALYSIS_TRANSLATION',
-      'JUDGE_VERDICT'
-    ];
 
-    expectedKeys.forEach(key => {
-      expect(SCHEMA_DESCRIPTIONS).toHaveProperty(key);
-    });
-  });
-
-  it('should have valid JSON structure in descriptions', () => {
-    const testDescriptions = [
-        'CAR_SUGGESTIONS',
-        'SEARCH_INTENT',
-        'VERIFY_CAR',
-        'ANALYSIS_TRANSLATION',
-        'JUDGE_VERDICT'
-    ];
-
-    testDescriptions.forEach(key => {
-      const description = SCHEMA_DESCRIPTIONS[key as keyof typeof SCHEMA_DESCRIPTIONS];
-      const jsonMatch = description.match(/\{[\s\S]*\}/);
-      
-      if (jsonMatch) {
-        try {
-          JSON.parse(jsonMatch[0]);
-        } catch (e) {
-          console.error(`Invalid JSON in ${key}:`, jsonMatch[0]);
-          throw e;
-        }
-      }
-    });
-  });
-});
 
 describe('DEFAULT_VALIDATION_OPTIONS', () => {
   it('should have correct default values', () => {

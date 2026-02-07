@@ -3,7 +3,7 @@ import {
   setupDevelopmentFeatures, 
   setupProductionFeatures, 
   configureLogging, 
-  getSessionConfig, 
+
   getCorsConfig 
 } from '../environment.js';
 
@@ -11,10 +11,7 @@ import {
 vi.mock('../index.js', () => ({
   config: {
     isProduction: false,
-    session: {
-      secret: 'test-secret',
-      cookie: { maxAge: 3600000 }
-    }
+
   }
 }));
 
@@ -87,24 +84,7 @@ describe('environment', () => {
     });
   });
 
-  describe('getSessionConfig', () => {
-    it('should return base config in development', async () => {
-      const { config } = await import('../index.js');
-      config.isProduction = false;
-      
-      const result = getSessionConfig();
-      expect(result).toEqual(config.session);
-    });
 
-    it('should return secure config in production', async () => {
-      const { config } = await import('../index.js');
-      config.isProduction = true;
-      
-      const result = getSessionConfig() as any;
-      expect(result.cookie.secure).toBe(true);
-      expect(result.cookie.httpOnly).toBe(true);
-    });
-  });
 
   describe('getCorsConfig', () => {
     it('should return permissive config in development', async () => {

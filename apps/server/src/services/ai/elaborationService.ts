@@ -40,7 +40,6 @@ export class ElaborationService implements IElaborationService {
             const result = await this.ollamaService.callOllamaStructured(
               messages,
               ElaborationSchema,
-              "Elaborated car details",
               trace,
               `elaborate_${carChoice.make}_${carChoice.model}`
             );
@@ -77,7 +76,6 @@ export class ElaborationService implements IElaborationService {
             const result = await this.ollamaService.callOllamaStructured(
               messages,
               ElaborationSchema,
-              "Elaborated car details",
               trace,
               `elaborate_${carChoice.make}_${carChoice.model}`
             );

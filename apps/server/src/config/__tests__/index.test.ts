@@ -22,7 +22,7 @@ describe('Configuration Module - Basic Structure', () => {
     expect(config).toHaveProperty('aiProvider');
     expect(config).toHaveProperty('mode');
     expect(config).toHaveProperty('isProduction');
-    expect(config).toHaveProperty('session');
+
     expect(config).toHaveProperty('googleSearch');
     expect(config).toHaveProperty('carouselImageLength');
     expect(config).toHaveProperty('vision');
@@ -63,18 +63,7 @@ describe('Configuration Module - Basic Structure', () => {
     expect(typeof models.vision).toBe('string');
   });
 
-  it('should have correct session config structure', () => {
-    expect(config.session).toBeDefined();
-    expect(typeof config.session).toBe('object');
-    
-    expect(config.session).toHaveProperty('secret');
-    expect(config.session).toHaveProperty('cookie');
-    expect(config.session).toHaveProperty('cookie.maxAge');
-    
-    expect(typeof config.session.secret).toBe('string');
-    expect(typeof config.session.cookie).toBe('object');
-    expect(typeof config.session.cookie.maxAge).toBe('number');
-  });
+
 
   it('should have correct vision config structure', () => {
     expect(config.vision).toBeDefined();
@@ -110,7 +99,7 @@ describe('Configuration Module - Type Conversion', () => {
     expect(typeof config.ollama.url).toBe('string');
     expect(typeof config.ollama.model).toBe('string');
     expect(typeof config.ollama.options).toBe('string');
-    expect(typeof config.session.secret).toBe('string');
+
   });
 });
 
