@@ -107,8 +107,21 @@ describe('AIService', () => {
 
       const result = await aiService.refineCarsWithImages('feedback', 'en', 'sess', 'context', []);
       
-      expect(mockIntentService.determineSearchIntent).toHaveBeenCalled();
-      expect(mockSuggestionService.getCarSuggestions).toHaveBeenCalledWith(mockIntent, 'feedback', 'context', expect.anything());
+      const expectedRefinementContext = [
+        '# REFINEMENT CONTEXT',
+        'context',
+        '',
+        '# LATEST FEEDBACK',
+        'feedback'
+      ].join('\n');
+
+      expect(mockIntentService.determineSearchIntent).toHaveBeenCalledWith(expectedRefinementContext, 'en', expect.anything());
+      expect(mockSuggestionService.getCarSuggestions).toHaveBeenCalledWith(
+        mockIntent, 
+        expectedRefinementContext, 
+        '', 
+        expect.anything()
+      );
       expect(result.cars).toEqual([]);
       expect(result.searchIntent).toEqual(mockIntent);
       expect(result.suggestions).toEqual(mockSuggestions);
@@ -132,9 +145,18 @@ describe('AIService', () => {
 
       const result = await aiService.refineCarsWithImages('electric only', 'en', 'sess', 'context', pinnedCars as any);
       
+      const expectedRefinementContext = [
+        '# REFINEMENT CONTEXT',
+        'context',
+        '',
+        '# LATEST FEEDBACK',
+        'electric only'
+      ].join('\n');
+
+      expect(mockIntentService.determineSearchIntent).toHaveBeenCalledWith(expectedRefinementContext, 'en', expect.anything());
       expect(mockSuggestionService.getCarSuggestions).toHaveBeenCalledWith(
         mockIntent, 
-        'electric only', 
+        expectedRefinementContext, 
         expect.stringContaining('Tesla Model 3 (2022)'), 
         expect.anything()
       );
