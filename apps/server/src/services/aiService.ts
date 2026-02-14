@@ -1,5 +1,5 @@
-import { 
-  SERVICE_IDENTIFIERS, 
+import {
+  SERVICE_IDENTIFIERS,
   IOllamaService,
   ICacheService,
   IIntentService,
@@ -31,8 +31,8 @@ export class AIService implements IAIService {
     @inject(SERVICE_IDENTIFIERS.TRANSLATION_SERVICE) private translationService: ITranslationService,
     @inject(SERVICE_IDENTIFIERS.ENRICHMENT_SERVICE) private enrichmentService: IEnrichmentService,
     @inject(SERVICE_IDENTIFIERS.JUDGE_SERVICE) private judgeService: IJudgeService
-  ) {}
-  
+  ) { }
+
   async findCarsWithImages(requirements: string, language: string, sessionId: string): Promise<SearchResponse> {
     // Temporarily remove availability check to test the flow
     logger.debug('AI Service: Starting findCarsWithImages...');
@@ -43,26 +43,26 @@ export class AIService implements IAIService {
       metadata: { model: config.ollama.model, environment: config.mode },
       input: requirements,
     });
-    
+
     try {
-      const searchIntent = await this.withRetry('determineSearchIntent', () => 
+      const searchIntent = await this.withRetry('determineSearchIntent', () =>
         this.intentService.determineSearchIntent(requirements, language, trace)
       );
-      const suggestions = await this.withRetry('getCarSuggestions', () => 
+      const suggestions = await this.withRetry('getCarSuggestions', () =>
         this.suggestionService.getCarSuggestions(searchIntent, requirements, '', trace)
       );
-      const elaboratedCars = await this.withRetry('elaborateCars', () => 
+      const elaboratedCars = await this.withRetry('elaborateCars', () =>
         this.elaborationService.elaborateCars(suggestions.choices, searchIntent, trace)
       );
-      
-      const translatedResults = await this.withRetry('translateResults', () => 
+
+      const translatedResults = await this.withRetry('translateResults', () =>
         this.translationService.translateResults(
-          { analysis: suggestions.analysis, cars: elaboratedCars }, 
+          { analysis: suggestions.analysis, cars: elaboratedCars },
           language,
           trace
         )
       );
-      const enrichedCars = await this.withRetry('enrichCarsWithImages', () => 
+      const enrichedCars = await this.withRetry('enrichCarsWithImages', () =>
         this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace)
       );
 
@@ -78,16 +78,16 @@ export class AIService implements IAIService {
       let judgeResult = null;
       try {
         judgeResult = await this.judgeService.evaluateResponse(
-            requirements,
-            result, 
-            language,
-            trace
+          requirements,
+          result,
+          language,
+          trace
         );
       } catch (judgeError) {
         console.warn('Judge evaluation failed silently:', judgeError);
       }
 
-      trace.update({ 
+      trace.update({
         output: result,
         metadata: {
           model: config.ollama.model,
@@ -108,7 +108,7 @@ export class AIService implements IAIService {
       throw error;
     }
   }
-  
+
   async refineCarsWithImages(feedback: string, language: string, sessionId: string, fullContext: string, pinnedCars: Car[] = []): Promise<SearchResponse> {
     const trace = langfuse.trace({
       name: "refine_cars_API",
@@ -116,40 +116,47 @@ export class AIService implements IAIService {
       metadata: { model: config.ollama.model, environment: config.mode },
       input: feedback,
     });
-    
+
     try {
-      const searchIntent = await this.withRetry('determineSearchIntent', () => 
-        this.intentService.determineSearchIntent(feedback, language, trace)
+      // Structure the context to anchor refinement on the initial consideration
+      const refinementContext = `
+# REFINEMENT CONTEXT
+${fullContext}
+
+# LATEST FEEDBACK
+${feedback}
+`.trim();
+
+      const searchIntent = await this.withRetry('determineSearchIntent', () =>
+        this.intentService.determineSearchIntent(refinementContext, language, trace)
       );
-      
+
       // Incorporate pinned cars into the context
-      const pinnedCarsPrompt = pinnedCars.length > 0 
+      const pinnedCarsPrompt = pinnedCars.length > 0
         ? `The user has pinned the following cars: ${pinnedCars.map(c => `${c.make} ${c.model} (${c.year})`).join(', ')}. Keep these in mind while refining the search.`
         : '';
-      
-      const combinedContext = [fullContext, pinnedCarsPrompt].filter(Boolean).join('\n\n');
-      
-      const suggestions = await this.withRetry('getCarSuggestions', () => 
-        this.suggestionService.getCarSuggestions(searchIntent, feedback, combinedContext, trace)
+
+      const suggestions = await this.withRetry('getCarSuggestions', () =>
+        this.suggestionService.getCarSuggestions(searchIntent, refinementContext, pinnedCarsPrompt, trace)
       );
-      
+
       // Combine pinned cars with new suggestions for elaboration
       const combinedCars = [
         ...pinnedCars.map(c => ({ ...c, pinned: true })),
         ...suggestions.choices
       ];
-      
-      const elaboratedCars = await this.withRetry('elaborateCars', () => 
+
+      const elaboratedCars = await this.withRetry('elaborateCars', () =>
         this.elaborationService.elaborateCars(combinedCars, searchIntent, trace)
       );
-      const translatedResults = await this.withRetry('translateResults', () => 
+      const translatedResults = await this.withRetry('translateResults', () =>
         this.translationService.translateResults(
-          { analysis: suggestions.analysis, cars: elaboratedCars }, 
-          language, 
+          { analysis: suggestions.analysis, cars: elaboratedCars },
+          language,
           trace
         )
       );
-      const enrichedCars = await this.withRetry('enrichCarsWithImages', () => 
+      const enrichedCars = await this.withRetry('enrichCarsWithImages', () =>
         this.enrichmentService.enrichCarsWithImages(translatedResults.cars, trace)
       );
 
@@ -167,18 +174,18 @@ export class AIService implements IAIService {
         // User requested that refinement evaluation includes initial request and all refinements
         // fullContext contains the conversation history
         const judgeContext = `Current Feedback: ${feedback}\n\nConversation History:\n${fullContext}`;
-        
+
         judgeResult = await this.judgeService.evaluateResponse(
-            judgeContext,
-            result,
-            language,
-            trace
+          judgeContext,
+          result,
+          language,
+          trace
         );
       } catch (judgeError) {
-         console.warn('Judge evaluation failed silently during refinement:', judgeError);
+        console.warn('Judge evaluation failed silently during refinement:', judgeError);
       }
 
-      trace.update({ 
+      trace.update({
         output: result,
         metadata: {
           model: config.ollama.model,
@@ -199,7 +206,7 @@ export class AIService implements IAIService {
       throw error;
     }
   }
-  
+
   private async withRetry<T>(taskName: string, operation: () => Promise<T>): Promise<T> {
     const maxRetries = config.aiRetryCount;
     let lastError: any;
@@ -224,11 +231,11 @@ export class AIService implements IAIService {
   async verify(): Promise<boolean> {
     return await this.ollamaService.verifyOllama();
   }
-  
+
   clearCache(): void {
     this.cache.clear();
   }
-  
+
   getCacheStats(): { size: number; keys: string[] } {
     return this.cache.getCacheStats();
   }

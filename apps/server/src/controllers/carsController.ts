@@ -161,15 +161,26 @@ function extractConversationContext(conversation: Conversation): string {
     originalRequirements = "User is looking for a car.";
   }
 
-  const contextParts = [`Original Request: "${originalRequirements}"`];
+  const contextParts = [`### Initial Request\n"${originalRequirements}"`];
 
   if (conversation.history) {
     conversation.history.forEach((h: ConversationHistoryItem, index: number) => {
-      if (h.type === 'refine-search' && h.data.feedback) {
-        contextParts.push(`Refinement Step ${index + 1}: "${h.data.feedback}"`);
+      const stepLabel = `Refinement Step ${index + 1}`;
+      
+      if (h.type === 'find-cars' && h.data.result?.cars) {
+        const cars = h.data.result.cars.map((c: any) => `${c.make} ${c.model} (${c.year})`).join(', ');
+        contextParts.push(`### Assistant Suggestions (Initial):\n${cars}`);
+      } else if (h.type === 'refine-search') {
+        if (h.data.feedback) {
+          contextParts.push(`### User feedback (${stepLabel}):\n"${h.data.feedback}"`);
+        }
+        if (h.data.result?.cars) {
+          const cars = h.data.result.cars.map((c: any) => `${c.make} ${c.model} (${c.year})`).join(', ');
+          contextParts.push(`### Assistant Suggestions (${stepLabel}):\n${cars}`);
+        }
       }
     });
   }
 
-  return contextParts.join('\n');
+  return contextParts.join('\n\n');
 }

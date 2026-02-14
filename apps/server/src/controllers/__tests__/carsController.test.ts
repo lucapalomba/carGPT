@@ -110,8 +110,42 @@ describe('carsController', () => {
         await carsController.refineSearch(req, res, vi.fn());
 
         expect(container.get).toHaveBeenCalledWith(SERVICE_IDENTIFIERS.AI_SERVICE);
-        expect(mockAIService.refineCarsWithImages).toHaveBeenCalled();
+        expect(mockAIService.refineCarsWithImages).toHaveBeenCalledWith(
+          'I want it in Red',
+          'en',
+          'session-123',
+          expect.stringContaining('### Initial Request\n"electric"'),
+          expect.any(Array)
+        );
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+    });
+
+    it('should include assistant suggestions in the context', async () => {
+        req.body.feedback = 'Ok for these models';
+        const mockConversation = { 
+            history: [
+                { 
+                  type: 'find-cars', 
+                  data: { 
+                    requirements: 'SUV', 
+                    result: { cars: [{ make: 'Toyota', model: 'RAV4', year: 2022 }] } 
+                  } 
+                }
+            ],
+            requirements: 'SUV'
+        };
+        mockConversationService.get.mockReturnValue(mockConversation);
+        mockAIService.refineCarsWithImages.mockResolvedValue({ cars: [] });
+
+        await carsController.refineSearch(req, res, vi.fn());
+
+        expect(mockAIService.refineCarsWithImages).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+          expect.stringContaining('### Assistant Suggestions (Initial):\nToyota RAV4 (2022)'),
+          expect.anything()
+        );
     });
   });
 
