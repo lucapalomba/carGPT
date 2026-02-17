@@ -5,7 +5,17 @@ All notable changes to CarGPT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased] - 2026-01-31
+## [v2.3] - 2026-02-17
+
+### 🎨 UI/UX Refactoring & Excellence
+- **Compound Component Refactor**: Refactored `InitialForm` into compound components (`Root`, `Header`, `Input`, `Examples`, `Submit`) for better scalability and flexibility.
+- **Web Interface Excellence**: 
+  - Fixed **Cumulative Layout Shift (CLS)** by adding explicit dimensions to the logo.
+  - Improved **Accessibility** with explicit button types and `touch-action: manipulation`.
+  - Refined **Typography** using proper ellipsis character `…` and `tabular-nums` for data alignment.
+  - Enhanced **Image Carousel** with better keyboard navigation and screen reader support.
+
+## [v2.2.1] - 2026-01-31
 
 ### 🚀 Features
 - **Sequential Promise Execution**: Added a `SEQUENTIAL_PROMISE_EXECUTION` environment variable to enforce sequential promise execution. This can improve performance and precision with smaller, local LLMs.
