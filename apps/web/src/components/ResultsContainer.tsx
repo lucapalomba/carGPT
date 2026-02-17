@@ -78,7 +78,7 @@ const handleRefine = () => {
                 p={4}
                 variant="outline"
                 borderColor="border.emphasized"
-                placeholder="e.g. 'Too expensive', 'I prefer German cars'..."
+                placeholder="e.g. 'Too expensive', 'I prefer German cars'…"
                 value={refineInput}
                 onChange={(e) => setRefineInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleRefine()}

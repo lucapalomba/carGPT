@@ -61,6 +61,7 @@ return (
       borderRadius="lg" 
       bg="bg.subtle"
       tabIndex={0} // Make focusable for keyboard access
+      touchAction="manipulation"
       aria-label={`Image carousel ${currentIndex + 1} of ${images.length}`}
       aria-roledescription="carousel"
     >
@@ -76,7 +77,7 @@ return (
       
       {images.length > 1 && (
         <>
-<IconButton
+          <IconButton
             aria-label="Previous image"
             onClick={prevSlide}
             onKeyDown={(e) => {
@@ -98,7 +99,7 @@ return (
             _groupHover={{ opacity: 1 }}
             transition="opacity 0.2s"
           >
-            <Text fontSize="lg">←</Text>
+            <Text fontSize="lg" aria-hidden="true">←</Text>
           </IconButton>
           <IconButton
             aria-label="Next image"
@@ -122,7 +123,7 @@ return (
             _groupHover={{ opacity: 1 }}
             transition="opacity 0.2s"
           >
-            <Text fontSize="lg">→</Text>
+            <Text fontSize="lg" aria-hidden="true">→</Text>
           </IconButton>
 <Flex 
             position="absolute" 

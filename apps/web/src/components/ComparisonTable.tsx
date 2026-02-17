@@ -89,6 +89,7 @@ function ComparisonTableHeader() {
                 variant={pinnedIndices.has(i) ? 'solid' : 'surface'}
                 _hover={{ bg: pinnedIndices.has(i) ? 'brand.emphasized' : 'brand.muted' }}
                 aria-label={pinnedIndices.has(i) ? 'Unpin car' : 'Pin car'}
+                touchAction="manipulation"
               >
                 {pinnedIndices.has(i) ? '📌 Pinned' : '📌 Pin'}
               </Button>
@@ -98,7 +99,7 @@ function ComparisonTableHeader() {
             </Text>
             <Text fontSize="xs" fontWeight="light" color="fg">{car.precise_model}</Text>
             <Text color="fg.muted" fontWeight="normal">{car.year}</Text>
-            <ImageCarousel images={car.images || []} />
+            <ImageCarousel images={car.images || []} aria-label={`Images for ${car.make} ${car.model}`} />
           </Table.ColumnHeader>
         ))}
       </Table.Row>
@@ -178,7 +179,7 @@ function ComparisonPriceRow() {
     <ComparisonTableRow feature="Price">
       {cars.map((car, i) => (
         <ComparisonCarCell key={i}>
-          <Text color="brand.emphasized" fontWeight="bold">{car.price}</Text>
+          <Text color="brand.emphasized" fontWeight="bold" fontVariantNumeric="tabular-nums">{car.price}</Text>
         </ComparisonCarCell>
       ))}
     </ComparisonTableRow>
@@ -239,7 +240,9 @@ function ComparisonPropertiesRows() {
           <ComparisonTableRow key={id} feature={label}>
             {cars.map((car, i) => (
               <ComparisonCarCell key={i}>
-                {car.vehicle_properties?.[id]?.value || '-'}
+                <Text fontVariantNumeric="tabular-nums">
+                  {car.vehicle_properties?.[id]?.value || '-'}
+                </Text>
               </ComparisonCarCell>
             ))}
           </ComparisonTableRow>
