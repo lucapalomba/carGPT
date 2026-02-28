@@ -99,7 +99,7 @@ export class CarSearchService {
       );
       
       console.error('CarSearchService: Error in findCars', error);
-      throw new Error('Failed to search for cars. Please try again.');
+      throw new Error('Failed to search for cars. Please try again.', { cause: error });
     }
   }
 
@@ -170,7 +170,7 @@ export class CarSearchService {
       }
       
       console.error('CarSearchService: Error in refineSearch', error);
-      throw new Error('Failed to refine search results. Please try again.');
+      throw new Error('Failed to refine search results. Please try again.', { cause: error });
     }
   }
 
@@ -192,7 +192,7 @@ export class CarSearchService {
       }
     } catch (error) {
       console.error('CarSearchService: Error in resetConversation', error);
-      throw new Error('Failed to reset conversation. Please try again.');
+      throw new Error('Failed to reset conversation. Please try again.', { cause: error });
     }
   }
 

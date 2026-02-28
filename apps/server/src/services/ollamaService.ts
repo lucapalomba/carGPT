@@ -114,7 +114,7 @@ export class OllamaService implements IOllamaService {
       return JSON.parse(cleaned);
     } catch (error) {
       logger.error('Failed to parse JSON response from Ollama', { text, error });
-      throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
     }
   }
 
@@ -387,7 +387,7 @@ export class OllamaService implements IOllamaService {
     try {
       const visionPrompt = this.promptService.loadTemplate('verify-car.md');
       const response = await fetch(imageUrl);
-      if (!response.ok) throw new Error('Failed to fetch image for vision verification');
+      if (!response.ok) throw new Error('Failed to fetch image for vision verification', { cause: new Error(`Status: ${response.status}`) });
 
       const buffer = await response.arrayBuffer();
       const base64Image = Buffer.from(buffer).toString('base64');

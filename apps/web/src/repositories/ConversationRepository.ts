@@ -115,7 +115,7 @@ export class ConversationRepository {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(sortedConversations));
     } catch (error) {
       console.error('ConversationRepository: Error saving conversation', error);
-      throw new Error('Failed to save conversation');
+      throw new Error('Failed to save conversation', { cause: error });
     }
   }
 
@@ -143,7 +143,7 @@ export class ConversationRepository {
       };
     } catch (error) {
       console.error('ConversationRepository: Error finding conversation by ID', error);
-      throw new Error('Failed to find conversation');
+      throw new Error('Failed to find conversation', { cause: error });
     }
   }
 
@@ -169,7 +169,7 @@ export class ConversationRepository {
         }));
     } catch (error) {
       console.error('ConversationRepository: Error finding conversations by session ID', error);
-      throw new Error('Failed to find conversations by session');
+      throw new Error('Failed to find conversations by session', { cause: error });
     }
   }
 
@@ -222,7 +222,7 @@ export class ConversationRepository {
       return conversations.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     } catch (error) {
       console.error('ConversationRepository: Error finding all conversations', error);
-      throw new Error('Failed to retrieve conversations');
+      throw new Error('Failed to retrieve conversations', { cause: error });
     }
   }
 
@@ -257,7 +257,7 @@ export class ConversationRepository {
       await this.save(updatedConversation);
     } catch (error) {
       console.error('ConversationRepository: Error adding message', error);
-      throw new Error('Failed to add message to conversation');
+      throw new Error('Failed to add message to conversation', { cause: error });
     }
   }
 
@@ -292,7 +292,7 @@ export class ConversationRepository {
       await this.save(updatedConversation);
     } catch (error) {
       console.error('ConversationRepository: Error updating conversation data', error);
-      throw new Error('Failed to update conversation data');
+      throw new Error('Failed to update conversation data', { cause: error });
     }
   }
 
@@ -314,7 +314,7 @@ export class ConversationRepository {
       return true;
     } catch (error) {
       console.error('ConversationRepository: Error deleting conversation', error);
-      throw new Error('Failed to delete conversation');
+      throw new Error('Failed to delete conversation', { cause: error });
     }
   }
 
@@ -327,7 +327,7 @@ export class ConversationRepository {
       localStorage.removeItem(this.STORAGE_KEY);
     } catch (error) {
       console.error('ConversationRepository: Error clearing all conversations', error);
-      throw new Error('Failed to clear all conversations');
+      throw new Error('Failed to clear all conversations', { cause: error });
     }
   }
 
@@ -379,7 +379,7 @@ export class ConversationRepository {
       };
     } catch (error) {
       console.error('ConversationRepository: Error getting stats', error);
-      throw new Error('Failed to get conversation statistics');
+      throw new Error('Failed to get conversation statistics', { cause: error });
     }
   }
 

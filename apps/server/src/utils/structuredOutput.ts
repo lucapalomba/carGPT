@@ -30,7 +30,7 @@ export class StructuredOutputValidator {
       return this.cleanSchema(jsonSchema);
     } catch (error) {
       console.error('Schema conversion error:', error);
-      throw new Error(`Failed to convert schema: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to convert schema: ${error instanceof Error ? error.message : 'Unknown error'}`, { cause: error });
     }
   }
   

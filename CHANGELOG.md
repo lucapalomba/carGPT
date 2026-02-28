@@ -5,6 +5,13 @@ All notable changes to CarGPT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.3.1] - 2026-02-28
+
+### 🔧 Technical Improvements
+- **Linting Excellence**: Resolved 15 `preserve-caught-error` violations across `apps/server` and `apps/web`.
+- **Enhanced Error Tracking**: Updated `AppError` hierarchy in the server to support the `cause` property for better debugging.
+- **Agent Rules**: Implemented mandatory auto-skill execution and Windows command format rules in `agents.md`.
+
 ## [v2.3] - 2026-02-17
 
 ### 🎨 UI/UX Refactoring & Excellence
