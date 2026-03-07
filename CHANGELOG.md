@@ -157,6 +157,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🚀 Features
+- **Rate Limiting (Issue #13)**: Implemented comprehensive rate limiting using `express-rate-limit` and `express-slow-down` middleware
+  - Per-endpoint rate limits (find-cars: 10/15min, compare-cars: 20/15min, ask-about-car: 30/15min, etc.)
+  - Global rate limit protection (100 requests/15 min)
+  - Slow down middleware for gradual response delay
+  - Ollama request queue to prevent AI service overload
+  - Standard rate limit headers (RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset)
+  - HTTP 429, 503, and 504 error responses with retry information
+
 ### Planned Features
 - [ ] Car images integration
 - [ ] Price range filters

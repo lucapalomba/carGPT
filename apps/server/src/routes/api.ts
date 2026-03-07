@@ -1,23 +1,40 @@
 import express from 'express';
 import { carsController } from '../controllers/carsController.js';
-
 import { healthController } from '../controllers/healthController.js';
-
+import {
+  globalLimiter,
+  findCarsLimiter,
+  refineSearchLimiter,
+  conversationLimiter,
+  healthLimiter,
+  apiSlowDown
+} from '../middleware/rateLimiter.js';
+import { queueOllamaRequest } from '../middleware/requestQueue.js';
 
 const router = express.Router();
 
-/**
- * Car Operations (Search, Refine, Compare, Q&A)
- */
-router.post('/find-cars', carsController.findCars);
-router.post('/refine-search', carsController.refineSearch);
-router.post('/reset-conversation', carsController.resetConversation);
+router.use(apiSlowDown);
 
+router.post('/find-cars',
+  globalLimiter,
+  findCarsLimiter,
+  queueOllamaRequest,
+  carsController.findCars
+);
 
+router.post('/refine-search',
+  globalLimiter,
+  refineSearchLimiter,
+  queueOllamaRequest,
+  carsController.refineSearch
+);
 
-/**
- * System Health
- */
-router.get('/health', healthController.checkHealth);
+router.post('/reset-conversation',
+  globalLimiter,
+  conversationLimiter,
+  carsController.resetConversation
+);
+
+router.get('/health', healthLimiter, healthController.checkHealth);
 
 export default router;
