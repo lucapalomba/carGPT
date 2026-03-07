@@ -50,6 +50,12 @@ CarGPT uses AI to:
 
 This project was born as an exercise to explore how modern AI tools can create dynamic user interfaces. Instead of a traditional static table filled with potentially irrelevant data, the goal is to provide a conversational experience that adapts specifically to the user's prompt and needs.
 
+### 🤖 AI-Driven Development
+
+As the project and the global AI landscape have evolved, so has the developer's awareness of available tooling. This repository is currently developed using a dual-AI asset strategy:
+- **Gemini via Antigravity**: Primary agent for architectural planning, orchestration logic, and complex reasoning.
+- **OpenCode (BigPickle)**: Used for various specialized development tasks, leveraging the BigPickle model for high-efficiency coding and refinement.
+
 ---
 
 ## ✨ Features

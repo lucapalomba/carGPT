@@ -44,7 +44,7 @@ To collaborate effectively, it's important to understand the specialized agents 
 ## 🔄 How We Collaborate
 
 ### 1. Shared Understanding
-The Assistant should always refer to this `agents.md` to ensure it follows the latest architectural patterns and project rules.
+The Assistant should always refer to this `agents.md` to ensure it follows the latest architectural patterns and project rules. The development process is powered by a strategic combination of **Gemini (Antigravity)** for reasoning and **OpenCode (BigPickle)** for specialized implementation tasks.
 
 ### 2. Feedback Loops
 - The **Judge Agent** provides automated feedback on the LLM flow.
