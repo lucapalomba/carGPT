@@ -6,9 +6,9 @@ This file serves as the primary coordination point between **The User** and **Th
 
 These rules are strictly enforced for the AI Assistant (me) and have been previously verified by the user.
 
-1.  **Auto-Skill Execution**: After every code modification or task completion, the following skills in `.gemini/skills` must be executed:
-    - `update_check_skill`: Verifies documentation (`docs/`), `swagger.json`, and `changelog.md`.
-    -  `coverage_check_skill`: Runs coverage tests and ensures external APIs are mocked.
+1.  **Automation**: After every code modification or task completion, automatically invoke subagents:
+    - `@code-reviewer`: Review changes for quality and standards
+    - `@docs-auditor`: Ensure documentation, swagger.json, and changelog.md are synchronized
 2.  **Windows Command Format**: All local commands (e.g., `dir`, `copy`, `del`) MUST strictly use Windows format (PowerShell/CMD).
 3.  **Language Consistency**: Regardless of the user's input language, all assistant responses, comments, and project documentation must be written in **Plain English**.
 4.  **Agentic Best Practices**:
@@ -60,3 +60,36 @@ We use **Langfuse** as our shared "brain dump" to debug agent collaborations. Ev
 For detailed development standards, refer to the component-specific rules:
 - **Server**: [apps/server/agents.md](file:///d:/PROJECTS/carGPT/apps/server/agents.md)
 - **Web**: [apps/web/agents.md](file:///d:/PROJECTS/carGPT/apps/web/agents.md)
+
+---
+
+## 🤖 OpenCode Subagents (Automation)
+
+This project uses specialized subagents for automated workflows. See [.opencode/agents/](.opencode/agents/) for agent definitions.
+
+### Available Subagents
+
+| Agent | Scope | Purpose |
+| :--- | :--- | :--- |
+| **@project-manager** | Root | Task coordination across apps |
+| **@code-reviewer** | Root | Code quality enforcement |
+| **@docs-auditor** | Root | Documentation sync |
+| **@ai-pipeline-specialist** | Server | LLM/structured outputs |
+| **@api-contracts** | Server | REST/Swagger |
+| **@di-architect** | Server | Inversify DI compliance |
+| **@react-patterns** | Web | React 19 composition |
+| **@design-guardian** | Web | Chakra UI/glassmorphism |
+| **@state-architect** | Web | Service/repository patterns |
+
+### Automation Rules
+
+After every code modification or task completion, automatically invoke these subagents:
+
+1. **@code-reviewer** - Review changes for quality and standards
+2. **@docs-auditor** - Ensure documentation, swagger.json, and changelog.md are synchronized
+
+### Agent Delegation Guidelines
+
+- **Server tasks** → Delegate to: @ai-pipeline-specialist, @api-contracts, @di-architect
+- **Web tasks** → Delegate to: @react-patterns, @design-guardian, @state-architect
+- **Complex features** → Delegate to: @project-manager for coordination
