@@ -77,6 +77,16 @@ class ErrorHandler {
    * Handles HTTP response errors
    */
   async handleResponseError(response: Response, context: string): Promise<void> {
+    if (response.status === 429) {
+      await this.handleRateLimitError(response, context);
+      return;
+    }
+
+    if (response.status === 503) {
+      await this.handleServiceUnavailableError(response, context);
+      return;
+    }
+
     try {
       const data = await response.json();
       const errorMessage = this.extractResponseError(data);
@@ -85,6 +95,85 @@ class ErrorHandler {
       const errorMessage = response.statusText || 'Server communication error';
       this.handleError(errorMessage, context, response);
     }
+  }
+
+  /**
+   * Handles rate limit errors (HTTP 429)
+   */
+  private async handleRateLimitError(response: Response, context: string): Promise<void> {
+    let errorMessage = 'Too many requests. Please wait before trying again.';
+    let retryAfter: string | null = null;
+    let tip: string | null = null;
+
+    try {
+      const data = await response.json();
+      if (data.error) {
+        errorMessage = data.error;
+      }
+      if (data.retryAfter) {
+        retryAfter = data.retryAfter;
+      }
+      if (data.tip) {
+        tip = data.tip;
+      }
+    } catch {
+      retryAfter = response.headers.get('Retry-After');
+    }
+
+    console.warn(`[${context}] Rate limit exceeded`, { 
+      status: response.status, 
+      retryAfter,
+      tip 
+    });
+
+    const displayMessage = retryAfter 
+      ? `${errorMessage} Try again after ${retryAfter}.`
+      : errorMessage;
+    
+    toast.error(displayMessage, {
+      duration: 5000,
+      id: 'rate-limit' // Prevent duplicate toasts
+    });
+
+    if (tip) {
+      setTimeout(() => {
+        toast(tip!, { icon: '💡', duration: 4000 });
+      }, 1000);
+    }
+  }
+
+  /**
+   * Handles service unavailable errors (HTTP 503)
+   */
+  private async handleServiceUnavailableError(response: Response, context: string): Promise<void> {
+    let errorMessage = 'Server is busy. Please try again later.';
+    let retryAfter: string | null = null;
+
+    try {
+      const data = await response.json();
+      if (data.error) {
+        errorMessage = data.error;
+      }
+      if (data.retryAfter) {
+        retryAfter = data.retryAfter;
+      }
+    } catch {
+      retryAfter = response.headers.get('Retry-After');
+    }
+
+    console.warn(`[${context}] Service unavailable`, { 
+      status: response.status, 
+      retryAfter 
+    });
+
+    const displayMessage = retryAfter 
+      ? `${errorMessage} Try again after ${retryAfter}.`
+      : errorMessage;
+    
+    toast.error(displayMessage, {
+      duration: 5000,
+      id: 'service-unavailable'
+    });
   }
 
   /**

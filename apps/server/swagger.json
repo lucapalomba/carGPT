@@ -403,7 +403,7 @@
               }
             }
           },
-          "500": {
+"500": {
             "description": "Internal server error",
             "content": {
               "application/json": {
@@ -431,8 +431,150 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Rate limit exceeded - too many requests",
+            "headers": {
+              "RateLimit-Limit": {
+                "schema": { "type": "integer" },
+                "description": "Maximum number of requests allowed"
+              },
+              "RateLimit-Remaining": {
+                "schema": { "type": "integer" },
+                "description": "Number of requests remaining in the window"
+              },
+              "RateLimit-Reset": {
+                "schema": { "type": "string", "format": "date-time" },
+                "description": "Time when the rate limit resets"
+              },
+              "Retry-After": {
+                "schema": { "type": "integer" },
+                "description": "Seconds to wait before retrying"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Error message explaining rate limit"
+                    },
+                    "retryAfter": {
+                      "type": "string",
+                      "description": "Human-readable retry time"
+                    },
+                    "tip": {
+                      "type": "string",
+                      "description": "Optional suggestion to avoid rate limits"
+                    }
+                  }
+                },
+                "examples": [
+                  {
+                    "success": false,
+                    "error": "Too many AI requests. Please wait before searching again.",
+                    "retryAfter": "15 minutes",
+                    "tip": "Try refining your existing results instead of starting new searches."
+                  }
+                ]
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable - server queue full",
+            "headers": {
+              "Retry-After": {
+                "schema": { "type": "integer" },
+                "description": "Seconds to wait before retrying"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "retryAfter": {
+                      "type": "string",
+                      "description": "Human-readable retry time"
+                    }
+                  }
+                },
+                "examples": [
+                  {
+                    "success": false,
+                    "error": "Server is busy processing requests. Please try again in a moment.",
+                    "retryAfter": "30 seconds"
+                  }
+                ]
+              }
+            }
+          },
+          "504": {
+            "description": "Gateway timeout - AI request took too long",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "Error message"
+                    },
+                    "retryAfter": {
+                      "type": "string",
+                      "description": "Human-readable retry time"
+                    }
+                  }
+                },
+                "examples": [
+                  {
+                    "success": false,
+                    "error": "Request timed out. The AI is taking too long to respond.",
+                    "retryAfter": "60 seconds"
+                  }
+                ]
+              }
+            }
           }
         }
+      }
+    }
+  },
+  "components": {
+    "headers": {
+      "RateLimit-Limit": {
+        "schema": { "type": "integer" },
+        "description": "Maximum number of requests allowed in the time window"
+      },
+      "RateLimit-Remaining": {
+        "schema": { "type": "integer" },
+        "description": "Number of requests remaining in the current window"
+      },
+      "RateLimit-Reset": {
+        "schema": { "type": "string", "format": "date-time" },
+        "description": "Time when the rate limit counter resets"
+      },
+      "Retry-After": {
+        "schema": { "type": "integer" },
+        "description": "Seconds to wait before making another request"
       }
     }
   }

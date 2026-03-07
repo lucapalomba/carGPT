@@ -31,6 +31,53 @@ interface VisionConfig {
   textConfidenceThreshold: number;
 }
 
+interface RateLimitConfig {
+  enabled: boolean;
+  global: {
+    windowMs: number;
+    max: number;
+  };
+  findCars: {
+    windowMs: number;
+    max: number;
+  };
+  compareCars: {
+    windowMs: number;
+    max: number;
+  };
+  askAboutCar: {
+    windowMs: number;
+    max: number;
+  };
+  getAlternatives: {
+    windowMs: number;
+    max: number;
+  };
+  refineSearch: {
+    windowMs: number;
+    max: number;
+  };
+  health: {
+    windowMs: number;
+    max: number;
+  };
+  conversation: {
+    windowMs: number;
+    max: number;
+  };
+  slowDown: {
+    windowMs: number;
+    delayAfter: number;
+    delayMs: number;
+    maxDelayMs: number;
+  };
+  ollamaQueue: {
+    concurrency: number;
+    timeout: number;
+    maxQueueSize: number;
+  };
+}
+
 interface AppConfig {
   port: number;
   ollama: OllamaConfig;
@@ -44,6 +91,7 @@ interface AppConfig {
   vision: VisionConfig;
   sequentialPromiseExecution: boolean;
   aiRetryCount: number;
+  rateLimit: RateLimitConfig;
 }
 
 /**
@@ -113,6 +161,52 @@ carouselImageLength: process.env.CAROUSEL_IMAGES_LENGTH !== undefined ? Number(p
   // Environment-specific overrides
   ...loadEnvironmentConfig(),
   aiRetryCount: Number(process.env.AI_RETRY_COUNT) || 2,
+  rateLimit: {
+    enabled: process.env.RATE_LIMIT_ENABLED !== 'false',
+    global: {
+      windowMs: Number(process.env.RATE_LIMIT_GLOBAL_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.RATE_LIMIT_GLOBAL_MAX) || 100
+    },
+    findCars: {
+      windowMs: Number(process.env.RATE_LIMIT_FIND_CARS_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.RATE_LIMIT_FIND_CARS_MAX) || 10
+    },
+    compareCars: {
+      windowMs: Number(process.env.RATE_LIMIT_COMPARE_CARS_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.RATE_LIMIT_COMPARE_CARS_MAX) || 20
+    },
+    askAboutCar: {
+      windowMs: Number(process.env.RATE_LIMIT_ASK_ABOUT_CAR_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.RATE_LIMIT_ASK_ABOUT_CAR_MAX) || 30
+    },
+    getAlternatives: {
+      windowMs: Number(process.env.RATE_LIMIT_GET_ALTERNATIVES_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.RATE_LIMIT_GET_ALTERNATIVES_MAX) || 20
+    },
+    refineSearch: {
+      windowMs: Number(process.env.RATE_LIMIT_REFINE_SEARCH_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.RATE_LIMIT_REFINE_SEARCH_MAX) || 15
+    },
+    health: {
+      windowMs: Number(process.env.RATE_LIMIT_HEALTH_WINDOW_MS) || 60 * 1000,
+      max: Number(process.env.RATE_LIMIT_HEALTH_MAX) || 100
+    },
+    conversation: {
+      windowMs: Number(process.env.RATE_LIMIT_CONVERSATION_WINDOW_MS) || 15 * 60 * 1000,
+      max: Number(process.env.RATE_LIMIT_CONVERSATION_MAX) || 50
+    },
+    slowDown: {
+      windowMs: Number(process.env.RATE_LIMIT_SLOW_DOWN_WINDOW_MS) || 15 * 60 * 1000,
+      delayAfter: Number(process.env.RATE_LIMIT_SLOW_DOWN_DELAY_AFTER) || 5,
+      delayMs: 100,
+      maxDelayMs: Number(process.env.RATE_LIMIT_SLOW_DOWN_MAX_DELAY_MS) || 2000
+    },
+    ollamaQueue: {
+      concurrency: Number(process.env.OLLAMA_QUEUE_CONCURRENCY) || 3,
+      timeout: Number(process.env.OLLAMA_QUEUE_TIMEOUT) || 60000,
+      maxQueueSize: Number(process.env.OLLAMA_QUEUE_MAX_SIZE) || 20
+    }
+  }
 };
 
 /**
