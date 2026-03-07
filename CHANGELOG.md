@@ -5,7 +5,13 @@ All notable changes to CarGPT will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v2.3.1] - 2026-02-28
+## [v2.4] - 2026-03-07
+
+### 📟 Agent Collaboration & Governance
+- **Enhanced Agent Architecture**: Transformed `agents.md` into a comprehensive architecture document with formal role definitions for specialized AI agents (Intent, Suggestion, Elaboration, Vision, Judge, Translation).
+- **Collaboration Manual**: Blended project-wide governance rules with AI persona documentation to facilitate human-AI pairing.
+- **Component-Specific Rules**: Introduced specialized `agents.md` files in `apps/server` and `apps/web` to codify module-specific architectural patterns (DI, Service Layer, React 19 composition).
+- **Audit & Alignment**: Conducted a full audit of the rules hierarchy to ensured consistency across the monorepo.
 
 ### 🔧 Technical Improvements
 - **Linting Excellence**: Resolved 15 `preserve-caught-error` violations across `apps/server` and `apps/web`.
