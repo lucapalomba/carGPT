@@ -37,7 +37,7 @@
     "@types/express-session": "^1.18.2",
     "@types/morgan": "^1.9.10",
     "@types/node": "^25.4.0",
-    "@types/supertest": "^6.0.3",
+    "@types/supertest": "^7.2.0",
     "@types/swagger-ui-express": "^4.1.8",
     "@vitest/coverage-v8": "^4.1.1",
     "eslint": "^10.0.3",
