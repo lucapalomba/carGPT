@@ -22,7 +22,7 @@
     "express-session": "^1.19.0",
     "inversify": "^8.1.0",
     "langfuse": "^3.38.6",
-    "morgan": "^1.10.1",
+    "morgan": "^1.11.0",
     "p-queue": "^8.0.1",
     "reflect-metadata": "^0.2.2",
     "swagger-ui-express": "^5.0.1",
