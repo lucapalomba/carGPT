@@ -44,7 +44,7 @@ Shopping for a car is overwhelming:
 CarGPT uses AI to:
 1. **Understand** your needs in natural language
 2. **Analyze** the entire car market
-4. **Suggest** 3 personalized recommendations
+3. **Suggest** 3 personalized recommendations
 
 ### 💡 Project Philosophy
 
@@ -158,7 +158,6 @@ You can fine-tune the AI's behavior by modifying the `.env` file:
 |----------|-------------|---------|
 | `VISION_MODEL_CONFIDENCE_THRESHOLD` | Min confidence (0-1) to accept a car match | `0.8` |
 | `VISION_TEXT_CONFIDENCE_THRESHOLD` | Max confidence (0-1) allowed for text/overlays | `0.2` |
-| `VISION_TEXT_CONFIDENCE_THRESHOLD` | Max confidence (0-1) allowed for text/overlays | `0.2` |
 | `CAROUSEL_IMAGES_LENGHT` | Number of images to verify/show per car (max 10) | `1` |
 | `LANGFUSE_PUBLIC_KEY` | Public key for Langfuse tracing | `pk-lf-...` |
 | `LANGFUSE_SECRET_KEY` | Secret key for Langfuse tracing | `sk-lf-...` |
@@ -208,6 +207,8 @@ Looking for a robust SUV for outdoor adventures:
 **Result**: Dacia Duster, Suzuki Vitara, Subaru Forester
 
 ---
+
+## 🏗️ Architecture
 
 CarGPT follows a modern **Monorepo** architecture using **NPM Workspaces**.
 
@@ -262,7 +263,7 @@ flowchart TD
             Verify --> Vision1["Check Image 1"]
             Verify --> Vision2["Check Image 2"]
             
-            Vision1 & Vision2 --> Keep{Confidence > Threshold?}
+            Vision1 & Vision2 --> Keep{"Confidence > Threshold?"}
             Keep -->|Yes| KeepImg[Keep]
             Keep -->|No| DropImg[Discard]
         end

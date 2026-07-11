@@ -6,5 +6,11 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
+    // Use worker threads instead of child-process forks: on Windows the forks
+    // pool occasionally fails to spawn ("Timeout waiting for worker to respond")
+    // under load, causing the commit hook to fail spuriously.
+    pool: 'threads',
+    minWorkers: 1,
+    maxWorkers: 1,
   },
 });
