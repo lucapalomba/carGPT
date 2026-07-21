@@ -20,7 +20,7 @@
     "express-rate-limit": "^7.5.0",
     "express-slow-down": "^3.1.0",
     "express-session": "^1.19.0",
-    "inversify": "^8.1.0",
+    "inversify": "^8.2.1",
     "langfuse": "^3.38.6",
     "morgan": "^1.11.0",
     "p-queue": "^8.0.1",
