@@ -45,6 +45,7 @@
     "nodemon": "^3.1.14"
   },
   "overrides": {
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "shell-quote": "^1.10.0"
   }
 }
