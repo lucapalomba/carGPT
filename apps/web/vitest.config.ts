@@ -21,14 +21,15 @@ export default defineConfig({
       // main.tsx is the Vite entry and cannot be parsed by the v8 coverage
       // AST parser (rolldown PARSE_ERROR); exclude it from coverage.
       exclude: ['src/main.tsx', 'src/**/*.test.{ts,tsx}', 'src/**/__tests__/**', 'src/**/*.d.ts'],
-      // Match the server package: keep a floor under the measured coverage so
-      // regressions fail CI rather than slip in silently. Current measured
-      // coverage sits well above these thresholds (~77% statements).
+      // Keep a floor under the measured coverage so regressions fail CI
+      // rather than slip in silently. Primary metrics (statements/lines) at
+      // 80%; branches/functions floor at 75/80 — current measured coverage
+      // sits well above (~90% statements, ~79% branches, ~85% functions).
       thresholds: {
-        lines: 60,
-        functions: 60,
-        branches: 60,
-        statements: 60,
+        lines: 80,
+        functions: 80,
+        branches: 75,
+        statements: 80,
       },
     },
   },
