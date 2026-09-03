@@ -47,3 +47,19 @@ jobs:
 
       - name: Check Coverage
         run: npm run test:coverage
+
+      - name: Upload server coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: apps/server/coverage/lcov.info
+          flags: server
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload web coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: apps/web/coverage/lcov.info
+          flags: web
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

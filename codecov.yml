@@ -1,0 +1,36 @@
+# Codecov configuration for CarGPT.
+# Coverage is uploaded from CI with two flags: `server` and `web`,
+# matching the two workspaces. Branch-level badges in the README read
+# the per-flag coverage.
+
+coverage:
+  status:
+    project:
+      default:
+        # informational only — don't fail PRs on coverage drift
+        informational: true
+    patch:
+      default:
+        informational: true
+
+flags:
+  server:
+    paths:
+      - apps/server/src
+    carryforward: false
+  web:
+    paths:
+      - apps/web/src
+    carryforward: false
+
+ignore:
+  - "apps/web/src/main.tsx"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/__tests__/**"
+  - "**/*.d.ts"
+  - "apps/web/e2e/**"
+
+comment:
+  layout: "reach,diff,flags,files,footer"
+  show_carryforward_flags: true

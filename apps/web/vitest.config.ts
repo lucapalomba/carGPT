@@ -12,5 +12,14 @@ export default defineConfig({
     pool: 'threads',
     minWorkers: 1,
     maxWorkers: 1,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      all: true,
+      include: ['src/**/*.{ts,tsx}'],
+      // main.tsx is the Vite entry and cannot be parsed by the v8 coverage
+      // AST parser (rolldown PARSE_ERROR); exclude it from coverage.
+      exclude: ['src/main.tsx', 'src/**/*.test.{ts,tsx}', 'src/**/__tests__/**', 'src/**/*.d.ts'],
+    },
   },
 });
