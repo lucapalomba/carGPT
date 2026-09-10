@@ -18,8 +18,8 @@
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.1",
-    "express-slow-down": "^3.1.1",
     "express-session": "^1.19.0",
+    "express-slow-down": "^3.1.1",
     "inversify": "^8.2.1",
     "langfuse": "^3.38.6",
     "morgan": "^1.12.0",
@@ -46,6 +46,6 @@
     "tsx": "^4.21.0",
     "typescript": "^7.0.2",
     "typescript-eslint": "^8.65.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.11"
   }
 }
