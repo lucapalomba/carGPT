@@ -1,0 +1,594 @@
+{
+  "measuredAt": "2026-09-10T12:24:04.084Z",
+  "baseUrl": "http://localhost:3001/api",
+  "runs": [
+    {
+      "id": "sportive-50k",
+      "run": 1,
+      "cap": 50000,
+      "cars": [
+        {
+          "car": "Audi A6 Sportback (2018)",
+          "price": "45.000–55.000 EUR (usato, modello del 2018)",
+          "parsed": 55000,
+          "violation": false
+        },
+        {
+          "car": "Porsche 911 Carrera S (2019)",
+          "price": "50,000–55,000 EUR",
+          "parsed": 55000,
+          "violation": false
+        },
+        {
+          "car": "Lamborghini Huracán Evo (2017)",
+          "price": "50,000–55,000 EUR",
+          "parsed": 55000,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 0,
+      "error": null
+    },
+    {
+      "id": "sportive-50k",
+      "run": 2,
+      "cap": 50000,
+      "cars": [
+        {
+          "car": "Audi A6 Sportback (2019)",
+          "price": "35.000–45.000 EUR (usato, modello 2019)",
+          "parsed": 45000,
+          "violation": false
+        },
+        {
+          "car": "Porsche 911 Carrera S (2018)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Ferrari 488 GTB (2017)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 2,
+      "error": null
+    },
+    {
+      "id": "sportive-50k",
+      "run": 3,
+      "cap": 50000,
+      "cars": [
+        {
+          "car": "Audi A6 Sportback (2019)",
+          "price": "35.000–45.000 EUR (usato, modello 2019)",
+          "parsed": 45000,
+          "violation": false
+        },
+        {
+          "car": "Porsche 911 Carrera S (2018)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Ferrari 488 GTB (2017)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 2,
+      "error": null
+    },
+    {
+      "id": "famiglia-range",
+      "run": 1,
+      "cap": 35000,
+      "cars": [
+        {
+          "car": "Volkswagen T-Roc (2023)",
+          "price": "18.500–22.000 EUR (used market, 2023 model)",
+          "parsed": 22000,
+          "violation": false
+        },
+        {
+          "car": "Skoda Kamiq (2023)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Hyundai Tucson (2022)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 2,
+      "error": null
+    },
+    {
+      "id": "famiglia-range",
+      "run": 2,
+      "cap": 35000,
+      "cars": [
+        {
+          "car": "Toyota Yaris (2022)",
+          "price": "18,500–22,000 EUR",
+          "parsed": 22000,
+          "violation": false
+        },
+        {
+          "car": "Skoda Kamiq (2023)",
+          "price": "18,500–22,000 EUR",
+          "parsed": 22000,
+          "violation": false
+        },
+        {
+          "car": "Volkswagen T-Roc (2021)",
+          "price": "18.500–22.000 EUR",
+          "parsed": 22000,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 0,
+      "error": null
+    },
+    {
+      "id": "famiglia-range",
+      "run": 3,
+      "cap": 35000,
+      "cars": [
+        {
+          "car": "Toyota Yaris (2022)",
+          "price": "18,500–22,000 EUR",
+          "parsed": 22000,
+          "violation": false
+        },
+        {
+          "car": "Skoda Kamiq (2023)",
+          "price": "18,500–22,000 EUR",
+          "parsed": 22000,
+          "violation": false
+        },
+        {
+          "car": "Volkswagen T-Roc (2021)",
+          "price": "18.500–22.000 EUR",
+          "parsed": 22000,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 0,
+      "error": null
+    },
+    {
+      "id": "sportiva-40k",
+      "run": 1,
+      "cap": 40000,
+      "cars": [
+        {
+          "car": "Audi A3 Sportback (2023)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Porsche Boxster (2022)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Alfa Romeo Giulia Quadrifoglio (2021)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 3,
+      "error": null
+    },
+    {
+      "id": "sportiva-40k",
+      "run": 2,
+      "cap": 40000,
+      "cars": [
+        {
+          "car": "Audi A3 Sportback (2023)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Porsche Boxster (2022)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Alfa Romeo Giulia Quadrifoglio (2021)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 3,
+      "error": null
+    },
+    {
+      "id": "sportiva-40k",
+      "run": 3,
+      "cap": 40000,
+      "cars": [
+        {
+          "car": "Audi A3 Sportback (2023)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Porsche Boxster (2022)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Alfa Romeo Giulia Quadrifoglio (2021)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 3,
+      "error": null
+    },
+    {
+      "id": "city-20k",
+      "run": 1,
+      "cap": 20000,
+      "cars": [
+        {
+          "car": "Toyota Yaris Hybrid (2023)",
+          "price": "15,000–20,000 EUR (used market, 2023 model)",
+          "parsed": 20000,
+          "violation": false
+        },
+        {
+          "car": "Hyundai Ioniq Hybrid (2022)",
+          "price": "15,000–20,000 EUR (used market, 2022 model)",
+          "parsed": 20000,
+          "violation": false
+        },
+        {
+          "car": "Kia Niro Hybrid (2021)",
+          "price": "15,000–20,000 EUR (used market, 2021 model)",
+          "parsed": 20000,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 0,
+      "error": null
+    },
+    {
+      "id": "city-20k",
+      "run": 2,
+      "cap": 20000,
+      "cars": [
+        {
+          "car": "Toyota Yaris Hybrid (2023)",
+          "price": "15,000–20,000 EUR (used market, 2023 model)",
+          "parsed": 20000,
+          "violation": false
+        },
+        {
+          "car": "Hyundai i20 Hybrid (2022)",
+          "price": "15,000–20,000 EUR (used market, 2022 model)",
+          "parsed": 20000,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 0,
+      "error": null
+    },
+    {
+      "id": "city-20k",
+      "run": 3,
+      "cap": 20000,
+      "cars": [
+        {
+          "car": "Toyota Yaris Hybrid (2023)",
+          "price": "15,000–20,000 EUR (used market, 2023 model)",
+          "parsed": 20000,
+          "violation": false
+        },
+        {
+          "car": "Hyundai i20 Hybrid (2022)",
+          "price": "15,000–20,000 EUR (used market, 2022 model)",
+          "parsed": 20000,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 0,
+      "error": null
+    },
+    {
+      "id": "suv-30k",
+      "run": 1,
+      "cap": 30000,
+      "cars": [
+        {
+          "car": "Toyota RAV4 (2022)",
+          "price": "28,990 USD",
+          "parsed": 28990,
+          "violation": false
+        },
+        {
+          "car": "Honda CR-V (2021)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Subaru Outback (2021)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 2,
+      "error": null
+    },
+    {
+      "id": "suv-30k",
+      "run": 2,
+      "cap": 30000,
+      "cars": [
+        {
+          "car": "Toyota RAV4 (2022)",
+          "price": "28,990 USD",
+          "parsed": 28990,
+          "violation": false
+        },
+        {
+          "car": "Honda CR-V (2021)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Subaru Outback (2021)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 2,
+      "error": null
+    },
+    {
+      "id": "suv-30k",
+      "run": 3,
+      "cap": 30000,
+      "cars": [
+        {
+          "car": "Toyota RAV4 (2022)",
+          "price": "28,990 USD",
+          "parsed": 28990,
+          "violation": false
+        },
+        {
+          "car": "Honda CR-V (2021)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Subaru Outback (2021)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 2,
+      "error": null
+    },
+    {
+      "id": "berlina-15k",
+      "run": 1,
+      "cap": 15000,
+      "cars": [
+        {
+          "car": "Volkswagen Golf (2020)",
+          "price": "12.500–15.000 EUR (used market, 2020 model)",
+          "parsed": 15000,
+          "violation": false
+        },
+        {
+          "car": "Toyota Corolla (2019)",
+          "price": "12,500–15,000 EUR (used market, 2019 model)",
+          "parsed": 15000,
+          "violation": false
+        },
+        {
+          "car": "Skoda Fabia (2018)",
+          "price": "12,500–14,500 EUR",
+          "parsed": 14500,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 0,
+      "error": null
+    },
+    {
+      "id": "berlina-15k",
+      "run": 2,
+      "cap": 15000,
+      "cars": [
+        {
+          "car": "Volkswagen Golf (2020)",
+          "price": "12.500–15.000 EUR (used market, 2020 model)",
+          "parsed": 15000,
+          "violation": false
+        },
+        {
+          "car": "Skoda Fabia (2019)",
+          "price": "12,500–14,500 EUR",
+          "parsed": 14500,
+          "violation": false
+        },
+        {
+          "car": "Hyundai i20 (2018)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 1,
+      "error": null
+    },
+    {
+      "id": "berlina-15k",
+      "run": 3,
+      "cap": 15000,
+      "cars": [
+        {
+          "car": "Volkswagen Golf (2020)",
+          "price": "12.500–15.000 EUR (used market, 2020 model)",
+          "parsed": 15000,
+          "violation": false
+        },
+        {
+          "car": "Skoda Fabia (2019)",
+          "price": "12,500–14,500 EUR",
+          "parsed": 14500,
+          "violation": false
+        },
+        {
+          "car": "Hyundai i20 (2018)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 1,
+      "error": null
+    },
+    {
+      "id": "no-budget-control",
+      "run": 1,
+      "cap": null,
+      "cars": [
+        {
+          "car": "Jeep Wrangler Rubicon (2023)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Land Rover Defender 110 (2022)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Toyota 4Runner TRD Pro (2022)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 3,
+      "error": null
+    },
+    {
+      "id": "no-budget-control",
+      "run": 2,
+      "cap": null,
+      "cars": [
+        {
+          "car": "Jeep Wrangler Rubicon (2023)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Toyota Land Cruiser 200 (2022)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Ford Explorer (2023)",
+          "price": "No información",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 3,
+      "error": null
+    },
+    {
+      "id": "no-budget-control",
+      "run": 3,
+      "cap": null,
+      "cars": [
+        {
+          "car": "Jeep Wrangler Rubicon (2023)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Toyota Land Cruiser 200 (2022)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        },
+        {
+          "car": "Ford Explorer (2023)",
+          "price": "No information",
+          "parsed": null,
+          "violation": false
+        }
+      ],
+      "violations": 0,
+      "missingPrice": 3,
+      "error": null
+    }
+  ],
+  "summary": {
+    "prompts": 7,
+    "runsPerPrompt": 3,
+    "carsTotal": 61,
+    "budgetedCars": 52,
+    "violations": 0,
+    "violationRate": 0,
+    "missingPrice": 23,
+    "missingPriceRate": 0.442,
+    "violationPct": "0%",
+    "missingPricePct": "44.2%"
+  }
+}
