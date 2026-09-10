@@ -3,6 +3,7 @@ import { SERVICE_IDENTIFIERS, IOllamaService, IJudgeService, IPromptService } fr
 import { SearchResponse } from './types.js';
 
 import { JudgeVerdictSchema } from '../../utils/schemas.js';
+import { parseBudgetMax, parsePriceMax } from '../../utils/priceBudget.js';
 
 @injectable()
 export class JudgeService implements IJudgeService {
@@ -14,9 +15,22 @@ export class JudgeService implements IJudgeService {
   async evaluateResponse(requirements: string, fullResponse: SearchResponse, language: string, trace?: any): Promise<any> {
     const template = this.promptService.loadTemplate('judge.md');
     
+    // Surface the budget constraint explicitly (issue #76): the judge must be
+    // able to penalize cars outside budget and cars without a parseable price.
+    const constraints = (fullResponse as { searchIntent?: { constraints?: { budget?: string } } })
+      .searchIntent?.constraints;
+    const budgetMax = parseBudgetMax(constraints?.budget);
+    const carsWithoutPrice = budgetMax != null
+      ? fullResponse.cars.filter(c => parsePriceMax(c.price) == null).length
+      : 0;
+
     const filteredResponse = {
       analysis: fullResponse.analysis,
-      cars: fullResponse.cars
+      cars: fullResponse.cars,
+      ...(budgetMax != null ? {
+        userBudgetMax: budgetMax,
+        carsWithoutParseablePrice: carsWithoutPrice
+      } : {})
     };
     
     const context = JSON.stringify(filteredResponse, null, 2);

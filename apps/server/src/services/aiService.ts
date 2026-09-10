@@ -15,6 +15,7 @@ import { injectable, inject } from 'inversify';
 import { langfuse } from '../utils/langfuse.js';
 import { config } from '../config/index.js';
 import logger from '../utils/logger.js';
+import { parseBudgetMax, filterCarsWithinBudget } from '../utils/priceBudget.js';
 
 // Export Shared Types for consumers
 export type { Car, SearchResponse };
@@ -55,9 +56,27 @@ export class AIService implements IAIService {
         this.elaborationService.elaborateCars(suggestions.choices, searchIntent, trace)
       );
 
+      // Deterministic budget enforcement (issue #76): exclude cars whose parsed
+      // price exceeds the parsed budget beyond tolerance, instead of relying on
+      // prompt instructions alone. Cars without a parseable price are kept and
+      // flagged budgetCheck: 'unknown'.
+      const budgetMax = parseBudgetMax(searchIntent.constraints?.budget);
+      const budgetFilter = filterCarsWithinBudget(elaboratedCars, budgetMax);
+      if (budgetFilter.excluded.length > 0) {
+        logger.info('Budget enforcement excluded cars above budget', {
+          budgetMax,
+          excluded: budgetFilter.excluded.map(e => `${e.car.make} ${e.car.model} (${e.parsedPrice})`)
+        });
+      }
+      const budgetMeta = {
+        budgetMax,
+        budgetExcluded: budgetFilter.excluded.length,
+        budgetUnknownPrice: budgetFilter.kept.filter(c => c.budgetCheck === 'unknown').length
+      };
+
       const translatedResults = await this.withRetry('translateResults', () =>
         this.translationService.translateResults(
-          { analysis: suggestions.analysis, cars: elaboratedCars },
+          { analysis: suggestions.analysis, cars: budgetFilter.kept },
           language,
           trace
         )
@@ -92,6 +111,7 @@ export class AIService implements IAIService {
         metadata: {
           model: config.ollama.model,
           environment: config.mode,
+          ...budgetMeta,
           ...(judgeResult ? {
             judgeVerdict: judgeResult.verdict,
             judgeScore: judgeResult.vote
@@ -149,9 +169,33 @@ ${feedback}
       const elaboratedCars = await this.withRetry('elaborateCars', () =>
         this.elaborationService.elaborateCars(combinedCars, searchIntent, trace)
       );
+
+      // Deterministic budget enforcement (issue #76): same rule as findCars,
+      // but pinned cars are preserved (the user pinned them deliberately).
+      const budgetMax = parseBudgetMax(searchIntent.constraints?.budget);
+      const budgetFilter = filterCarsWithinBudget(
+        elaboratedCars.filter(c => !c.pinned),
+        budgetMax
+      );
+      if (budgetFilter.excluded.length > 0) {
+        logger.info('Budget enforcement excluded cars above budget', {
+          budgetMax,
+          excluded: budgetFilter.excluded.map(e => `${e.car.make} ${e.car.model} (${e.parsedPrice})`)
+        });
+      }
+      const budgetMeta = {
+        budgetMax,
+        budgetExcluded: budgetFilter.excluded.length,
+        budgetUnknownPrice: budgetFilter.kept.filter(c => c.budgetCheck === 'unknown').length
+      };
+      const budgetCheckedCars = [
+        ...elaboratedCars.filter(c => c.pinned),
+        ...budgetFilter.kept
+      ];
+
       const translatedResults = await this.withRetry('translateResults', () =>
         this.translationService.translateResults(
-          { analysis: suggestions.analysis, cars: elaboratedCars },
+          { analysis: suggestions.analysis, cars: budgetCheckedCars },
           language,
           trace
         )
@@ -190,6 +234,7 @@ ${feedback}
         metadata: {
           model: config.ollama.model,
           environment: config.mode,
+          ...budgetMeta,
           ...(judgeResult ? {
             judgeVerdict: judgeResult.verdict,
             judgeScore: judgeResult.vote
