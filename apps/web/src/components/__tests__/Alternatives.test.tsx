@@ -7,7 +7,7 @@ vi.mock('../../utils/api.js', () => ({ api: { post: vi.fn() } }));
 import { api } from '../../utils/api.js';
 import { Provider } from '../ui/provider.js';
 import Alternatives from '../Alternatives.js';
-import type { Car } from '../hooks/useCarSearch.js';
+import type { Car } from '../../hooks/useCarSearch';
 
 const cars: Car[] = [
   { make: 'Tesla', model: '3', year: 2023 } as Car,

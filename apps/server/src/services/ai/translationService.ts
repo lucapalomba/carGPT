@@ -3,7 +3,7 @@ import { injectable, inject } from 'inversify';
 import { ITranslationService, IOllamaService, IPromptService, SERVICE_IDENTIFIERS } from '../../container/interfaces.js';
 import logger from '../../utils/logger.js';
 import { z } from 'zod'; // Added import for Zod
-import { CarSchema, AnalysisTranslationSchema, TranslationServiceInputSchema, SearchResponseSchema, Car } from '../../utils/schemas.js'; // Modified import to use CarSchema and include new schemas and Car type
+import { CarSchema, AnalysisTranslationSchema, TranslationServiceInputSchema, SearchResponseSchema, Car, SearchResponse } from '../../utils/schemas.js'; // Modified import to use CarSchema and include new schemas and Car type
 import { config } from '../../config/index.js';
 
 @injectable()

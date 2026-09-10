@@ -15,14 +15,17 @@ vi.mock('express', () => {
 });
 
 // Mock swagger-ui-express
-vi.mock('swagger-ui-express', () => ({
-  default: {
-    serve: vi.fn((req, res, next) => next()),
-    setup: vi.fn(() => (req, res, next) => next())
-  },
-  serve: vi.fn((req, res, next) => next()),
-  setup: vi.fn(() => (req, res, next) => next())
-}));
+vi.mock('swagger-ui-express', () => {
+  const passThrough = (req: unknown, res: unknown, next: () => void) => next();
+  return {
+    default: {
+      serve: vi.fn(passThrough),
+      setup: vi.fn(() => passThrough)
+    },
+    serve: vi.fn(passThrough),
+    setup: vi.fn(() => passThrough)
+  };
+});
 
 // Mock config
 vi.mock('../../config/index.js', () => ({
@@ -91,7 +94,7 @@ describe('serverSetup', () => {
       setupDevelopmentEnvironment(app);
       
       // Check that /api-docs was NOT called
-      const calls = (app.use as any).mock.calls;
+      const calls: unknown[][] = (app.use as any).mock.calls;
       const apiDocsCall = calls.find(call => call[0] === '/api-docs');
       expect(apiDocsCall).toBeUndefined();
     });

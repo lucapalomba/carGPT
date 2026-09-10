@@ -148,7 +148,7 @@ export class OllamaService implements IOllamaService {
       // Parse options from config
       let options: any;
       try {
-        options = JSON.parse(config.ollama.options);
+        options = JSON.parse(config.ollama.options ?? '');
       } catch (error) {
         logger.error('Failed to parse OLLAMA_OPTIONS, using defaults', {
           error: String(error),
