@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { flushLangfuse, forceFlushLangfuse } from '../langfuseUtils';
-import langfuse from '../langfuse';
-import logger from '../logger';
+import { flushLangfuse, forceFlushLangfuse } from '../langfuseUtils.js';
+import langfuse from '../langfuse.js';
+import logger from '../logger.js';
 
 vi.mock('../langfuse', () => ({
   default: {

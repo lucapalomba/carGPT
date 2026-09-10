@@ -4,9 +4,8 @@ import {
   ElaborationSchema, 
   SearchIntentSchema, 
   VerifyCarSchema, 
-  AnalysisTranslationSchema, 
-  JudgeVerdictSchema, 
-  CarTranslationSchema,
+  AnalysisTranslationSchema,
+  JudgeVerdictSchema,
   OllamaStructuredOutputSchema
 } from '../schemas.js';
 

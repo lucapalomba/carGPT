@@ -9,8 +9,7 @@ const initializeQueue = () => {
   if (!ollamaQueue) {
     ollamaQueue = new PQueue({
       concurrency: config.rateLimit.ollamaQueue.concurrency,
-      timeout: config.rateLimit.ollamaQueue.timeout,
-      throwOnTimeout: true
+      timeout: config.rateLimit.ollamaQueue.timeout
     });
 
     ollamaQueue.on('active', () => {

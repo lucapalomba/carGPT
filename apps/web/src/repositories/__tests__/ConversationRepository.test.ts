@@ -3,7 +3,7 @@ import {
   conversationRepository,
   ConversationRepository,
 } from '../ConversationRepository.js';
-import type { Conversation, ConversationMessage } from '../ConversationRepository.js';
+import type { Conversation } from '../ConversationRepository.js';
 
 /**
  * ConversationRepository is a singleton backed by localStorage under the
@@ -11,16 +11,6 @@ import type { Conversation, ConversationMessage } from '../ConversationRepositor
  * clean slate without needing to re-instantiate the singleton.
  */
 const STORAGE_KEY = 'cargpt_conversations';
-
-function makeMessage(partial: Partial<ConversationMessage> = {}): ConversationMessage {
-  return {
-    id: `msg-${Math.random().toString(36).slice(2)}`,
-    timestamp: new Date('2026-01-01T00:00:00Z'),
-    type: 'user',
-    content: 'hello',
-    ...partial,
-  };
-}
 
 function makeConversation(partial: Partial<Conversation> = {}): Conversation {
   return {

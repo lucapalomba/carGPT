@@ -1,4 +1,4 @@
-import { CacheService } from '../CacheService';
+import { CacheService } from '../CacheService.js';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 describe('CacheService', () => {

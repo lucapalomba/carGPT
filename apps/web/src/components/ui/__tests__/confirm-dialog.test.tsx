@@ -4,8 +4,7 @@ import type { ReactNode } from 'react';
 
 vi.mock('react-hot-toast', () => {
   const dismiss = vi.fn();
-  const toast = vi.fn();
-  toast.dismiss = dismiss;
+  const toast = Object.assign(vi.fn(), { dismiss });
   return { toast };
 });
 
