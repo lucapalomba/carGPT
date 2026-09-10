@@ -100,6 +100,7 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
       "reason": "Perfect for families thanks to the space...",
       "percentage": "95",
       "pinned": false,
+      "budgetCheck": "within",
       "images": [
         {
           "url": "https://example.com/car.jpg",
@@ -112,6 +113,8 @@ CarGPT uses the `Accept-Language` HTTP header to determine the user's preferred 
   ]
 }
 ```
+
+> **Note**: every suggested car carries a `budgetCheck` field: `"within"` (parsed price respects the user's budget, with ~10% tolerance), `"unknown"` (price could not be parsed — kept for transparency, treat with caution), or absent when the user expressed no budget. Suggestions exceeding the budget are excluded server-side before being returned.
 
 **Response** (Error - 400/500):
 ```json

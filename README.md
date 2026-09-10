@@ -64,6 +64,7 @@ As the project and the global AI landscape have evolved, so has the developer's 
 - Describe your needs in **plain language**
 - Get **3 personalized suggestions** with detailed analysis
 - See why each car is recommended for **your** specific case
+- **Budget respected by design**: suggestions above your stated budget are automatically filtered out before they reach you (a ~10% tolerance covers used-car market variance); cars without a verifiable price are kept but flagged, never silently hidden
 
 
 ### 🏘️ AI-Powered Image Verification (VLM)
