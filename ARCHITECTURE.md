@@ -27,7 +27,7 @@ CarGPT has transitioned to a powerful **Monorepo** architecture to separate conc
 │       │   └── services/    # Business logic & Ollama integration (.ts)
 │       └── prompt-templates/ # LLM prompt definitions
 ├── package.json            # Root configuration (Workspaces + Parallel Dev)
-└── .node-version           # Repository-wide Node version (v24.12.0)
+└── .node-version           # Repository-wide Node version (v24.21.0)
 ```
 
 ---
