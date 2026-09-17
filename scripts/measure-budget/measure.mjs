@@ -72,7 +72,7 @@ const PROMPTS = [
  */
 function parsePriceMax(priceString) {
   if (typeof priceString !== 'string' || !priceString.trim()) return null;
-  const cleaned = priceString.toLowerCase().replace(/[^\dkm.,0-9]/g, ' ');
+  const cleaned = priceString.toLowerCase().replace(/[^\dkm.,]/g, ' ');
   let max = null;
   // "35k" / "1.2m" style suffixes first
   for (const m of cleaned.matchAll(/(\d+(?:[.,]\d+)?)\s*(km?)\b/gi)) {

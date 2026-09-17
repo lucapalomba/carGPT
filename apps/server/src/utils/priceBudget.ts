@@ -10,7 +10,7 @@
 /** Currency-agnostic: parses the largest monetary value in a price/budget string. */
 export function parsePriceMax(priceString: string | null | undefined): number | null {
   if (typeof priceString !== 'string' || !priceString.trim()) return null;
-  const cleaned = priceString.toLowerCase().replace(/[^\dkm.,0-9]/g, ' ');
+  const cleaned = priceString.toLowerCase().replace(/[^\dkm.,]/g, ' ');
   let max: number | null = null;
   const consider = (n: number) => {
     if (Number.isFinite(n) && n > 500) max = Math.max(max ?? 0, n);
