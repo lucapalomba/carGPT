@@ -95,4 +95,77 @@ it('should handle network errors', async () => {
       }));
     });
   });
+
+  describe('put', () => {
+    it('should send a PUT with the serialized body', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: 'updated' }),
+      });
+
+      const result = await api.put('/test', { key: 'value' });
+
+      expect(result).toEqual({ success: true, data: 'updated' });
+      expect(fetchMock).toHaveBeenCalledWith('/test', expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ key: 'value' }),
+      }));
+    });
+
+    it('should report failures like post does', async () => {
+      fetchMock.mockResolvedValue({
+        ok: false,
+        statusText: 'Bad Request',
+        json: async () => ({ message: 'Invalid payload' }),
+      });
+
+      const result = await api.put('/test', {});
+
+      expect(result).toBeNull();
+      expect(toast.error).toHaveBeenCalledWith('Invalid payload');
+    });
+  });
+
+  describe('delete', () => {
+    it('should send a DELETE with no body', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: 'gone' }),
+      });
+
+      const result = await api.delete('/test');
+
+      expect(result).toEqual({ success: true, data: 'gone' });
+      expect(fetchMock).toHaveBeenCalledWith('/test', expect.objectContaining({
+        method: 'DELETE',
+      }));
+      expect(fetchMock.mock.calls[0][1].body).toBeUndefined();
+    });
+  });
+
+  describe('legacy responses', () => {
+    it('should pass through a payload that has no success field', async () => {
+      const legacy = { cars: [{ make: 'Tesla', model: '3' }] };
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => legacy,
+      });
+
+      const result = await api.post('/test', {});
+
+      expect(result).toEqual(legacy);
+      expect(toast.error).not.toHaveBeenCalled();
+    });
+
+    it('should pass through a non-object payload', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: async () => 'plain body',
+      });
+
+      const result = await api.post('/test', {});
+
+      expect(result).toBe('plain body');
+    });
+  });
 });

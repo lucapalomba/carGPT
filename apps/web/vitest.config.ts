@@ -22,14 +22,15 @@ export default defineConfig({
       // AST parser (rolldown PARSE_ERROR); exclude it from coverage.
       exclude: ['src/main.tsx', 'src/**/*.test.{ts,tsx}', 'src/**/__tests__/**', 'src/**/*.d.ts'],
       // Keep a floor under the measured coverage so regressions fail CI
-      // rather than slip in silently. Primary metrics (statements/lines) at
-      // 80%; branches/functions floor at 75/80 — current measured coverage
-      // sits well above (~90% statements, ~79% branches, ~85% functions).
+      // rather than slip in silently. Measured 2026-09-17: ~95.9% statements,
+      // ~86.8% branches, ~95.5% functions, ~96.0% lines. The thresholds sit
+      // ~3 points below that, so a new untested file fails the build without
+      // making unrelated churn fail it.
       thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 75,
-        statements: 80,
+        lines: 93,
+        functions: 93,
+        branches: 84,
+        statements: 93,
       },
     },
   },

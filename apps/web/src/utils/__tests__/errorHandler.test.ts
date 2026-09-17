@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { toast } from 'react-hot-toast';
 
-vi.mock('react-hot-toast', () => ({
-  toast: {
-    error: vi.fn(),
-    success: vi.fn(),
-  },
-}));
+vi.mock('react-hot-toast', () => {
+  // toast() is callable as well as carrying .error/.success — handleRateLimitError
+  // uses the callable form for the follow-up tip toast.
+  const toast = Object.assign(vi.fn(), { error: vi.fn(), success: vi.fn() });
+  return { toast };
+});
 
 import { errorHandler } from '../errorHandler.js';
 
@@ -29,6 +29,10 @@ const mockResponse = (init: {
 describe('ErrorHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('exposes the expected handler surface', () => {
@@ -59,6 +63,14 @@ describe('ErrorHandler', () => {
     it('falls back to a generic message for unknown error shapes', () => {
       errorHandler.handleError({ weird: true }, 'ctx');
       expect(toast.error).toHaveBeenCalledWith('Unknown error occurred');
+    });
+
+    it('uses the response statusText when the error is not an Error or a string', () => {
+      const res = mockResponse({ status: 500, statusText: 'Internal Server Error' });
+
+      errorHandler.handleError({ weird: true }, 'ctx', res);
+
+      expect(toast.error).toHaveBeenCalledWith('Internal Server Error');
     });
   });
 
@@ -125,6 +137,82 @@ describe('ErrorHandler', () => {
       await errorHandler.handleResponseError(res, 'ctx');
 
       expect(toast.error).toHaveBeenCalledWith('Bad Gateway');
+    });
+
+    it('falls back to a generic message when statusText is empty too', async () => {
+      const res = mockResponse({
+        status: 502,
+        statusText: '',
+        json: async () => {
+          throw new Error('not json');
+        },
+      });
+
+      await errorHandler.handleResponseError(res, 'ctx');
+
+      expect(toast.error).toHaveBeenCalledWith('Server communication error');
+    });
+
+    it('falls back to a generic message when the error body is not an object', async () => {
+      const res = mockResponse({ status: 500, json: async () => 'plain text body' });
+
+      await errorHandler.handleResponseError(res, 'ctx');
+
+      expect(toast.error).toHaveBeenCalledWith('Operation failed');
+    });
+
+    it('reads the Retry-After header when a 429 body is not JSON', async () => {
+      const res = mockResponse({
+        status: 429,
+        headers: { 'Retry-After': '45s' },
+        json: async () => {
+          throw new Error('not json');
+        },
+      });
+
+      await errorHandler.handleResponseError(res, 'ctx');
+
+      expect(toast.error).toHaveBeenCalledWith(
+        'Too many requests. Please wait before trying again. Try again after 45s.',
+        expect.any(Object)
+      );
+    });
+
+    it('reads the Retry-After header when a 503 body is not JSON', async () => {
+      const res = mockResponse({
+        status: 503,
+        headers: { 'Retry-After': '30s' },
+        json: async () => {
+          throw new Error('not json');
+        },
+      });
+
+      await errorHandler.handleResponseError(res, 'ctx');
+
+      expect(toast.error).toHaveBeenCalledWith(
+        'Server is busy. Please try again later. Try again after 30s.',
+        expect.any(Object)
+      );
+    });
+
+    it('shows the 429 tip in a follow-up toast after the delay', async () => {
+      vi.useFakeTimers();
+      const res = mockResponse({
+        status: 429,
+        json: async () => ({ error: 'Too many requests', tip: 'Try a wider budget range' }),
+      });
+
+      await errorHandler.handleResponseError(res, 'ctx');
+
+      // The tip is deferred, so nothing has been shown through the callable yet
+      expect(toast).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(1000);
+
+      expect(toast).toHaveBeenCalledWith(
+        'Try a wider budget range',
+        expect.objectContaining({ icon: '💡' })
+      );
     });
   });
 
