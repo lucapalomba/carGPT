@@ -15,7 +15,11 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [24.x]
+        # 24.15.0 is the floor declared in package.json "engines"; 24.x is the
+        # moving latest. Running both means raising that floor can never be
+        # silent — the low leg starts failing the moment a dependency or a
+        # syntax feature needs a newer Node.
+        node-version: [24.15.0, 24.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +45,11 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [24.x]
+        # 24.15.0 is the floor declared in package.json "engines"; 24.x is the
+        # moving latest. Running both means raising that floor can never be
+        # silent — the low leg starts failing the moment a dependency or a
+        # syntax feature needs a newer Node.
+        node-version: [24.15.0, 24.x]
 
     steps:
       - uses: actions/checkout@v4
