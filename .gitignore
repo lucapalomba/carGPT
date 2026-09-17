@@ -33,3 +33,9 @@ yarn-error.log*
 .idea/
 problematic_user_prompt.md
 apps/server/logs/
+
+# Local Claude Code state (settings, scratch)
+.claude/
+
+# Budget measurement output — regenerable via scripts/measure-budget/measure.mjs
+scripts/measure-budget/*.json
