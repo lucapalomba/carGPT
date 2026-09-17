@@ -13,13 +13,20 @@ interface ImageCarouselProps {
 const ImageCarousel: React.FC<ImageCarouselProps> = ({ images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Read the length defensively: the hooks below run before the empty-state
+  // early return, so a bare `images.length` here would throw on `undefined`
+  // and make the `!images` guard further down unreachable.
+  const count = images?.length ?? 0;
+
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-  }, [images.length]);
+    if (!count) return;
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % count);
+  }, [count]);
 
   const prevSlide = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
-  }, [images.length]);
+    if (!count) return;
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + count) % count);
+  }, [count]);
 
   // Handle keyboard navigation
   useEffect(() => {
