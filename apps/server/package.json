@@ -21,7 +21,7 @@
     "express-session": "^1.19.0",
     "express-slow-down": "^3.1.1",
     "inversify": "^8.2.3",
-    "langfuse": "^3.38.6",
+    "langfuse": "^3.39.2",
     "morgan": "^1.12.0",
     "p-queue": "^9.3.3",
     "reflect-metadata": "^0.2.2",
