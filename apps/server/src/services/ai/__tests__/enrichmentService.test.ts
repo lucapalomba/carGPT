@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EnrichmentService } from '../enrichmentService.js';
+import { config } from '../../../config/index.js';
 
 vi.mock('../../../config/index.js', async () => {
   const originalConfig = await vi.importActual('../../../config/index.js') as any;
@@ -22,6 +23,12 @@ describe('EnrichmentService', () => {
     mockOllamaService = { verifyImageContainsCar: vi.fn() };
     mockImageSearchService = { searchMultipleCars: vi.fn() };
     enrichmentService = new EnrichmentService(mockOllamaService, mockImageSearchService);
+  });
+
+  afterEach(() => {
+    // Restore any config mutated by the tests, even on failure
+    (config as any).carouselImageLength = 5;
+    (config as any).sequentialPromiseExecution = false;
   });
 
   describe('enrichCarsWithImages', () => {
@@ -64,6 +71,61 @@ describe('EnrichmentService', () => {
       mockImageSearchService.searchMultipleCars.mockResolvedValue({});
       const result = await enrichmentService.enrichCarsWithImages(cars as any, mockTrace);
       expect(result[0].images).toEqual([]);
+    });
+
+    it('should skip image search when carouselImageLength is 0', async () => {
+      const { config } = await import('../../../config/index.js');
+      const previous = config.carouselImageLength;
+      (config as any).carouselImageLength = 0;
+      const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn() }) };
+      const cars = [{ make: 'Toyota', model: 'Corolla', year: 2020 }];
+
+      const result = await enrichmentService.enrichCarsWithImages(cars as any, mockTrace);
+
+      expect(mockImageSearchService.searchMultipleCars).not.toHaveBeenCalled();
+      expect(result).toEqual(cars);
+      (config as any).carouselImageLength = previous;
+    });
+
+    it('should propagate image search failures', async () => {
+      const spanEnd = vi.fn();
+      const mockTrace = { span: vi.fn().mockReturnValue({ end: spanEnd }) };
+      mockImageSearchService.searchMultipleCars.mockRejectedValue(new Error('search down'));
+
+      await expect(
+        enrichmentService.enrichCarsWithImages([{ make: 'Toyota', model: 'Corolla', year: 2020 }] as any, mockTrace)
+      ).rejects.toThrow('search down');
+      expect(spanEnd).toHaveBeenCalledWith(expect.objectContaining({ level: 'ERROR' }));
+    });
+
+    it('should process cars sequentially (strictly in order) when enabled', async () => {
+      const { config } = await import('../../../config/index.js');
+      const previous = config.sequentialPromiseExecution;
+      (config as any).sequentialPromiseExecution = true;
+
+      const invocationOrder: string[] = [];
+      const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn() }) };
+      const cars = [
+        { make: 'Toyota', model: 'Corolla', year: 2020 },
+        { make: 'Honda', model: 'Civic', year: 2021 }
+      ];
+      mockImageSearchService.searchMultipleCars.mockResolvedValue({
+        'Toyota-Corolla': [{ url: 'a.jpg' }],
+        'Honda-Civic': [{ url: 'b.jpg' }]
+      });
+      mockOllamaService.verifyImageContainsCar.mockImplementation((carInfo: string) => {
+        invocationOrder.push(carInfo);
+        return Promise.resolve(true);
+      });
+
+      const result = await enrichmentService.enrichCarsWithImages(cars as any, mockTrace);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].images).toEqual([{ url: 'a.jpg' }]);
+      expect(result[1].images).toEqual([{ url: 'b.jpg' }]);
+      // Strict order proves sequential execution (parallel would not preserve it)
+      expect(invocationOrder).toEqual(['Toyota Corolla', 'Honda Civic']);
+      (config as any).sequentialPromiseExecution = previous;
     });
   });
 

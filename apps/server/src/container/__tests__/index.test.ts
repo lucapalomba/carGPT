@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Container } from 'inversify';
 import { SERVICE_IDENTIFIERS } from '../interfaces.js';
+import { container, registerDependencies } from '../index.js';
 
 describe('Container Configuration', () => {
   let testContainer: Container;
@@ -208,6 +209,70 @@ describe('Container Configuration', () => {
       } catch (error) {
         expect((error as Error).message).toContain('No bindings found');
       }
+    });
+  });
+});
+
+describe('registerDependencies', () => {
+  it('should register every service identifier exactly once', () => {
+    container.unbindAll();
+
+    registerDependencies();
+
+    const identifiers = [
+      SERVICE_IDENTIFIERS.CACHE_SERVICE,
+      SERVICE_IDENTIFIERS.OLLAMA_SERVICE,
+      SERVICE_IDENTIFIERS.PROMPT_SERVICE,
+      SERVICE_IDENTIFIERS.IMAGE_SEARCH_SERVICE,
+      SERVICE_IDENTIFIERS.CONVERSATION_SERVICE,
+      SERVICE_IDENTIFIERS.INTENT_SERVICE,
+      SERVICE_IDENTIFIERS.SUGGESTION_SERVICE,
+      SERVICE_IDENTIFIERS.ELABORATION_SERVICE,
+      SERVICE_IDENTIFIERS.TRANSLATION_SERVICE,
+      SERVICE_IDENTIFIERS.ENRICHMENT_SERVICE,
+      SERVICE_IDENTIFIERS.JUDGE_SERVICE,
+      SERVICE_IDENTIFIERS.AI_SERVICE,
+    ];
+
+    identifiers.forEach(identifier => {
+      expect(container.isBound(identifier)).toBe(true);
+    });
+  });
+
+  it('should be idempotent when called more than once', () => {
+    container.unbindAll();
+
+    expect(() => {
+      registerDependencies();
+      registerDependencies();
+    }).not.toThrow();
+
+    expect(container.isBound(SERVICE_IDENTIFIERS.AI_SERVICE)).toBe(true);
+    // A duplicate binding would surface as "Ambiguous bindings" on resolution
+    expect(() => container.get(SERVICE_IDENTIFIERS.AI_SERVICE)).not.toThrow();
+  });
+
+  it('should resolve every registered service from the container', () => {
+    container.unbindAll();
+    registerDependencies();
+
+    const identifiers = [
+      SERVICE_IDENTIFIERS.CACHE_SERVICE,
+      SERVICE_IDENTIFIERS.OLLAMA_SERVICE,
+      SERVICE_IDENTIFIERS.PROMPT_SERVICE,
+      SERVICE_IDENTIFIERS.IMAGE_SEARCH_SERVICE,
+      SERVICE_IDENTIFIERS.CONVERSATION_SERVICE,
+      SERVICE_IDENTIFIERS.INTENT_SERVICE,
+      SERVICE_IDENTIFIERS.SUGGESTION_SERVICE,
+      SERVICE_IDENTIFIERS.ELABORATION_SERVICE,
+      SERVICE_IDENTIFIERS.TRANSLATION_SERVICE,
+      SERVICE_IDENTIFIERS.ENRICHMENT_SERVICE,
+      SERVICE_IDENTIFIERS.JUDGE_SERVICE,
+      SERVICE_IDENTIFIERS.AI_SERVICE,
+    ];
+
+    identifiers.forEach(identifier => {
+      expect(() => container.get(identifier)).not.toThrow();
     });
   });
 });

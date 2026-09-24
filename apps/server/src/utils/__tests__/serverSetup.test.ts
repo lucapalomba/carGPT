@@ -59,6 +59,16 @@ vi.mock('../../middleware/errorHandler.js', () => ({
   errorHandler: vi.fn(),
 }));
 
+// Mock the DI container used by setupGracefulShutdown's dynamic import. This
+// must be a top-level mock (not vi.doMock) so it is guaranteed to be in effect
+// regardless of test execution order.
+const mockCloseConnections = vi.fn();
+vi.mock('../../container/index.js', () => ({
+  container: {
+    get: vi.fn(() => ({ closeConnections: mockCloseConnections })),
+  },
+}));
+
 describe('serverSetup', () => {
   let app: any;
   let mockServer: any;
@@ -124,6 +134,22 @@ describe('serverSetup', () => {
       logServerInfo(true);
       expect(logger.info).toHaveBeenCalled();
     });
+
+    it('should log the startup banner in development', () => {
+      (configModule.config as any).isProduction = false;
+      logServerInfo(false);
+      expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('CarGPT server is running'));
+    });
+
+    it('should not log the banner in production', () => {
+      (configModule.config as any).isProduction = true;
+      (logger.info as any).mockClear();
+      logServerInfo(true);
+      const bannerCalls = (logger.info as any).mock.calls.filter(
+        (call: unknown[]) => typeof call[0] === 'string' && call[0].includes('CarGPT server is running')
+      );
+      expect(bannerCalls).toHaveLength(0);
+    });
   });
 
   describe('setupGracefulShutdown', () => {
@@ -131,6 +157,48 @@ describe('serverSetup', () => {
       setupGracefulShutdown(mockServer);
       expect(process.on).toHaveBeenCalledWith('SIGTERM', expect.any(Function));
       expect(process.on).toHaveBeenCalledWith('SIGINT', expect.any(Function));
+    });
+
+    it('should log, close the server and exit when a signal is received', async () => {
+      mockCloseConnections.mockClear();
+      setupGracefulShutdown(mockServer);
+
+      // Capture the SIGTERM handler registered by setupGracefulShutdown
+      const sigtermCall = (process.on as any).mock.calls.find(
+        (call: unknown[]) => call[0] === 'SIGTERM'
+      );
+      const handler = sigtermCall[1] as (signal: string) => void;
+      await handler('SIGTERM');
+
+      // Wait for the fire-and-forget dynamic import chain to settle so it does
+      // not resolve after the test environment is torn down.
+      await vi.waitFor(() => expect(mockCloseConnections).toHaveBeenCalled(), { timeout: 1000 });
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.stringContaining('SIGTERM received')
+      );
+      expect(mockServer.close).toHaveBeenCalled();
+      expect(process.exit).toHaveBeenCalledWith(0);
+    });
+
+    it('should force exit when the server does not close in time', async () => {
+      vi.useFakeTimers();
+      const hangingServer = { close: vi.fn() };
+      setupGracefulShutdown(hangingServer);
+
+      const sigintCall = (process.on as any).mock.calls.filter(
+        (call: unknown[]) => call[0] === 'SIGINT'
+      ).pop();
+      const handler = sigintCall[1] as (signal: string) => void;
+      handler('SIGINT');
+
+      // Flush the dynamic import chain before advancing the force-shutdown timer
+      await vi.runAllTicks();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      vi.advanceTimersByTime(10000);
+      expect(process.exit).toHaveBeenCalledWith(1);
+      vi.useRealTimers();
     });
   });
 });

@@ -29,5 +29,18 @@ describe('IntentService', () => {
       expect(mockOllamaService.callOllamaStructured).toHaveBeenCalled();
       expect(result).toEqual(mockResult);
     });
+
+    it('should end the span with an error and rethrow when Ollama fails', async () => {
+      const spanEnd = vi.fn();
+      const mockTrace = { span: vi.fn().mockReturnValue({ end: spanEnd, id: '1' }) };
+      mockPromptService.loadTemplate.mockReturnValue('template');
+      mockOllamaService.callOllamaStructured.mockRejectedValue(new Error('intent failure'));
+
+      await expect(
+        intentService.determineSearchIntent('family car', 'en', mockTrace)
+      ).rejects.toThrow('intent failure');
+
+      expect(spanEnd).toHaveBeenCalledWith(expect.objectContaining({ level: 'ERROR' }));
+    });
   });
 });
