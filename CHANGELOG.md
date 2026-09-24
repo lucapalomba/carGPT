@@ -166,6 +166,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Standard rate limit headers (RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset)
   - HTTP 429, 503, and 504 error responses with retry information
 
+### 🐛 Bug Fixes
+- **Idempotent DI registration**: `registerDependencies()` now skips already-bound identifiers via `container.isBound`, preventing duplicate/ambiguous bindings on repeated calls.
+
+### 🔧 Technical Improvements
+- **Raised coverage floors**: server Vitest thresholds increased to 93% lines / 90% functions / 84% branches / 93% statements, backed by a broad test-coverage campaign (middleware handlers, request queue, config branches, Ollama service, DI container, graceful shutdown).
+
 ### Planned Features
 - [ ] Car images integration
 - [ ] Price range filters
@@ -176,7 +182,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ ] Dark mode
 - [ ] Car availability links (dealerships/used market)
 - [ ] Database persistence for conversations
-- [ ] Unit and integration tests
 
 ---
 
