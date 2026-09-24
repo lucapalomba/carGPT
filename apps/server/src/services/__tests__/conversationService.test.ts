@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConversationService } from '../conversationService.js';
 
 describe('ConversationService', () => {
@@ -49,5 +49,30 @@ describe('ConversationService', () => {
     conversationService.getOrInitialize('count-test');
     expect(conversationService.count()).toBe(initialCount + 1);
     conversationService.delete('count-test');
+  });
+
+  describe('stale conversation cleanup', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('removes conversations older than one hour on the cleanup interval', () => {
+      const service = new ConversationService();
+      const stale = service.getOrInitialize('stale');
+      service.getOrInitialize('fresh');
+
+      // Age the stale conversation beyond the 1-hour threshold
+      stale.createdAt = new Date(Date.now() - 2 * 3600000);
+
+      vi.advanceTimersByTime(3600000);
+
+      expect(service.get('stale')).toBeUndefined();
+      expect(service.get('fresh')).toBeDefined();
+    });
   });
 });

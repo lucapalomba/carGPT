@@ -49,7 +49,7 @@ All new features and bug fixes should include tests. We maintain a comprehensive
 - **Unit Tests**: For individual functions and services. Run with `npm run test:unit`.
 - **Integration Tests**: For API endpoints. Run with `npm run test:int`.
 - **E2E Tests**: For user flows. Run with `npm run test:e2e`.
-- **Coverage**: We aim for at least 60% code coverage. Run `npm run test:coverage` to check.
+- **Coverage**: Enforced by Vitest — **server**: 93% lines / 90% functions / 84% branches / 93% statements; **web**: 93% / 93% / 84% / 93%. Run `npm run test:coverage` to check; CI and the commit hook fail if these floors regress.
 
 Before submitting a PR, ensure all tests pass and coverage is maintained.
 

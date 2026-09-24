@@ -11,6 +11,12 @@ vi.mock('morgan', () => {
   };
 });
 
+import morgan from 'morgan';
+
+// Capture calls made at import time (before any clearAllMocks in beforeEach).
+const importTimeTokenCalls = (morgan.token as any).mock.calls.slice();
+const importTimeMorganCalls = (morgan as any).mock.calls.slice();
+
 // Mock logger stream
 vi.mock('../../utils/logger.js', () => ({
   stream: {
@@ -55,6 +61,27 @@ describe('Request Logger Middleware', () => {
     // For now, let's just ensure it's a function (middleware).
     it('should be a function', () => {
       expect(typeof requestLogger).toBe('function');
+    });
+
+    it('should register the custom session-id and request-id tokens', () => {
+      const sessionToken = importTimeTokenCalls.find((call: unknown[]) => call[0] === 'session-id');
+      const requestToken = importTimeTokenCalls.find((call: unknown[]) => call[0] === 'request-id');
+
+      expect(sessionToken).toBeDefined();
+      expect(requestToken).toBeDefined();
+
+      expect(sessionToken[1]({ sessionID: 'abc' })).toBe('abc');
+      expect(sessionToken[1]({})).toBe('-');
+
+      expect(requestToken[1]({ id: 'req-1' })).toBe('req-1');
+      expect(requestToken[1]({})).toBe('-');
+    });
+
+    it('should skip logging for the health endpoint and keep other URLs', () => {
+      const options = importTimeMorganCalls[0][1];
+      expect(options.stream).toBeDefined();
+      expect(options.skip({ originalUrl: '/api/health' })).toBe(true);
+      expect(options.skip({ originalUrl: '/api/cars' })).toBe(false);
     });
   });
 

@@ -26,7 +26,7 @@ You are a DI Architecture enforcer for CarGPT server. Your role is to ensure pro
 
 - New services go in `apps/server/src/services/`
 - Service interfaces go in `apps/server/src/container/interfaces.ts`
-- Register services in `apps/server/src/container/inversify.config.ts`
+- Register services in `apps/server/src/container/index.ts` (`registerDependencies`)
 - Controllers should only handle: request parsing, validation, response sending
 
 ## Anti-Patterns to Avoid
@@ -45,6 +45,6 @@ class MyController {
 ## Key Files
 
 - `apps/server/src/container/interfaces.ts` - All service interfaces
-- `apps/server/src/container/inversify.config.ts` - Container configuration
+- `apps/server/src/container/index.ts` - Container configuration and `registerDependencies`
 - `apps/server/src/services/` - Business logic services
 - `apps/server/src/controllers/` - HTTP controllers

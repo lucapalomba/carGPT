@@ -80,6 +80,34 @@ describe('carsController', () => {
       }));
       expect(mockConversation.history).toHaveLength(1);
     });
+
+    it('should update the conversation language when the AI returns one', async () => {
+      req.body = { requirements: 'I need a family car with good safety features' };
+      const mockConversation = { history: [], userLanguage: '' };
+      mockConversationService.getOrInitialize.mockReturnValue(mockConversation as any);
+      mockAIService.findCarsWithImages.mockResolvedValue({
+        cars: [{ make: 'Fiat', model: 'Panda', year: 2021 }],
+        userLanguage: 'it'
+      });
+
+      await carsController.findCars(req, res, vi.fn());
+
+      expect(mockConversation.userLanguage).toBe('it');
+    });
+
+    it('should reject when the AI response has no cars array', async () => {
+      req.body = { requirements: 'I need a family car with good safety features' };
+      mockConversationService.getOrInitialize.mockReturnValue({ history: [] } as any);
+      mockAIService.findCarsWithImages.mockResolvedValue({ userLanguage: 'en' } as any);
+
+      const next = vi.fn();
+      await carsController.findCars(req, res, next);
+      // asyncHandler forwards rejections on a microtask
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(next).toHaveBeenCalledWith(expect.any(Error));
+      expect(res.json).not.toHaveBeenCalled();
+    });
   });
 
   describe('refineSearch', () => {
@@ -146,6 +174,45 @@ describe('carsController', () => {
           expect.stringContaining('### Assistant Suggestions (Initial):\nToyota RAV4 (2022)'),
           expect.anything()
         );
+    });
+
+    it('should build context from refinement history entries', async () => {
+      req.body.feedback = 'prefer red';
+      req.body.pinnedCars = 'not-an-array';
+      const mockConversation = {
+        requirements: 'SUV',
+        history: [
+          { type: 'find-cars', data: { requirements: 'SUV', result: { cars: [{ make: 'Toyota', model: 'RAV4', year: 2022 }] } } },
+          {
+            type: 'refine-search',
+            data: {
+              feedback: 'make it red',
+              result: { cars: [{ make: 'Mazda', model: 'CX-5', year: 2023 }] }
+            }
+          }
+        ]
+      };
+      mockConversationService.get.mockReturnValue(mockConversation);
+      mockAIService.refineCarsWithImages.mockResolvedValue({ cars: [] });
+
+      await carsController.refineSearch(req, res, vi.fn());
+
+      const context = mockAIService.refineCarsWithImages.mock.calls[0][3];
+      expect(context).toContain('### User feedback (Refinement Step 2):\n"make it red"');
+      expect(context).toContain('### Assistant Suggestions (Refinement Step 2):\nMazda CX-5 (2023)');
+      // Non-array pinnedCars should be normalised to []
+      expect(mockAIService.refineCarsWithImages.mock.calls[0][4]).toEqual([]);
+    });
+
+    it('should fall back to a generic request when history has no requirements', async () => {
+      req.body.feedback = 'anything';
+      mockConversationService.get.mockReturnValue({ history: [] } as any);
+      mockAIService.refineCarsWithImages.mockResolvedValue({ cars: [] });
+
+      await carsController.refineSearch(req, res, vi.fn());
+
+      const context = mockAIService.refineCarsWithImages.mock.calls[0][3];
+      expect(context).toContain('User is looking for a car.');
     });
   });
 

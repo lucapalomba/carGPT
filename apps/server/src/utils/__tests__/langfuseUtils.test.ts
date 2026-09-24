@@ -19,7 +19,11 @@ vi.mock('../logger', () => ({
 
 describe('langfuseUtils', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    // Restore the default resolved behaviour so the error tests' mockRejectedValue
+    // cannot leak into the success tests when run in a shuffled order.
+    (langfuse.shutdownAsync as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+    (langfuse.flushAsync as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
   });
 
   describe('flushLangfuse', () => {

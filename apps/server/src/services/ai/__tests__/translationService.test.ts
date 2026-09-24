@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TranslationService } from '../translationService.js';
+import { config } from '../../../config/index.js';
 
 describe('TranslationService', () => {
   let translationService: TranslationService;
@@ -11,6 +12,11 @@ describe('TranslationService', () => {
     mockOllamaService = { callOllamaStructured: vi.fn() };
     mockPromptService = { loadTemplate: vi.fn() };
     translationService = new TranslationService(mockOllamaService, mockPromptService);
+  });
+
+  afterEach(() => {
+    // Restore any config mutated by sequential-execution tests, even on failure
+    (config as any).sequentialPromiseExecution = false;
   });
 
   describe('translateResults', () => {
@@ -27,10 +33,54 @@ describe('TranslationService', () => {
     it('should handle missing analysis gracefully', async () => { // Renamed for clarity
       const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn(), id: '1' }) };
       mockOllamaService.callOllamaStructured.mockResolvedValue({});
-      
+
       const results = { analysis: '', cars: [] }; // Provide an empty string
       const result = await translationService.translateResults(results, 'it', mockTrace);
       expect(result.analysis).toBe(''); // Expect it to remain an empty string
+    });
+
+    it('should translate cars sequentially (strictly in order) when enabled', async () => {
+      const { config } = await import('../../../config/index.js');
+      const previous = config.sequentialPromiseExecution;
+      (config as any).sequentialPromiseExecution = true;
+
+      const invocationOrder: string[] = [];
+      const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn(), id: '1' }) };
+      mockPromptService.loadTemplate.mockReturnValue('template');
+      mockOllamaService.callOllamaStructured.mockImplementation((messages: any[], _schema: any, _trace: any, opName: string) => {
+        if (opName === 'translate_analysis') {
+          return Promise.resolve({ analysis: 'Analisi tradotta abbastanza lunga' });
+        }
+        const car = JSON.parse(messages[2].content);
+        invocationOrder.push(car.model);
+        return Promise.resolve({ ...car, reason: 'tradotto' });
+      });
+
+      const fullCar = (make: string, model: string, year: number) => ({
+        make,
+        model,
+        year,
+        type: 'sedan',
+        price: '20000',
+        strengths: [],
+        weaknesses: [],
+        reason: 'test',
+        pinned: false,
+        precise_model: '',
+      });
+      const results = {
+        analysis: 'Original analysis long enough to be valid',
+        cars: [
+          fullCar('Toyota', 'Corolla', 2020),
+          fullCar('Honda', 'Civic', 2021)
+        ]
+      };
+      const result = await translationService.translateResults(results, 'it', mockTrace);
+
+      expect(result.cars).toHaveLength(2);
+      // Strict order proves sequential execution (parallel would not preserve it)
+      expect(invocationOrder).toEqual(['Corolla', 'Civic']);
+      (config as any).sequentialPromiseExecution = previous;
     });
   });
 

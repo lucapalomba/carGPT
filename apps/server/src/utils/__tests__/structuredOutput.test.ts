@@ -81,6 +81,18 @@ describe('StructuredOutputValidator', () => {
       const result = StructuredOutputValidator.convertSchema(z.object({})) as any;
       expect(result.type).toBe('object');
     });
+
+    it('should wrap conversion failures with a descriptive error', () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      // A non-Zod value makes z.toJSONSchema throw, exercising the catch branch
+      expect(() => StructuredOutputValidator.convertSchema({ not: 'a zod schema' })).toThrow(
+        /Failed to convert schema/
+      );
+      expect(errorSpy).toHaveBeenCalled();
+
+      errorSpy.mockRestore();
+    });
   });
 });
 
