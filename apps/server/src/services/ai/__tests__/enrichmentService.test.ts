@@ -1,6 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EnrichmentService } from '../enrichmentService.js';
 
+vi.mock('../../../config/index.js', async () => {
+  const originalConfig = await vi.importActual('../../../config/index.js') as any;
+  return {
+    ...originalConfig,
+    config: {
+      ...originalConfig.config,
+      carouselImageLength: 5,
+    },
+  };
+});
+
 describe('EnrichmentService', () => {
   let enrichmentService: EnrichmentService;
   let mockOllamaService: any;
@@ -14,18 +25,6 @@ describe('EnrichmentService', () => {
   });
 
   describe('enrichCarsWithImages', () => {
-    beforeEach(() => {
-      vi.mock('../../../config/index.js', async () => {
-        const originalConfig = await vi.importActual('../../../config/index.js') as any;
-        return {
-          ...originalConfig,
-          config: {
-            ...originalConfig.config,
-            carouselImageLength: 5,
-          },
-        };
-      });
-    });
     it('should enrich cars with images successfully', async () => {
       const mockTrace = { span: vi.fn().mockReturnValue({ end: vi.fn() }) };
       const cars = [
