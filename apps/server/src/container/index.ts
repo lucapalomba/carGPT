@@ -37,23 +37,31 @@ import { JudgeService } from '../services/ai/judgeService.js';
 export const container = new Container();
 
 export function registerDependencies(): void {
+  // Idempotent: skip bindings that already exist so calling this twice cannot
+  // create duplicate (ambiguous) bindings.
+  const bind = <T>(identifier: symbol, implementation: new (...args: any[]) => T): void => { /* eslint-disable-line @typescript-eslint/no-explicit-any */
+    if (!container.isBound(identifier)) {
+      container.bind<T>(identifier).to(implementation).inSingletonScope();
+    }
+  };
+
   // Register core services
-  container.bind<ICacheService>(SERVICE_IDENTIFIERS.CACHE_SERVICE).to(CacheService).inSingletonScope();
-  container.bind<IOllamaService>(SERVICE_IDENTIFIERS.OLLAMA_SERVICE).to(OllamaService).inSingletonScope();
-  container.bind<IPromptService>(SERVICE_IDENTIFIERS.PROMPT_SERVICE).to(PromptService).inSingletonScope();
-  container.bind<IImageSearchService>(SERVICE_IDENTIFIERS.IMAGE_SEARCH_SERVICE).to(ImageSearchService).inSingletonScope();
-  container.bind<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE).to(ConversationService).inSingletonScope();
-  
+  bind<ICacheService>(SERVICE_IDENTIFIERS.CACHE_SERVICE, CacheService);
+  bind<IOllamaService>(SERVICE_IDENTIFIERS.OLLAMA_SERVICE, OllamaService);
+  bind<IPromptService>(SERVICE_IDENTIFIERS.PROMPT_SERVICE, PromptService);
+  bind<IImageSearchService>(SERVICE_IDENTIFIERS.IMAGE_SEARCH_SERVICE, ImageSearchService);
+  bind<IConversationService>(SERVICE_IDENTIFIERS.CONVERSATION_SERVICE, ConversationService);
+
   // Register AI sub-services
-  container.bind<IIntentService>(SERVICE_IDENTIFIERS.INTENT_SERVICE).to(IntentService).inSingletonScope();
-  container.bind<ISuggestionService>(SERVICE_IDENTIFIERS.SUGGESTION_SERVICE).to(SuggestionService).inSingletonScope();
-  container.bind<IElaborationService>(SERVICE_IDENTIFIERS.ELABORATION_SERVICE).to(ElaborationService).inSingletonScope();
-  container.bind<ITranslationService>(SERVICE_IDENTIFIERS.TRANSLATION_SERVICE).to(TranslationService).inSingletonScope();
-  container.bind<IEnrichmentService>(SERVICE_IDENTIFIERS.ENRICHMENT_SERVICE).to(EnrichmentService).inSingletonScope();
-  container.bind<IJudgeService>(SERVICE_IDENTIFIERS.JUDGE_SERVICE).to(JudgeService).inSingletonScope();
-  
+  bind<IIntentService>(SERVICE_IDENTIFIERS.INTENT_SERVICE, IntentService);
+  bind<ISuggestionService>(SERVICE_IDENTIFIERS.SUGGESTION_SERVICE, SuggestionService);
+  bind<IElaborationService>(SERVICE_IDENTIFIERS.ELABORATION_SERVICE, ElaborationService);
+  bind<ITranslationService>(SERVICE_IDENTIFIERS.TRANSLATION_SERVICE, TranslationService);
+  bind<IEnrichmentService>(SERVICE_IDENTIFIERS.ENRICHMENT_SERVICE, EnrichmentService);
+  bind<IJudgeService>(SERVICE_IDENTIFIERS.JUDGE_SERVICE, JudgeService);
+
   // Register main AI Service
-  container.bind<IAIService>(SERVICE_IDENTIFIERS.AI_SERVICE).to(AIService).inSingletonScope();
+  bind<IAIService>(SERVICE_IDENTIFIERS.AI_SERVICE, AIService);
 }
 
 // Don't auto-register to avoid duplicate bindings
