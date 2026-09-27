@@ -80,7 +80,7 @@ describe('QASection', () => {
     fireEvent.change(screen.getByTestId('qa-car-select'), { target: { value: '0' } });
     const input = screen.getByPlaceholderText(/annual maintenance cost/i);
     fireEvent.change(input, { target: { value: 'Good in snow?' } });
-    fireEvent.keyPress(input, { key: 'Enter', charCode: 13, keyCode: 13 });
+    fireEvent.keyDown(input, { key: 'Enter', charCode: 13, keyCode: 13 });
 
     await waitFor(() => expect(api.post).toHaveBeenCalledWith('/api/ask-about-car', {
       car: 'Tesla 3',

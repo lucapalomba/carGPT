@@ -81,7 +81,7 @@ const handleRefine = () => {
                 placeholder="e.g. 'Too expensive', 'I prefer German cars'…"
                 value={refineInput}
                 onChange={(e) => setRefineInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleRefine()}
+                onKeyDown={(e) => e.key === 'Enter' && handleRefine()}
                 color="fg"
                 aria-label="Enter feedback to refine search results"
                 aria-required="false"
