@@ -403,7 +403,7 @@ export class OllamaService implements IOllamaService {
 
       const result = await this.callOllamaStructured(messages, VerifyCarSchema, trace, 'vision_verification');
 
-      const isValid = (result.modelConfidence > 0.8) && (result.textConfidence < 0.2);
+      const isValid = (result.modelConfidence > config.vision.modelConfidenceThreshold) && (result.textConfidence < config.vision.textConfidenceThreshold);
 
       if (span.end) span.end({ output: { ...result, isValid } });
       return isValid;
