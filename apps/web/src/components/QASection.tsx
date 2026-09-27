@@ -79,7 +79,7 @@ function QASection({ cars }: QASectionProps) {
             placeholder="e.g. What's the annual maintenance cost?"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleAsk()}
+            onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
             size="md"
             borderRadius="lg"
             color="fg"
