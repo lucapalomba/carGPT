@@ -207,7 +207,7 @@ export class CarSearchService {
     }
     
     const trimmed = requirements.trim();
-    if (trimmed.length < 3) {
+    if (trimmed.length < 10) {
       return false;
     }
     

@@ -29,7 +29,7 @@ export const useCarSearch = () => {
     try {
       // Validate requirements before sending
       if (!carSearchService.validateSearchRequirements(requirements)) {
-        throw new Error('Please provide valid search requirements (3-1000 characters)');
+        throw new Error('Please provide valid search requirements (10-1000 characters)');
       }
       
       const data = await carSearchService.findCars(requirements, sessionId);
