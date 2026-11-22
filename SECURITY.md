@@ -63,7 +63,7 @@ When reporting, please include:
 #### 4. Dependencies
 - Regular `npm audit` checks recommended
 - Keep dependencies updated
-- No known vulnerabilities in current dependencies
+- No critical or high advisories as of the last dependency refresh (see `CHANGELOG.md`); the remaining moderate findings are dev-tooling only and blocked on upstream releases — run `npm audit` before each release
 
 ### Best Practices for Deployment
 
