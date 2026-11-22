@@ -170,6 +170,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Idempotent DI registration**: `registerDependencies()` now skips already-bound identifiers via `container.isBound`, preventing duplicate/ambiguous bindings on repeated calls.
 
 ### 🔧 Technical Improvements
+- **Dependency refresh**: consolidated the eleven open Dependabot updates into a single lockfile pass — security fixes for `body-parser` 2.4.0, `proxy-addr` 2.0.8, `source-map-js` 1.2.2, `ip-address` 10.7.5, `undici` 8.12.3 and `morgan` 1.12.1, plus routine bumps `vite` 8.3.4, `jsdom` 30.1.1, `typescript-eslint` 8.70.1, `@types/node` 26.6.3 and `@vitest/coverage-v8` 5.0.2 (which also pulls `vitest` 5.0.2 in the lockfile). `jsdom` and `vitest` pull five semver-major transitive moves of their own (e.g. `html-encoding-sniffer` 7.0.0, `w3c-xmlserializer` 6.0.0), covered by the existing suite.
+- **Closed the remaining actionable advisories**: `zod` 4.6.7, `shell-quote` 1.12.0 (the root `overrides` entry was pinned to the vulnerable 1.10.0), `eslint` 10.15.0, `brace-expansion` 5.0.13 and `moment` 2.31.0 — `npm audit` drops from 18 findings (2 critical, 2 high) to 11 moderate, all upstream-blocked (`vitest` ≤ 5.0.2 behind the `~5.0.1` pin, `minimatch` 10.2.6 behind `nodemon` and `typescript-eslint` ≤ 8.72.2).
 - **Raised coverage floors**: server Vitest thresholds increased to 93% lines / 90% functions / 84% branches / 93% statements, backed by a broad test-coverage campaign (middleware handlers, request queue, config branches, Ollama service, DI container, graceful shutdown).
 
 ### Planned Features
