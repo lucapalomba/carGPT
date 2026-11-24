@@ -12,19 +12,22 @@ const initializeQueue = () => {
       timeout: config.rateLimit.ollamaQueue.timeout
     });
 
-    ollamaQueue.on('active', () => {
+    ollamaQueue.addEventListener('active', () => {
       logger.debug('Ollama queue request started', {
         size: ollamaQueue.size,
         pending: ollamaQueue.pending
       });
     });
 
-    ollamaQueue.on('idle', () => {
+    ollamaQueue.addEventListener('idle', () => {
       logger.debug('Ollama queue is idle');
     });
 
-    ollamaQueue.on('error', (error) => {
-      logger.error('Ollama queue error', { error: error.message });
+    ollamaQueue.addEventListener('error', (event: Event) => {
+      const error = (event as CustomEvent<unknown>).detail;
+      logger.error('Ollama queue error', {
+        error: error instanceof Error ? error.message : String(error)
+      });
     });
 
     logger.info('Ollama request queue initialized', {
